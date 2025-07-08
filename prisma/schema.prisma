@@ -1,0 +1,87 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Enums para campos con valores fijos
+enum TipoCliente {
+  NATURAL
+  EMPRESA
+}
+
+enum EstadoOrden {
+  PENDIENTE
+  PAGADO
+  ENTREGADO
+}
+
+enum MetodoPago {
+  EFECTIVO
+  TRANSFERENCIA
+}
+
+// Modelo Cliente
+model Cliente {
+  id             Int       @id @default(autoincrement())
+  tipo           TipoCliente
+  nombre         String
+  apellido       String
+  telefono       String
+  direccion      String
+  identificacion String
+  email          String?   
+  fechaRegistro  DateTime  @default(now())
+  ordenes        Orden[]
+}
+
+// Modelo Servicio (para catálogo de precios)
+model Servicio {
+  id             Int     @id @default(autoincrement())
+  nombreServicio String
+  precioBase     Float
+  descripcion    String?
+  detalleOrdenes DetalleOrden[]
+}
+
+// Modelo Orden
+model Orden {
+  id            Int            @id @default(autoincrement())
+  clienteId     Int
+  fechaIngreso  DateTime       @default(now())
+  fechaEntrega  DateTime?
+  estado        EstadoOrden
+  total         Float
+  observaciones String?
+  cliente       Cliente        @relation(fields: [clienteId], references: [id])
+  detalles      DetalleOrden[]
+  pagos         Pago[]
+}
+
+// Modelo DetalleOrden
+model DetalleOrden {
+  id           Int     @id @default(autoincrement())
+  ordenId      Int
+  servicioId   Int
+  cantidad     Int
+  precioUnit   Float
+  subtotal     Float
+  orden        Orden   @relation(fields: [ordenId], references: [id])
+  servicio     Servicio @relation(fields: [servicioId], references: [id])
+}
+
+// Modelo Pago
+model Pago {
+  id         Int       @id @default(autoincrement())
+  ordenId    Int
+  monto      Float
+  fechaPago  DateTime  @default(now())
+  metodoPago MetodoPago
+  nota       String?
+  orden      Orden     @relation(fields: [ordenId], references: [id])
+}
