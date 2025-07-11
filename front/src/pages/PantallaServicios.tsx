@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import axios from "axios";
-import FormularioServicio from "../components/FormularioServicio";
 import { toast } from "react-toastify";
 import { FaPlus } from "react-icons/fa";
+import TablaServicios from "../components/TablaServicios";
+import FormularioServicio from "../components/FormularioServicio";
 
 export default function PantallaServicios() {
   const [servicios, setServicios] = useState<any[]>([]);
-  const [mostrarModal, setMostrarModal] = useState(false);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [servicioSeleccionado, setServicioSeleccionado] =
     useState<any>(undefined);
 
@@ -27,12 +28,12 @@ export default function PantallaServicios() {
 
   const abrirNuevoServicio = () => {
     setServicioSeleccionado(undefined);
-    setMostrarModal(true);
+    setMostrarFormulario(true);
   };
 
   const editarServicio = (servicio: any) => {
     setServicioSeleccionado(servicio);
-    setMostrarModal(true);
+    setMostrarFormulario(true);
   };
 
   const guardarServicio = async (data: any) => {
@@ -44,7 +45,7 @@ export default function PantallaServicios() {
         await axios.post("/api/servicios", data);
         toast.success("Servicio registrado correctamente");
       }
-      setMostrarModal(false);
+      setMostrarFormulario(false);
       setServicioSeleccionado(undefined);
       cargarServicios();
     } catch (error) {
@@ -54,11 +55,8 @@ export default function PantallaServicios() {
   };
 
   const eliminarServicio = async (id: number) => {
-    const confirmado = window.confirm(
-      "¿Estás seguro de que deseas eliminar este servicio?"
-    );
-    if (!confirmado) return;
-
+    if (!window.confirm("¿Estás segura de que deseas eliminar este servicio?"))
+      return;
     try {
       await axios.delete(`/api/servicios/${id}`);
       toast.success("Servicio eliminado correctamente");
@@ -70,8 +68,8 @@ export default function PantallaServicios() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Servicios</h1>
         <button
           onClick={abrirNuevoServicio}
@@ -82,53 +80,23 @@ export default function PantallaServicios() {
         </button>
       </div>
 
-      <table className="w-full bg-white shadow rounded table-auto">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="px-4 py-2 text-left">Nombre</th>
-            <th className="px-4 py-2 text-left">Precio</th>
-            <th className="px-4 py-2 text-left">Descripción</th>
-            <th className="px-4 py-2 text-right">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {servicios.map((s: any) => (
-            <tr key={s.id} className="border-t">
-              <td className="px-4 py-2">{s.nombreServicio}</td>
-              <td className="px-4 py-2">${s.precioBase.toFixed(2)}</td>
-              <td className="px-4 py-2">{s.descripcion || "—"}</td>
-              <td className="px-4 py-2 text-right">
-                <div className="inline-flex gap-2">
-                  <button
-                    onClick={() => editarServicio(s)}
-                    className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => eliminarServicio(s.id)}
-                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <TablaServicios
+        servicios={servicios}
+        onEditar={editarServicio}
+        onEliminar={eliminarServicio}
+      />
 
-      {mostrarModal && (
+      {mostrarFormulario && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow w-full max-w-md">
             <FormularioServicio
               servicio={servicioSeleccionado}
-              onClose={() => setMostrarModal(false)}
+              onClose={() => setMostrarFormulario(false)}
               onSubmit={guardarServicio}
             />
             <div className="text-right mt-4">
               <button
-                onClick={() => setMostrarModal(false)}
+                onClick={() => setMostrarFormulario(false)}
                 className="text-sm text-gray-500 hover:text-gray-700"
               >
                 Cancelar

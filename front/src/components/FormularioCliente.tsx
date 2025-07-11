@@ -39,6 +39,7 @@ export default function FormularioCliente({
 
   useEffect(() => {
     if (cliente) {
+      console.log("🧾 Cliente recibido en formulario:", cliente);
       setForm(cliente);
     }
   }, [cliente]);

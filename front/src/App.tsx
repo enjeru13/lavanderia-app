@@ -7,6 +7,7 @@ import PantallaPrincipal from "./pages/PantallaPrincipal";
 import PantallaClientes from "./pages/PantallaClientes";
 import PantallaOrdenes from "./pages/PantallaOrdenes";
 import PantallaServicios from "./pages/PantallaServicios";
+import PantallaConfiguracion from "./pages/PantallaConfiguracion";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/clientes" element={<PantallaClientes />} />
           <Route path="/ordenes" element={<PantallaOrdenes />} />
           <Route path="/servicios" element={<PantallaServicios />} />
+          <Route path="/configuracion" element={<PantallaConfiguracion />} />
         </Route>
       </Routes>
       {/* Toast container global para mostrar notificaciones */}

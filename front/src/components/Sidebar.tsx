@@ -1,5 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { FaHome, FaUsers, FaClipboardList, FaTshirt } from "react-icons/fa";
+import {
+  FaHome,
+  FaUsers,
+  FaClipboardList,
+  FaTshirt,
+  FaCog,
+} from "react-icons/fa";
 
 export default function Sidebar() {
   const location = useLocation();
@@ -9,6 +15,7 @@ export default function Sidebar() {
     { to: "/clientes", label: "Clientes", icon: <FaUsers /> },
     { to: "/servicios", label: "Servicios", icon: <FaTshirt /> },
     { to: "/ordenes", label: "Órdenes", icon: <FaClipboardList /> },
+    { to: "/configuracion", label: "Configuración", icon: <FaCog /> },
   ];
 
   return (

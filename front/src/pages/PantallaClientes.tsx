@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import { getClientes } from "../services/clientes";
 import FormularioCliente from "../components/FormularioCliente";
 import ModalInfoCliente from "../components/ModalInfoCliente";
+import TablaClientes from "../components/TablaClientes"; // 📦 nuevo componente modular
 import axios from "axios";
 import { toast } from "react-toastify";
 
-export default function ListaClientes() {
-  const [clientes, setClientes] = useState([]);
-  const [mostrarModal, setMostrarModal] = useState(false);
+export default function PantallaClientes() {
+  const [clientes, setClientes] = useState<any[]>([]);
+  const [busqueda, setBusqueda] = useState("");
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [clienteSeleccionado, setClienteSeleccionado] =
     useState<any>(undefined);
   const [clienteInfo, setClienteInfo] = useState<any>(undefined);
@@ -26,30 +28,30 @@ export default function ListaClientes() {
     cargarClientes();
   }, []);
 
+  const clientesFiltrados = clientes.filter((c) => {
+    const nombreCompleto = `${c.nombre} ${c.apellido}`.toLowerCase();
+    const cedula = (c.identificacion || "").toLowerCase();
+    return (
+      nombreCompleto.includes(busqueda.toLowerCase()) ||
+      cedula.includes(busqueda.toLowerCase())
+    );
+  });
+
   const abrirNuevoCliente = () => {
     setClienteSeleccionado(undefined);
-    setMostrarModal(true);
-  };
-
-  const editarCliente = (cliente: any) => {
-    setClienteSeleccionado(cliente);
-    setMostrarModal(true);
-  };
-
-  const verCliente = (cliente: any) => {
-    setClienteInfo(cliente);
+    setMostrarFormulario(true);
   };
 
   const guardarCliente = async (data: any) => {
     try {
-      if (data.id) {
+      if (data.id && typeof data.id === "number") {
         await axios.put(`/api/clientes/${data.id}`, data);
         toast.success("Cliente actualizado correctamente");
       } else {
         await axios.post("/api/clientes", data);
         toast.success("Cliente registrado correctamente");
       }
-      setMostrarModal(false);
+      setMostrarFormulario(false);
       setClienteSeleccionado(undefined);
       cargarClientes();
     } catch (error) {
@@ -60,11 +62,8 @@ export default function ListaClientes() {
   };
 
   const eliminarCliente = async (id: number) => {
-    const confirmado = window.confirm(
-      "¿Estás seguro de que deseas eliminar este cliente?"
-    );
-    if (!confirmado) return;
-
+    if (!window.confirm("¿Estás segura de que deseas eliminar este cliente?"))
+      return;
     try {
       await axios.delete(`/api/clientes/${id}`);
       toast.success("Cliente eliminado correctamente");
@@ -76,8 +75,8 @@ export default function ListaClientes() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Clientes</h1>
         <button
           onClick={abrirNuevoCliente}
@@ -87,52 +86,28 @@ export default function ListaClientes() {
         </button>
       </div>
 
-      <table className="w-full bg-white shadow rounded table-auto">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="px-4 py-2 text-left">Nombre</th>
-            <th className="px-4 py-2 text-left">Teléfono</th>
-            <th className="px-4 py-2 text-right">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {clientes.map((c: any) => (
-            <tr key={c.id} className="border-t">
-              <td className="px-4 py-2">
-                {c.nombre} {c.apellido}
-              </td>
-              <td className="px-4 py-2">{c.telefono}</td>
-              <td className="px-4 py-2 text-right">
-                <div className="inline-flex gap-2">
-                  <button
-                    onClick={() => editarCliente(c)}
-                    className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => verCliente(c)}
-                    className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition"
-                  >
-                    Ver
-                  </button>
-                  <button
-                    onClick={() => eliminarCliente(c.id)}
-                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <input
+        type="text"
+        placeholder="Buscar por nombre o apellido o cédula"
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+        className="px-3 py-2 border rounded w-1/2"
+      />
 
-      {mostrarModal && (
+      <TablaClientes
+        clientes={clientesFiltrados}
+        onVerInfo={(c: any) => setClienteInfo(c)}
+        onEditar={(c: any) => {
+          setClienteSeleccionado(c);
+          setMostrarFormulario(true);
+        }}
+        onEliminar={eliminarCliente}
+      />
+
+      {mostrarFormulario && (
         <FormularioCliente
           cliente={clienteSeleccionado}
-          onClose={() => setMostrarModal(false)}
+          onClose={() => setMostrarFormulario(false)}
           onSubmit={guardarCliente}
         />
       )}

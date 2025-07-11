@@ -38,7 +38,6 @@ export async function createCliente(req: Request, res: Response) {
     res.status(500).json({ message: "Error al crear cliente" });
   }
 }
-
 export async function updateCliente(req: Request, res: Response) {
   const { id } = req.params;
   const result = ClienteSchema.safeParse(req.body);

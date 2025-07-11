@@ -88,3 +88,12 @@ model Pago {
   nota       String?
   orden      Orden     @relation(fields: [ordenId], references: [id])
 }
+
+model Configuracion {
+  id              Int     @id @default(autoincrement())
+  nombreNegocio   String
+  monedaPrincipal String  @default("USD")
+  tasaUSD         Float?
+  tasaVES         Float?
+  tasaCOP         Float?
+}
