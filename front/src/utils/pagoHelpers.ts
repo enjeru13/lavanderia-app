@@ -8,7 +8,7 @@ interface OrdenPago {
   pagos?: Pago[];
 }
 
-import { convertirAmonedaPrincipal } from "./convertirMoneda";
+import { convertirAmonedaPrincipal } from "./convertirMonedaHelpers";
 
 export function totalAbonadoConvertido(
   orden: OrdenPago,

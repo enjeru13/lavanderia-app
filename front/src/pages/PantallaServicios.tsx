@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FaPlus } from "react-icons/fa";
-import TablaServicios from "../components/TablaServicios";
-import FormularioServicio from "../components/FormularioServicio";
+import TablaServicios from "../components/tabla/TablaServicios";
+import FormularioServicio from "../components/formulario/FormularioServicio";
 
 export default function PantallaServicios() {
   const [servicios, setServicios] = useState<any[]>([]);

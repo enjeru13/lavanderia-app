@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import ModalPago from "../components/ModalPago";
-import TablaOrdenes from "../components/TablaOrdenes";
+import ModalPago from "../components/modal/ModalPago";
+import TablaOrdenes from "../components/tabla/TablaOrdenes";
 import { obtenerEstadoPagoConvertido } from "../utils/pagoHelpers";
 import { badgeEstado } from "../utils/badgeHelpers";
 

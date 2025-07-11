@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { getClientes } from "../services/clientes";
+import { getClientes } from "../../services/clientesService";
 
 type Props = {
   onSelect: (cliente: any) => void;

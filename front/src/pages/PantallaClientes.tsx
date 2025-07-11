@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { getClientes } from "../services/clientes";
-import FormularioCliente from "../components/FormularioCliente";
-import ModalInfoCliente from "../components/ModalInfoCliente";
-import TablaClientes from "../components/TablaClientes"; // 📦 nuevo componente modular
+import { getClientes } from "../services/clientesService";
+import FormularioCliente from "../components/formulario/FormularioCliente";
+import ModalInfoCliente from "../components/modal/ModalInfoCliente";
+import TablaClientes from "../components/tabla/TablaClientes"; // 📦 nuevo componente modular
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FaPlus } from "react-icons/fa";
 
 export default function PantallaClientes() {
   const [clientes, setClientes] = useState<any[]>([]);
@@ -80,8 +81,9 @@ export default function PantallaClientes() {
         <h1 className="text-2xl font-bold text-gray-800">Clientes</h1>
         <button
           onClick={abrirNuevoCliente}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition flex items-center gap-2"
         >
+          <FaPlus className="w-4 h-4" />
           Nuevo Cliente
         </button>
       </div>
