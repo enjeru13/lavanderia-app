@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getClientes } from "../services/clientesService";
 import FormularioCliente from "../components/formulario/FormularioCliente";
 import ModalInfoCliente from "../components/modal/ModalInfoCliente";
-import TablaClientes from "../components/tabla/TablaClientes"; // 📦 nuevo componente modular
+import TablaClientes from "../components/tabla/TablaClientes";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FaPlus } from "react-icons/fa";
@@ -44,6 +44,18 @@ export default function PantallaClientes() {
   };
 
   const guardarCliente = async (data: any) => {
+    if (
+      !data.nombre?.trim() ||
+      !data.apellido?.trim() ||
+      !data.telefono?.trim() ||
+      !data.direccion?.trim() ||
+      !data.identificacion?.trim() ||
+      !data.email?.trim()
+    ) {
+      toast.error("Completa todos los campos requeridos");
+      return;
+    }
+
     try {
       if (data.id && typeof data.id === "number") {
         await axios.put(`/api/clientes/${data.id}`, data);

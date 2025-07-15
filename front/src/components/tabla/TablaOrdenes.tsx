@@ -1,38 +1,24 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   FaSearch,
   FaMoneyBillWave,
   FaCheckCircle,
   FaTrashAlt,
 } from "react-icons/fa";
-import { obtenerEstadoPagoConvertido } from "../utils/pagoHelpers";
-import { convertirAmonedaPrincipal } from "../utils/convertirMoneda";
-import { badgeEstado, badgePago } from "../utils/badgeHelpers";
-
-interface Orden {
-  id: number;
-  cliente?: { nombre: string; apellido: string };
-  estado: string;
-  fechaIngreso: string;
-  fechaEntrega?: string;
-  total: number;
-  observaciones?: string;
-  pagos?: { monto: number; moneda: string }[];
-}
+import { badgeEstado, badgePago } from "../../utils/badgeHelpers";
+import { formatearMoneda } from "../../utils/formatearMonedaHelpers";
 
 interface Props {
-  ordenes: Orden[];
-  tasas: { VES?: number; COP?: number };
+  ordenes: any[];
   monedaPrincipal: string;
-  onVerDetalles: (orden: Orden) => void;
-  onRegistrarPago: (orden: Orden) => void;
-  onMarcarEntregada: (id: number) => void;
-  onEliminar: (id: number) => void;
+  onVerDetalles: (orden: any) => void;
+  onRegistrarPago: (orden: any) => void;
+  onMarcarEntregada: (id: number) => Promise<void>;
+  onEliminar: (id: number) => Promise<void>;
 }
 
 export default function TablaOrdenes({
   ordenes,
-  tasas,
-  monedaPrincipal,
   onVerDetalles,
   onRegistrarPago,
   onMarcarEntregada,
@@ -65,27 +51,7 @@ export default function TablaOrdenes({
           </tr>
         ) : (
           ordenes.map((o) => {
-            const estadoPago = obtenerEstadoPagoConvertido(
-              o,
-              tasas,
-              monedaPrincipal
-            );
-            const abonadoConvertido = o.pagos
-              ? o.pagos.reduce(
-                  (sum, p) =>
-                    sum +
-                    convertirAmonedaPrincipal(
-                      p.monto,
-                      p.moneda,
-                      tasas,
-                      monedaPrincipal
-                    ),
-                  0
-                )
-              : 0;
-            const restante = Math.max(o.total - abonadoConvertido, 0);
-            const estadoVisual =
-              o.estado === "ENTREGADO" ? "ENTREGADO" : o.estado;
+            const estadoPago = o.estadoPago;
 
             return (
               <tr key={o.id} className="border-t hover:bg-gray-50">
@@ -97,7 +63,7 @@ export default function TablaOrdenes({
 
                 <td className="px-4 py-2">
                   <div className="flex flex-col gap-1">
-                    {badgeEstado(estadoVisual)}
+                    {badgeEstado(o.estado)}
                     {badgePago(estadoPago)}
                   </div>
                 </td>
@@ -105,10 +71,10 @@ export default function TablaOrdenes({
                 <td className="px-4 py-2 text-xs">
                   <div className="space-y-0.5">
                     <div className="text-gray-500">
-                      Abonado: ${abonadoConvertido.toFixed(2)} {monedaPrincipal}
+                      Abonado: {formatearMoneda(o.abonado ?? 0, "USD")}
                     </div>
                     <div className="text-red-600">
-                      Falta: ${restante.toFixed(2)} {monedaPrincipal}
+                      Falta: {formatearMoneda(o.faltante ?? 0, "USD")}
                     </div>
                   </div>
                 </td>
@@ -124,7 +90,7 @@ export default function TablaOrdenes({
                 </td>
 
                 <td className="px-4 py-2 font-semibold">
-                  ${o.total.toFixed(2)}
+                  {formatearMoneda(o.total ?? 0, "USD")}
                 </td>
 
                 <td className="px-4 py-2 text-gray-600 max-w-[200px] truncate">
@@ -143,7 +109,7 @@ export default function TablaOrdenes({
                       <FaSearch size={16} />
                     </button>
 
-                    {estadoPago !== "Pagado" && o.estado !== "ENTREGADO" && (
+                    {estadoPago !== "COMPLETO" && o.estado !== "ENTREGADO" && (
                       <button
                         onClick={() => onRegistrarPago(o)}
                         title="Registrar pago"

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { FaCog } from "react-icons/fa";
 
 export default function FormularioServicio({
   servicio,
@@ -12,85 +12,128 @@ export default function FormularioServicio({
   onSubmit: (data: any) => Promise<void>;
 }) {
   const [nombre, setNombre] = useState("");
-  const [precio, setPrecio] = useState(0);
+  const [precio, setPrecio] = useState<number | null>(null);
   const [descripcion, setDescripcion] = useState("");
+  const [errores, setErrores] = useState<{ nombre?: string; precio?: string }>(
+    {}
+  );
 
   useEffect(() => {
     if (servicio) {
       setNombre(servicio.nombreServicio || "");
-      setPrecio(servicio.precioBase || 0);
+      setPrecio(servicio.precioBase || null);
       setDescripcion(servicio.descripcion || "");
     }
   }, [servicio]);
 
   const guardar = async () => {
-    if (!nombre || precio <= 0) {
-      toast.error("Nombre y precio son obligatorios");
-      return;
-    }
+    const nuevosErrores: typeof errores = {};
+    if (!nombre.trim()) nuevosErrores.nombre = "Nombre obligatorio";
+    if (precio === null || precio <= 0)
+      nuevosErrores.precio = "Precio inválido";
+
+    setErrores(nuevosErrores);
+    if (Object.keys(nuevosErrores).length > 0) return;
 
     const data = {
       id: servicio?.id,
-      nombreServicio: nombre,
+      nombreServicio: nombre.trim(),
       precioBase: precio,
-      descripcion,
+      descripcion: descripcion.trim() || undefined,
     };
 
     try {
       await onSubmit(data);
       onClose();
       setNombre("");
-      setPrecio(0);
+      setPrecio(null);
       setDescripcion("");
     } catch (error) {
       console.error("Error al guardar servicio:", error);
-      toast.error("Ocurrió un error al guardar el servicio");
+      alert("Ocurrió un error al guardar el servicio");
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded shadow w-full max-w-md">
-      <h2 className="text-xl font-bold mb-3">
-        {servicio ? "Editar Servicio" : "Registrar Nuevo Servicio"}
-      </h2>
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+        {/* Encabezado */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold flex items-center gap-2 text-blue-700">
+            <FaCog /> {servicio ? "Editar Servicio" : "Registrar Servicio"}
+          </h2>
+          <button
+            onClick={onClose}
+            title="Cerrar"
+            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+          >
+            ×
+          </button>
+        </div>
 
-      <input
-        type="text"
-        placeholder="Nombre del servicio"
-        value={nombre}
-        onChange={(e) => setNombre(e.target.value)}
-        className="mb-3 px-3 py-2 border rounded w-full"
-      />
+        {/* Formulario */}
+        <div className="space-y-4 text-sm text-gray-700">
+          <div>
+            <label className="block">Nombre del servicio:</label>
+            <input
+              type="text"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              className="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200"
+            />
+            {errores.nombre && (
+              <p className="text-red-600 text-xs font-medium mt-1">
+                {errores.nombre}
+              </p>
+            )}
+          </div>
 
-      <input
-        type="number"
-        placeholder="Precio base"
-        value={precio}
-        min={0}
-        onChange={(e) => setPrecio(parseFloat(e.target.value))}
-        className="mb-3 px-3 py-2 border rounded w-full"
-      />
+          <div>
+            <label className="block">Precio base:</label>
+            <input
+              type="number"
+              step="any"
+              value={precio ?? ""}
+              onChange={(e) => {
+                const parsed = parseFloat(e.target.value);
+                setPrecio(isNaN(parsed) ? null : parsed);
+              }}
+              className="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200"
+              placeholder="Ej. 12.50"
+            />
+            {errores.precio && (
+              <p className="text-red-600 text-xs font-medium mt-1">
+                {errores.precio}
+              </p>
+            )}
+          </div>
 
-      <textarea
-        placeholder="Descripción (opcional)"
-        value={descripcion}
-        onChange={(e) => setDescripcion(e.target.value)}
-        className="mb-3 px-3 py-2 border rounded w-full"
-      />
+          <div>
+            <label className="block">Descripción (opcional):</label>
+            <textarea
+              value={descripcion}
+              onChange={(e) => setDescripcion(e.target.value)}
+              className="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200 resize-none"
+              rows={3}
+            />
+          </div>
+        </div>
 
-      <div className="flex justify-end gap-2">
-        <button
-          onClick={onClose}
-          className="text-sm text-gray-500 hover:text-gray-700"
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={guardar}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
-        >
-          Guardar
-        </button>
+        {/* Acciones */}
+        <div className="flex justify-end gap-2 mt-6">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm font-medium"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={guardar}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+          >
+            Guardar
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { ordenSchema, ordenUpdateSchema } from "../schemas/orden.schema";
 
 const prisma = new PrismaClient();
 
-// ✅ Obtener todas las órdenes
+// Obtener todas las órdenes
 export async function getAllOrdenes(req: Request, res: Response) {
   try {
     const ordenes = await prisma.orden.findMany({
@@ -15,14 +15,14 @@ export async function getAllOrdenes(req: Request, res: Response) {
       },
       orderBy: { fechaIngreso: "desc" },
     });
-    res.json(ordenes);
+    return res.json(ordenes);
   } catch (error) {
     console.error("Error al obtener órdenes:", error);
-    res.status(500).json({ message: "Error al obtener órdenes" });
+    return res.status(500).json({ message: "Error al obtener órdenes" });
   }
 }
 
-// ✅ Obtener una orden por ID
+// Obtener una orden por ID
 export async function getOrdenById(req: Request, res: Response) {
   const { id } = req.params;
   try {
@@ -34,9 +34,9 @@ export async function getOrdenById(req: Request, res: Response) {
         pagos: true,
       },
     });
-
-    if (!orden) return res.status(404).json({ message: "Orden no encontrada" });
-
+    if (!orden) {
+      return res.status(404).json({ message: "Orden no encontrada" });
+    }
     return res.json(orden);
   } catch (error) {
     console.error("Error al obtener orden:", error);
@@ -44,10 +44,9 @@ export async function getOrdenById(req: Request, res: Response) {
   }
 }
 
-// ✅ Crear una nueva orden (fechaEntrega opcional)
+// Crear una nueva orden (fechaEntrega opcional) con campos financieros
 export async function createOrden(req: Request, res: Response) {
   const result = ordenSchema.safeParse(req.body);
-
   if (!result.success) {
     return res.status(400).json({
       error: "Validación fallida",
@@ -60,25 +59,27 @@ export async function createOrden(req: Request, res: Response) {
 
   try {
     let total = 0;
-    const detalleData = [];
+    const detalleData: Array<{
+      servicioId: number;
+      cantidad: number;
+      precioUnit: number;
+      subtotal: number;
+    }> = [];
 
     for (const item of servicios) {
       const servicio = await prisma.servicio.findUnique({
         where: { id: item.servicioId },
       });
-
       if (!servicio) continue;
 
       const precioUnit = servicio.precioBase;
       const subtotal = precioUnit * item.cantidad;
-
       detalleData.push({
         servicioId: item.servicioId,
         cantidad: item.cantidad,
         precioUnit,
         subtotal,
       });
-
       total += subtotal;
     }
 
@@ -88,7 +89,10 @@ export async function createOrden(req: Request, res: Response) {
         estado,
         total,
         observaciones,
-        fechaEntrega: fechaEntrega ? new Date(fechaEntrega) : null, // ✅ opcional
+        fechaEntrega: fechaEntrega ? new Date(fechaEntrega) : null,
+        abonado: 0,
+        faltante: total,
+        estadoPago: "INCOMPLETO",
         detalles: { create: detalleData },
       },
       include: {
@@ -104,11 +108,10 @@ export async function createOrden(req: Request, res: Response) {
   }
 }
 
-// ✅ Actualizar una orden existente (fechaEntrega opcional)
+// Actualizar una orden existente (fechaEntrega opcional)
 export async function updateOrden(req: Request, res: Response) {
   const { id } = req.params;
   const result = ordenUpdateSchema.safeParse(req.body);
-
   if (!result.success) {
     return res.status(400).json({
       error: "Validación fallida",
@@ -116,21 +119,16 @@ export async function updateOrden(req: Request, res: Response) {
     });
   }
 
-  const updateData = { ...result.data };
-
-  // Manejar fechaEntrega opcional correctamente
-  if ("fechaEntrega" in updateData) {
-    if (updateData.fechaEntrega) {
-      (updateData as any).fechaEntrega = new Date(updateData.fechaEntrega);
-    } else {
-      (updateData as any).fechaEntrega = null;
-    }
-  }
+  // Separamos fechaEntrega para convertirla, el resto queda en 'rest'
+  const { fechaEntrega, ...rest } = result.data;
 
   try {
     const orden = await prisma.orden.update({
       where: { id: Number(id) },
-      data: updateData,
+      data: {
+        ...rest,
+        fechaEntrega: fechaEntrega ? new Date(fechaEntrega) : null,
+      },
     });
     return res.json(orden);
   } catch (error) {
@@ -139,17 +137,38 @@ export async function updateOrden(req: Request, res: Response) {
   }
 }
 
-// ✅ Eliminar una orden y sus detalles
+// Eliminar una orden y sus detalles
 export async function deleteOrden(req: Request, res: Response) {
   const { id } = req.params;
-
   try {
     await prisma.detalleOrden.deleteMany({ where: { ordenId: Number(id) } });
     await prisma.pago.deleteMany({ where: { ordenId: Number(id) } });
     await prisma.orden.delete({ where: { id: Number(id) } });
-    res.status(204).send();
+    return res.status(204).send();
   } catch (error) {
     console.error("Error al eliminar orden:", error);
-    res.status(500).json({ message: "Error al eliminar orden" });
+    return res.status(500).json({ message: "Error al eliminar orden" });
+  }
+}
+
+// Actualizar observaciones únicamente
+export async function actualizarObservacion(req: Request, res: Response) {
+  const { id } = req.params;
+  const { observaciones } = req.body;
+  if (typeof observaciones !== "string") {
+    return res.status(400).json({ message: "Observación inválida" });
+  }
+
+  try {
+    const orden = await prisma.orden.update({
+      where: { id: Number(id) },
+      data: { observaciones },
+    });
+    return res.status(200).json(orden);
+  } catch (error) {
+    console.error("Error al actualizar observaciones:", error);
+    return res
+      .status(404)
+      .json({ message: "Orden no encontrada o error al actualizar." });
   }
 }

@@ -17,7 +17,6 @@ enum TipoCliente {
 
 enum EstadoOrden {
   PENDIENTE
-  PAGADO
   ENTREGADO
 }
 
@@ -25,6 +24,12 @@ enum MetodoPago {
   EFECTIVO
   TRANSFERENCIA
   PAGO_MOVIL
+}
+
+enum Moneda {
+  USD
+  VES
+  COP
 }
 
 // Modelo Cliente
@@ -60,6 +65,9 @@ model Orden {
   estado        EstadoOrden
   total         Float
   observaciones String?
+  abonado       Float          @default(0)           
+  faltante      Float          @default(0)           
+  estadoPago    String         @default("INCOMPLETO")
   cliente       Cliente        @relation(fields: [clienteId], references: [id])
   detalles      DetalleOrden[]
   pagos         Pago[]
@@ -77,16 +85,26 @@ model DetalleOrden {
   servicio     Servicio @relation(fields: [servicioId], references: [id])
 }
 
-// Modelo Pago
 model Pago {
-  id         Int       @id @default(autoincrement())
-  ordenId    Int
-  monto      Float
-  fechaPago  DateTime  @default(now())
-  metodoPago MetodoPago
-  moneda       String
-  nota       String?
-  orden      Orden     @relation(fields: [ordenId], references: [id])
+  id          Int           @id @default(autoincrement())
+  ordenId     Int
+  monto       Float
+  moneda      Moneda
+  metodoPago  MetodoPago
+  nota        String?       @db.Text
+  fechaPago   DateTime      @default(now())
+  orden       Orden         @relation(fields: [ordenId], references: [id])
+  vueltos     VueltoEntregado[]
+}
+
+model VueltoEntregado {
+  id        Int    @id @default(autoincrement())
+  pagoId    Int
+  monto     Float
+  moneda    String
+  pago      Pago   @relation(fields: [pagoId], references: [id], onDelete: Cascade)
+
+  @@index([pagoId])
 }
 
 model Configuracion {

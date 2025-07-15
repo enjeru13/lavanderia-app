@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// 🔍 Obtener la configuración actual del sistema
+// Obtener la configuración actual del sistema
 export async function getConfiguracion(req: Request, res: Response) {
   try {
     const config = await prisma.configuracion.findFirst();
@@ -17,7 +17,7 @@ export async function getConfiguracion(req: Request, res: Response) {
   }
 }
 
-// 📝 Actualizar configuración global (tasas, moneda, nombre del negocio)
+// Actualizar configuración global (tasas, moneda, nombre del negocio)
 export async function updateConfiguracion(req: Request, res: Response) {
   const { nombreNegocio, monedaPrincipal, tasaVES, tasaCOP } = req.body;
 

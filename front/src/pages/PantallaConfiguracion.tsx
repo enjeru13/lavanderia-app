@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaCoins, FaStore, FaSave } from "react-icons/fa";
 import { MdSettings } from "react-icons/md";
+import { formatearTasa, parsearTasa } from "../utils/formatearMonedaHelpers";
 
 export default function PantallaConfiguracion() {
   const [tasas, setTasas] = useState({ VES: "", COP: "" });
   const [monedaPrincipal, setMonedaPrincipal] = useState("USD");
   const [nombreNegocio, setNombreNegocio] = useState("");
 
-  // 🔄 Cargar configuración al iniciar
+  // Cargar configuración al iniciar
   useEffect(() => {
     async function cargarConfiguracion() {
       try {
@@ -17,8 +18,8 @@ export default function PantallaConfiguracion() {
         setNombreNegocio(config.nombreNegocio);
         setMonedaPrincipal(config.monedaPrincipal);
         setTasas({
-          VES: config.tasaVES || "",
-          COP: config.tasaCOP || "",
+          VES: formatearTasa(config.tasaVES),
+          COP: formatearTasa(config.tasaCOP),
         });
       } catch (error) {
         console.error("Error al cargar configuración:", error);
@@ -27,19 +28,19 @@ export default function PantallaConfiguracion() {
     cargarConfiguracion();
   }, []);
 
-  // 💾 Guardar configuración
+  // Guardar configuración
   const guardarConfiguracion = async () => {
     try {
       await axios.put("/api/configuracion", {
         nombreNegocio,
         monedaPrincipal,
-        tasaVES: tasas.VES !== "" ? Number(tasas.VES) : undefined,
-        tasaCOP: tasas.COP !== "" ? Number(tasas.COP) : undefined,
+        tasaVES: parsearTasa(tasas.VES),
+        tasaCOP: parsearTasa(tasas.COP),
       });
-      alert("✅ Configuración guardada correctamente");
+      alert("Configuración guardada correctamente");
     } catch (error) {
       console.error("Error al guardar configuración:", error);
-      alert("❌ Error al guardar la configuración");
+      alert("Error al guardar la configuración");
     }
   };
 
@@ -49,7 +50,7 @@ export default function PantallaConfiguracion() {
         <MdSettings size={28} /> Configuración del Sistema
       </h1>
 
-      {/* 🏪 Datos del negocio */}
+      {/* Datos del negocio */}
       <section className="bg-white rounded shadow p-4 space-y-4">
         <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-700">
           <FaStore /> Información del negocio
@@ -66,7 +67,7 @@ export default function PantallaConfiguracion() {
         </label>
       </section>
 
-      {/* 💸 Tasas de conversión */}
+      {/* Tasas de conversión */}
       <section className="bg-white rounded shadow p-4 space-y-4">
         <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-700">
           <FaCoins /> Tasas de moneda
@@ -89,10 +90,11 @@ export default function PantallaConfiguracion() {
           Tasa de VES por USD:
           <input
             type="number"
+            step="any"
             value={tasas.VES}
             onChange={(e) => setTasas({ ...tasas, VES: e.target.value })}
             className="mt-1 w-full border px-3 py-2 rounded"
-            placeholder="Ej. 45.00"
+            placeholder="Ej. 140.00"
           />
         </label>
 
@@ -100,15 +102,16 @@ export default function PantallaConfiguracion() {
           Tasa de COP por USD:
           <input
             type="number"
+            step="any"
             value={tasas.COP}
             onChange={(e) => setTasas({ ...tasas, COP: e.target.value })}
             className="mt-1 w-full border px-3 py-2 rounded"
-            placeholder="Ej. 4000"
+            placeholder="Ej. 4.000"
           />
         </label>
       </section>
 
-      {/* ✅ Botón guardar */}
+      {/* Botón guardar */}
       <div className="text-right">
         <button
           onClick={guardarConfiguracion}

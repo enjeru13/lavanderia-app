@@ -3,13 +3,13 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-// 🔌 Componentes panel
+// Componentes panel
 import ClientePanel from "../components/panel/ClientePanel";
 import ServiciosPanel from "../components/panel/ServiciosPanel";
 import ObservacionesPanel from "../components/panel/ObservacionesPanel";
 import FechaEntregaPanel from "../components/panel/FechaEntregaPanel";
 
-// 📋 Modales
+// Modales
 import FormularioCliente from "../components/formulario/FormularioCliente";
 import ListaClientesModal from "../components/modal/ListaClientesModal";
 import ResumenOrdenPanel from "../components/panel/ResumenOrdenPanel";

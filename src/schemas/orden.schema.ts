@@ -2,14 +2,14 @@ import { z } from "zod";
 
 export const ordenSchema = z.object({
   cliente_id: z.number().int(),
-  estado: z.enum(["PENDIENTE", "PAGADO", "ENTREGADO"]),
+  estado: z.enum(["PENDIENTE", "ENTREGADO"]),
   observaciones: z.string().optional(),
   fechaEntrega: z
-  .union([z.string(), z.null()])
-  .optional()
-  .refine((val) => !val || !isNaN(Date.parse(val)), {
-    message: "La fecha de entrega debe tener formato válido",
-  }),
+    .union([z.string(), z.null()])
+    .optional()
+    .refine((val) => !val || !isNaN(Date.parse(val)), {
+      message: "La fecha de entrega debe tener formato válido",
+    }),
 
   servicios: z
     .array(

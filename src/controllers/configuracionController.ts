@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// 🔹 Obtener todos los pagos
+// Obtener todos los pagos
 export async function getAllPagos(req: Request, res: Response) {
   try {
     const pagos = await prisma.pago.findMany({
@@ -26,7 +26,7 @@ export async function getAllPagos(req: Request, res: Response) {
   }
 }
 
-// 🔹 Obtener pago por ID
+// Obtener pago por ID
 export async function getPagoById(req: Request, res: Response) {
   const { id } = req.params;
   try {
@@ -46,7 +46,7 @@ export async function getPagoById(req: Request, res: Response) {
   }
 }
 
-// 🔹 Registrar nuevo pago con conversión automática
+// Registrar nuevo pago con conversión automática
 export async function createPago(req: Request, res: Response) {
   const { ordenId, monto, metodoPago, moneda } = req.body;
 
@@ -88,14 +88,6 @@ export async function createPago(req: Request, res: Response) {
       return res.status(404).json({ message: "Orden no encontrada" });
     }
 
-    if (totalPagado >= orden.total) {
-      const nuevoEstado = orden.estado === "ENTREGADO" ? "ENTREGADO" : "PAGADO";
-      await prisma.orden.update({
-        where: { id: ordenId },
-        data: { estado: nuevoEstado },
-      });
-    }
-
     return res.status(201).json(nuevoPago);
   } catch (error) {
     console.error("Error al registrar pago:", error);
@@ -103,7 +95,7 @@ export async function createPago(req: Request, res: Response) {
   }
 }
 
-// 🔹 Actualizar pago
+// Actualizar pago
 export async function updatePago(req: Request, res: Response) {
   const { id } = req.params;
   try {
@@ -118,7 +110,7 @@ export async function updatePago(req: Request, res: Response) {
   }
 }
 
-// 🔹 Eliminar pago
+// Eliminar pago
 export async function deletePago(req: Request, res: Response) {
   const { id } = req.params;
   try {

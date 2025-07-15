@@ -5,8 +5,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import ModalPago from "../components/modal/ModalPago";
 import TablaOrdenes from "../components/tabla/TablaOrdenes";
-import { obtenerEstadoPagoConvertido } from "../utils/pagoHelpers";
-import { badgeEstado } from "../utils/badgeHelpers";
+import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
 
 export default function PantallaOrdenes() {
   const [ordenes, setOrdenes] = useState<any[]>([]);
@@ -16,10 +15,11 @@ export default function PantallaOrdenes() {
   const [tasas, setTasas] = useState<{ VES?: number; COP?: number }>({});
   const [monedaPrincipal, setMonedaPrincipal] = useState("USD");
 
-  const metodoLabelMap: Record<string, string> = {
-    EFECTIVO: "Efectivo",
-    TRANSFERENCIA: "Transferencia",
-    PAGO_MOVIL: "Pago móvil",
+  const convertirAUSD = (monto: number, moneda: string): number => {
+    if (moneda === "USD") return monto;
+    if (moneda === "VES") return monto / (tasas.VES || 1);
+    if (moneda === "COP") return monto / (tasas.COP || 1);
+    return monto;
   };
 
   const cargarOrdenes = () => {
@@ -48,13 +48,14 @@ export default function PantallaOrdenes() {
     cargarConfiguracion();
   }, []);
 
-const ordenesFiltradas = ordenes.filter((o) => {
-  const nombre = `${o.cliente?.nombre || ""} ${o.cliente?.apellido || ""}`.toLowerCase();
-  const id = o.id.toString();
-  const termino = busqueda.toLowerCase();
-
-  return nombre.includes(termino) || id.includes(termino);
-});
+  const ordenesFiltradas = ordenes.filter((o) => {
+    const nombre = `${o.cliente?.nombre || ""} ${
+      o.cliente?.apellido || ""
+    }`.toLowerCase();
+    const id = o.id.toString();
+    const termino = busqueda.toLowerCase();
+    return nombre.includes(termino) || id.includes(termino);
+  });
 
   const eliminarOrden = async (id: number) => {
     if (!confirm("¿Estás seguro de que deseas eliminar esta orden?")) return;
@@ -77,6 +78,24 @@ const ordenesFiltradas = ordenes.filter((o) => {
     }
   };
 
+  const actualizarOrdenEnLista = (actualizada: any) => {
+    const abonado =
+      actualizada.pagos?.reduce(
+        (sum: number, p: any) => sum + convertirAUSD(p.monto, p.moneda),
+        0
+      ) || 0;
+
+    const faltante = Math.max(actualizada.total - abonado, 0);
+    const estadoPago = faltante <= 0 ? "COMPLETO" : "PENDIENTE";
+
+    const enriquecida = { ...actualizada, abonado, faltante, estadoPago };
+
+    setOrdenes((prev) =>
+      prev.map((o) => (o.id === actualizada.id ? enriquecida : o))
+    );
+    setOrdenSeleccionada(enriquecida);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Historial de Órdenes</h1>
@@ -91,7 +110,6 @@ const ordenesFiltradas = ordenes.filter((o) => {
 
       <TablaOrdenes
         ordenes={ordenesFiltradas}
-        tasas={tasas}
         monedaPrincipal={monedaPrincipal}
         onVerDetalles={setOrdenSeleccionada}
         onRegistrarPago={(orden) => {
@@ -103,148 +121,29 @@ const ordenesFiltradas = ordenes.filter((o) => {
       />
 
       {ordenSeleccionada && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full overflow-auto max-h-[90vh] space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">
-              🧾 Detalle de la Orden
-            </h2>
-
-            <div className="grid sm:grid-cols-2 gap-4 text-sm text-gray-700">
-              <div>
-                <span className="font-semibold text-gray-600 block mb-1">
-                  Cliente:
-                </span>
-                <div className="bg-gray-100 px-3 py-1 rounded">
-                  {ordenSeleccionada.cliente?.nombre}{" "}
-                  {ordenSeleccionada.cliente?.apellido}
-                </div>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-600 block mb-1">
-                  Estado:
-                </span>
-                <div className="flex gap-2 items-center">
-                  {badgeEstado(ordenSeleccionada.estado)}
-                  <span className="text-xs text-gray-500">
-                    (
-                    {obtenerEstadoPagoConvertido(
-                      ordenSeleccionada,
-                      tasas,
-                      monedaPrincipal
-                    )}
-                    )
-                  </span>
-                </div>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-600 block mb-1">
-                  Fecha ingreso:
-                </span>
-                {new Date(ordenSeleccionada.fechaIngreso).toLocaleDateString()}
-              </div>
-              <div>
-                <span className="font-semibold text-gray-600 block mb-1">
-                  Fecha entrega estimada:
-                </span>
-                {ordenSeleccionada.fechaEntrega ? (
-                  new Date(ordenSeleccionada.fechaEntrega).toLocaleDateString()
-                ) : (
-                  <span className="text-gray-400 italic">No definida</span>
-                )}
-              </div>
-              <div className="sm:col-span-2">
-                <span className="font-semibold text-gray-600 block mb-1">
-                  Observaciones:
-                </span>
-                <div className="bg-gray-50 px-3 py-2 rounded min-h-[40px]">
-                  {ordenSeleccionada.observaciones || (
-                    <span className="text-gray-400 italic">
-                      Sin observaciones
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-800 mb-2">Servicios</h3>
-              <table className="w-full text-sm border rounded overflow-hidden">
-                <thead className="bg-gray-100 text-gray-600 text-left">
-                  <tr>
-                    <th className="px-3 py-2">Servicio</th>
-                    <th className="px-3 py-2">Cantidad</th>
-                    <th className="px-3 py-2">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ordenSeleccionada.detalles?.map((d: any, index: number) => (
-                    <tr key={index} className="border-t">
-                      <td className="px-3 py-2">
-                        {d.servicio?.nombreServicio}
-                      </td>
-                      <td className="px-3 py-2">{d.cantidad}</td>
-                      <td className="px-3 py-2">${d.subtotal.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {ordenSeleccionada.pagos?.length > 0 && (
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-2">
-                  Pagos realizados
-                </h3>
-                <ul className="space-y-1 text-sm text-gray-700 list-disc pl-5">
-                  {ordenSeleccionada.pagos.map((p: any) => (
-                    <li key={p.id}>
-                      {new Date(p.fechaPago).toLocaleDateString()} — $
-                      {p.monto.toFixed(2)} vía{" "}
-                      {metodoLabelMap[p.metodoPago] || p.metodoPago}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="text-right text-lg font-semibold text-green-700">
-              Total: ${ordenSeleccionada.total.toFixed(2)}
-            </div>
-
-            <div className="text-right flex gap-2 justify-end pt-4">
-              {obtenerEstadoPagoConvertido(
-                ordenSeleccionada,
-                tasas,
-                monedaPrincipal
-              ) !== "Pagado" && (
-                <button
-                  onClick={() => setMostrarModalPago(true)}
-                  className="bg-indigo-500 text-white px-4 py-1 rounded hover:bg-indigo-600"
-                >
-                  Registrar pago
-                </button>
-              )}
-              <button
-                onClick={() => setOrdenSeleccionada(null)}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
+        <ModalDetalleOrden
+          orden={ordenSeleccionada}
+          tasas={tasas}
+          monedaPrincipal={monedaPrincipal}
+          onClose={() => setOrdenSeleccionada(null)}
+          onPagoRegistrado={actualizarOrdenEnLista}
+          onAbrirPagoExtra={(orden) => {
+            setOrdenSeleccionada(orden);
+            setMostrarModalPago(true);
+          }}
+        />
       )}
 
       {mostrarModalPago && ordenSeleccionada && (
         <ModalPago
           orden={ordenSeleccionada}
-          onClose={() => setMostrarModalPago(false)}
-          onPagoRegistrado={(nuevaOrden) => {
-            setOrdenSeleccionada(nuevaOrden);
-            cargarOrdenes();
-          }}
           tasas={tasas}
           monedaPrincipal={monedaPrincipal}
+          onClose={() => setMostrarModalPago(false)}
+          onPagoRegistrado={(actualizada) => {
+            actualizarOrdenEnLista(actualizada);
+            setMostrarModalPago(false);
+          }}
         />
       )}
     </div>
