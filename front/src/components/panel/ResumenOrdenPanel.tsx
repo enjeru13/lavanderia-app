@@ -35,7 +35,7 @@ export default function ResumenOrdenPanel({
   };
 
   return (
-    <section className="bg-white p-4 rounded shadow">
+    <section className="bg-white p-4 font-semibold rounded shadow">
       <h2 className="text-lg font-bold mb-3">Resumen de la orden</h2>
 
       <div className="space-y-2 text-sm text-gray-700">

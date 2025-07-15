@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { FaCog } from "react-icons/fa";
+import { MdOutlineLocalLaundryService } from "react-icons/md";
 
 export default function FormularioServicio({
   servicio,
@@ -55,12 +55,13 @@ export default function FormularioServicio({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black font-semibold flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
         {/* Encabezado */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold flex items-center gap-2 text-blue-700">
-            <FaCog /> {servicio ? "Editar Servicio" : "Registrar Servicio"}
+            <MdOutlineLocalLaundryService />{" "}
+            {servicio ? "Editar Servicio" : "Registrar Servicio"}
           </h2>
           <button
             onClick={onClose}
@@ -74,12 +75,12 @@ export default function FormularioServicio({
         {/* Formulario */}
         <div className="space-y-4 text-sm text-gray-700">
           <div>
-            <label className="block">Nombre del servicio:</label>
+            <label className="block pb-1">Nombre del servicio:</label>
             <input
               type="text"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200"
+              className="w-full border p-3 rounded focus:ring focus:ring-blue-200"
             />
             {errores.nombre && (
               <p className="text-red-600 text-xs font-medium mt-1">
@@ -89,7 +90,7 @@ export default function FormularioServicio({
           </div>
 
           <div>
-            <label className="block">Precio base:</label>
+            <label className="block pb-1">Precio base:</label>
             <input
               type="number"
               step="any"
@@ -98,7 +99,7 @@ export default function FormularioServicio({
                 const parsed = parseFloat(e.target.value);
                 setPrecio(isNaN(parsed) ? null : parsed);
               }}
-              className="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200"
+              className="w-full border p-3 rounded focus:ring focus:ring-blue-200"
               placeholder="Ej. 12.50"
             />
             {errores.precio && (
@@ -109,7 +110,7 @@ export default function FormularioServicio({
           </div>
 
           <div>
-            <label className="block">Descripción (opcional):</label>
+            <label className="block pb-1">Descripción (opcional):</label>
             <textarea
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
@@ -120,16 +121,16 @@ export default function FormularioServicio({
         </div>
 
         {/* Acciones */}
-        <div className="flex justify-end gap-2 mt-6">
+        <div className="flex justify-end font-bold gap-2 mt-6">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm font-medium"
+            className="p-3 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm font-medium"
           >
             Cancelar
           </button>
           <button
             onClick={guardar}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+            className="px-3 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
           >
             Guardar
           </button>

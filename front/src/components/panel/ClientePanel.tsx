@@ -17,8 +17,8 @@ export default function ClientePanel({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           {cliente ? (
-            <span className="px-3 py-2 bg-green-100 rounded text-green-800 font-medium inline-flex items-center gap-2">
-              <FaUserCheck className="text-green-600" />
+            <span className="p-3 bg-green-100 rounded text-green-800 font-semibold inline-flex items-center gap-2">
+              <FaUserCheck className="text-green-600 text-lg" />
               {cliente.nombre} {cliente.apellido}
             </span>
           ) : (
@@ -30,17 +30,17 @@ export default function ClientePanel({
         <div className="flex gap-2">
           <button
             onClick={onAbrirFormulario}
-            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-0 flex items-center justify-center"
+            className="p-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-0 flex items-center justify-center"
             title="Registrar nuevo cliente"
           >
-            <FaUserPlus size={16} />
+            <FaUserPlus size={18} />
           </button>
           <button
             onClick={onAbrirLista}
-            className="p-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition duration-0 flex items-center justify-center"
+            className="p-3 bg-gray-500 text-white rounded hover:bg-gray-600 transition duration-0 flex items-center justify-center"
             title="Seleccionar cliente existente"
           >
-            <FaUserCheck size={16} />
+            <FaUserCheck size={18} />
           </button>
         </div>
       </div>

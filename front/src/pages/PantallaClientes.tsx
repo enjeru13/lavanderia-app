@@ -93,7 +93,7 @@ export default function PantallaClientes() {
         <h1 className="text-2xl font-bold text-gray-800">Clientes</h1>
         <button
           onClick={abrirNuevoCliente}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition flex items-center gap-2"
+          className="bg-green-600 text-white p-3 font-bold rounded hover:bg-green-700 transition flex items-center gap-2"
         >
           <FaPlus className="w-4 h-4" />
           Nuevo Cliente
@@ -105,7 +105,7 @@ export default function PantallaClientes() {
         placeholder="Buscar por nombre o apellido o cédula"
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
-        className="px-3 py-2 border rounded w-1/2"
+        className="px-3 py-2 border font-semibold rounded w-1/2"
       />
 
       <TablaClientes

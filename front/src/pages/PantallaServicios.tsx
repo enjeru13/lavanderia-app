@@ -73,7 +73,7 @@ export default function PantallaServicios() {
         <h1 className="text-2xl font-bold text-gray-800">Servicios</h1>
         <button
           onClick={abrirNuevoServicio}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition flex items-center gap-2"
+          className="bg-green-600 text-white p-3 font-bold rounded hover:bg-green-700 transition flex items-center gap-2"
         >
           <FaPlus className="w-4 h-4" />
           Nuevo Servicio

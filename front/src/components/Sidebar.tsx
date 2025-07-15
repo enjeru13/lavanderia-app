@@ -23,9 +23,7 @@ export default function Sidebar() {
     },
     {
       section: "Finanzas",
-      items: [
-        { to: "/pagos", label: "Pagos", icon: <FaMoneyBillWave /> },
-      ],
+      items: [{ to: "/pagos", label: "Pagos", icon: <FaMoneyBillWave /> }],
     },
     {
       section: "Configuración",
@@ -36,7 +34,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-blue-700 text-white h-screen p-6 flex flex-col gap-6">
+    <aside className="w-64 bg-blue-700 text-white font-bold h-screen p-6 flex flex-col gap-6">
       <div className="text-2xl font-bold mb-2">Menú</div>
       <nav className="flex flex-col gap-6">
         {links.map((grupo) => (
@@ -52,7 +50,9 @@ export default function Sidebar() {
                     key={link.to}
                     to={link.to}
                     className={`flex items-center gap-3 py-2 px-4 rounded transition ${
-                      isActive ? "bg-blue-600 font-semibold" : "hover:bg-blue-600"
+                      isActive
+                        ? "bg-blue-600 font-semibold"
+                        : "hover:bg-blue-600"
                     }`}
                   >
                     <span className="text-lg">{link.icon}</span>

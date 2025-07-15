@@ -118,7 +118,7 @@ export default function FormularioCliente({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black font-semibold flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-[480px] shadow-xl">
         {/* Encabezado */}
         <div className="flex items-center justify-between mb-4">
@@ -142,12 +142,12 @@ export default function FormularioCliente({
           {/* Nombre y Apellido */}
           <div className="flex gap-3">
             <div className="w-1/2">
-              <label className="block">Nombre:</label>
+              <label className="block pb-1">Nombre:</label>
               <input
                 name="nombre"
                 value={form.nombre}
                 onChange={handleChange}
-                className="w-full border px-3 py-2 rounded focus:ring focus:ring-indigo-200"
+                className="w-full border p-3 rounded focus:ring focus:ring-indigo-200"
               />
               {errores.nombre && (
                 <p className="text-red-600 text-xs font-medium">
@@ -156,12 +156,12 @@ export default function FormularioCliente({
               )}
             </div>
             <div className="w-1/2">
-              <label className="block">Apellido:</label>
+              <label className="block pb-1">Apellido:</label>
               <input
                 name="apellido"
                 value={form.apellido}
                 onChange={handleChange}
-                className="w-full border px-3 py-2 rounded focus:ring focus:ring-indigo-200"
+                className="w-full border p-3 rounded focus:ring focus:ring-indigo-200"
               />
               {errores.apellido && (
                 <p className="text-red-600 text-xs font-medium">
@@ -174,13 +174,13 @@ export default function FormularioCliente({
           {/* Teléfonos */}
           <div className="flex gap-3">
             <div className="w-1/2">
-              <label className="block">Teléfono principal:</label>
+              <label className="block pb-1">Teléfono principal:</label>
               <input
                 type="tel"
                 name="telefono"
                 value={form.telefono}
                 onChange={handleChange}
-                className="w-full border px-3 py-2 rounded focus:ring focus:ring-indigo-200"
+                className="w-full border p-3 rounded focus:ring focus:ring-indigo-200"
               />
               {errores.telefono && (
                 <p className="text-red-600 text-xs font-medium">
@@ -189,13 +189,13 @@ export default function FormularioCliente({
               )}
             </div>
             <div className="w-1/2">
-              <label className="block">Teléfono secundario:</label>
+              <label className="block pb-1">Teléfono secundario:</label>
               <input
                 type="tel"
                 name="telefono_secundario"
                 value={form.telefono_secundario}
                 onChange={handleChange}
-                className="w-full border px-3 py-2 rounded focus:ring focus:ring-indigo-200"
+                className="w-full border p-3 rounded focus:ring focus:ring-indigo-200"
               />
               {errores.telefono_secundario && (
                 <p className="text-red-600 text-xs font-medium">
@@ -207,12 +207,12 @@ export default function FormularioCliente({
 
           {/* Dirección */}
           <div>
-            <label className="block">Dirección:</label>
+            <label className="block pb-1">Dirección:</label>
             <input
               name="direccion"
               value={form.direccion}
               onChange={handleChange}
-              className="w-full border px-3 py-2 rounded focus:ring focus:ring-indigo-200"
+              className="w-full border p-3 rounded focus:ring focus:ring-indigo-200"
             />
             {errores.direccion && (
               <p className="text-red-600 text-xs font-medium">
@@ -223,10 +223,10 @@ export default function FormularioCliente({
 
           {/* Identificación */}
           <div>
-            <label className="block">Identificación:</label>
+            <label className="block pb-1">Identificación:</label>
             <div className="flex items-center gap-2">
               <select
-                className="px-2 py-2 border rounded bg-gray-50 text-sm font-medium"
+                className="p-3 border rounded bg-gray-50 text-sm font-medium"
                 value={form.identificacion.slice(0, 2)}
                 onChange={(e) => {
                   const prefijo = e.target.value as "V-" | "J-" | "E-";
@@ -251,7 +251,7 @@ export default function FormularioCliente({
                     | "E-";
                   handleIdentificacionChange(prefijo, e.target.value);
                 }}
-                className="flex-1 border px-3 py-2 rounded focus:ring focus:ring-indigo-200"
+                className="flex-1 border p-3 rounded focus:ring focus:ring-indigo-200"
                 placeholder="Número sin prefijo"
               />
             </div>
@@ -264,28 +264,28 @@ export default function FormularioCliente({
 
           {/* Email */}
           <div>
-            <label className="block">Correo electrónico:</label>
+            <label className="block pb-1">Correo electrónico:</label>
             <input
               name="email"
               value={form.email}
               onChange={handleChange}
-              className="w-full border px-3 py-2 rounded focus:ring focus:ring-indigo-200"
+              className="w-full border p-3 rounded focus:ring focus:ring-indigo-200"
               placeholder="Ej. cliente@email.com"
             />
           </div>
 
           {/* Botones */}
-          <div className="flex justify-end gap-2 mt-4">
+          <div className="flex font-bold justify-end gap-2 mt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm font-medium"
+              className="p-3 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm font-medium"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium"
+              className="p-3 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium"
             >
               {cliente ? "Actualizar" : "Registrar"}
             </button>

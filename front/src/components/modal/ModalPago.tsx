@@ -3,6 +3,7 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FiX, FiPlus } from "react-icons/fi";
+import { MdOutlinePayments } from "react-icons/md";
 import { formatearMoneda } from "../../utils/formatearMonedaHelpers";
 import { convertirDesdePrincipal } from "../../utils/conversionHelpers";
 
@@ -138,8 +139,8 @@ export default function ModalPago({
       <div className="relative bg-white max-w-lg w-full p-6 rounded-lg shadow-xl ring-1 ring-gray-200 space-y-6 text-sm text-gray-800">
         {/* Encabezado */}
         <div className="flex justify-between items-center border-b pb-2">
-          <h2 className="text-lg font-semibold text-green-600 flex items-center gap-2">
-            Registrar pago
+          <h2 className="text-xl font-bold text-green-700 flex items-center gap-2">
+            <MdOutlinePayments /> Registrar pago
           </h2>
           <button
             onClick={onClose}
@@ -155,50 +156,64 @@ export default function ModalPago({
             key={idx}
             className="flex flex-col md:flex-row gap-2 items-center"
           >
-            <input
-              type="number"
-              value={p.monto || ""}
-              placeholder="Monto"
-              onChange={(e) => actualizarPago(idx, "monto", e.target.value)}
-              className="flex-1 border px-3 py-2 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-            />
-            <select
-              value={p.moneda}
-              onChange={(e) => actualizarPago(idx, "moneda", e.target.value)}
-              className="w-24 border px-3 py-2 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-            >
-              <option disabled value="">
+            <div className="flex flex-col flex-1">
+              <label className="text-sm text-gray-600 font-semibold mb-1">
+                Monto
+              </label>
+              <input
+                type="number"
+                value={p.monto || ""}
+                placeholder="Monto"
+                onChange={(e) => actualizarPago(idx, "monto", e.target.value)}
+                className="border p-3 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 font-semibold mb-1">
                 Moneda
-              </option>
-              <option value="USD">USD</option>
-              <option value="VES">VES</option>
-              <option value="COP">COP</option>
-            </select>
-            <select
-              value={p.metodo}
-              onChange={(e) => actualizarPago(idx, "metodo", e.target.value)}
-              className="w-32 border px-3 py-2 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-            >
-              <option disabled value="">
+              </label>
+              <select
+                value={p.moneda}
+                onChange={(e) => actualizarPago(idx, "moneda", e.target.value)}
+                className="w-24 border p-3 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              >
+                <option value="USD">USD</option>
+                <option value="VES">VES</option>
+                <option value="COP">COP</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 font-semibold mb-1">
                 Tipo de pago
-              </option>
-              <option value="Efectivo">Efectivo</option>
-              <option value="Transferencia">Transferencia</option>
-              <option value="Pago móvil">Pago móvil</option>
-            </select>
-            <button
-              onClick={() => eliminarPago(idx)}
-              className="text-red-500 hover:text-red-700 text-lg font-bold"
-              title="Eliminar"
-            >
-              <FiX />
-            </button>
+              </label>
+              <select
+                value={p.metodo}
+                onChange={(e) => actualizarPago(idx, "metodo", e.target.value)}
+                className="w-32 border p-3 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              >
+                <option value="Efectivo">Efectivo</option>
+                <option value="Transferencia">Transferencia</option>
+                <option value="Pago móvil">Pago móvil</option>
+              </select>
+            </div>
+
+            <div className="pt-6">
+              <button
+                onClick={() => eliminarPago(idx)}
+                className="text-red-500 hover:text-red-700 text-lg font-bold"
+                title="Eliminar"
+              >
+                <FiX />
+              </button>
+            </div>
           </div>
         ))}
 
         <button
           onClick={agregarPago}
-          className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+          className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 text-sm font-bold"
         >
           <FiPlus /> AGREGAR OTRO PAGO
         </button>
@@ -207,20 +222,22 @@ export default function ModalPago({
         <div className="border-t pt-4 space-y-2 text-sm">
           <div className="flex flex-wrap items-center justify-between gap-x-8 text-sm pt-2">
             <div className="flex flex-col">
-              <span className="text-gray-600">Total:</span>
+              <span className="text-gray-600 font-semibold">Total:</span>
               <span className="font-semibold text-green-700">
                 {formatearMoneda(totalUSD, "USD")}
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="text-gray-600">Abonado:</span>
-              <span className="font-semibold text-blue-700">
+              <span className="text-gray-600 font-semibold">Abonado:</span>
+              <span className="text-blue-700 font-semibold">
                 {formatearMoneda(totalPagadoUSD, "USD")}
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="text-gray-600">Faltante actual:</span>
-              <span className="font-semibold text-red-600">
+              <span className="text-gray-600 font-semibold">
+                Faltante actual:
+              </span>
+              <span className="text-red-600 font-semibold">
                 {formatearMoneda(faltanteUSD, "USD")}
               </span>
             </div>
@@ -229,19 +246,21 @@ export default function ModalPago({
           {/* Faltante estimado en moneda local */}
           <div className="bg-white border rounded-md p-4 mt-4 text-sm shadow-sm ring-1 ring-gray-100">
             <p className="font-semibold text-gray-700 mb-3">
-              Faltante estimado en monedas locales
+              Faltante estimado en Bolívares y Pesos
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-4">
-                <span className="text-gray-500 font-medium">
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-500 font-semibold">
                   Bolívares (VES):
                 </span>
                 <span className="font-semibold text-red-700">
                   {formatearMoneda(restanteVES, "VES")}
                 </span>
               </div>
-              <div className="flex items-center space-x-4">
-                <span className="text-gray-500 font-medium">Pesos (COP):</span>
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-500 font-semibold">
+                  Pesos (COP):
+                </span>
                 <span className="font-semibold text-red-700">
                   {formatearMoneda(restanteCOP, "COP")}
                 </span>
@@ -255,16 +274,16 @@ export default function ModalPago({
         </div>
 
         {/* Acciones */}
-        <div className="flex justify-end gap-2 pt-3">
+        <div className="flex justify-end font-bold gap-2 pt-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200"
+            className="p-3 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200"
           >
             Salir
           </button>
           <button
             onClick={registrarPago}
-            className={`px-4 py-2 flex items-center gap-2 text-white rounded-md transition duration-150 ease-in-out ${
+            className={`p-3 flex items-center gap-2 text-white rounded-md transition duration-150 ease-in-out ${
               faltanteUSD <= 0
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-green-600 hover:bg-green-700"

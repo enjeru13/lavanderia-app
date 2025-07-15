@@ -2,7 +2,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { FiX } from "react-icons/fi";
-import { FaMoneyBillWave, FaSave } from "react-icons/fa";
+import { BiMessageSquareDetail } from "react-icons/bi";
 import { formatearMoneda } from "../../utils/formatearMonedaHelpers";
 import { badgeEstado } from "../../utils/badgeHelpers";
 import { toast } from "react-toastify";
@@ -24,8 +24,10 @@ export default function ModalDetalleOrden({
   monedaPrincipal,
   onPagoRegistrado,
 }: Props) {
-  const [notaEditada, setNotaEditada] = useState(orden.notas ?? "");
-  const [guardandoNotas, setGuardandoNotas] = useState(false);
+  const [observacionesEditadas, setObservacionesEditadas] = useState(
+    orden.observaciones ?? ""
+  );
+  const [guardandoObservaciones, setGuardandoObservaciones] = useState(false);
 
   const convertirAUSD = (monto: number, moneda: string): number => {
     if (moneda === "USD") return monto;
@@ -42,23 +44,25 @@ export default function ModalDetalleOrden({
 
   const faltanteUSD = Math.max(orden.total - totalPagadoUSD, 0);
 
-  const guardarNotas = async () => {
-    if (notaEditada === orden.notas) {
-      toast.info("No hay cambios en las notas");
+  const guardarObservaciones = async () => {
+    if (observacionesEditadas === orden.observaciones) {
+      toast.info("No hay cambios en las observaciones");
       return;
     }
-    setGuardandoNotas(true);
+    setGuardandoObservaciones(true);
     try {
-      const res = await axios.put(`/api/ordenes/${orden.id}`, {
-        notas: notaEditada,
+      await axios.put(`/api/ordenes/${orden.id}`, {
+        observaciones: observacionesEditadas,
       });
-      toast.success("Notas actualizadas correctamente");
+
+      const res = await axios.get(`/api/ordenes/${orden.id}`);
+      toast.success("Observaciones actualizadas correctamente");
       onPagoRegistrado(res.data);
     } catch (err) {
-      toast.error("Error al guardar las notas");
+      toast.error("Error al guardar las observaciones");
       console.error(err);
     } finally {
-      setGuardandoNotas(false);
+      setGuardandoObservaciones(false);
     }
   };
 
@@ -67,7 +71,8 @@ export default function ModalDetalleOrden({
       <div className="relative bg-white max-w-2xl w-full p-6 rounded-lg shadow-xl ring-1 ring-gray-200 space-y-6 text-sm text-gray-800 overflow-auto max-h-[90vh]">
         {/* Encabezado */}
         <div className="flex justify-between items-center border-b pb-2">
-          <h2 className="text-xl font-semibold text-green-700 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-green-700 flex items-center gap-2">
+            <BiMessageSquareDetail />
             Detalle de la orden{" "}
             <span className="text-gray-500">#{orden.id}</span>
           </h2>
@@ -82,26 +87,32 @@ export default function ModalDetalleOrden({
         {/* Cliente & Estado */}
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <p className="text-gray-500 text-sm">Cliente</p>
-            <div className="bg-gray-50 px-3 py-2 rounded border font-medium">
+            <p className="text-gray-700 font-semibold text-sm py-1">Cliente</p>
+            <div className="bg-gray-50 p-3 rounded border font-medium">
               {orden.cliente?.nombre} {orden.cliente?.apellido}
             </div>
           </div>
           <div>
-            <p className="text-gray-500 text-sm">Estado</p>
+            <p className="text-gray-700 font-semibold text-sm py-1">
+              Estado de la entrega
+            </p>
             <div className="bg-gray-50 px-3 py-2 rounded border flex items-center gap-2">
               {badgeEstado(orden.estado)}
             </div>
           </div>
           <div>
-            <p className="text-gray-500 text-sm">Ingreso</p>
-            <div className="bg-gray-50 px-3 py-2 rounded border">
+            <p className="text-gray-700 font-semibold text-sm py-1">
+              Fecha de ingreso
+            </p>
+            <div className="bg-gray-50 p-3 rounded border">
               {new Date(orden.fechaIngreso).toLocaleDateString()}
             </div>
           </div>
           <div>
-            <p className="text-gray-500 text-sm">Entrega estimada</p>
-            <div className="bg-gray-50 px-3 py-2 rounded border">
+            <p className="text-gray-700 font-semibold text-sm py-1">
+              Fecha estimada de entrega
+            </p>
+            <div className="bg-gray-50 p-3 rounded border">
               {orden.fechaEntrega
                 ? new Date(orden.fechaEntrega).toLocaleDateString()
                 : "No definida"}
@@ -118,7 +129,7 @@ export default function ModalDetalleOrden({
             {orden.detalles?.map((d: any, idx: number) => (
               <div
                 key={idx}
-                className="flex justify-between items-center px-3 py-2 bg-white hover:bg-gray-50 transition"
+                className="flex justify-between items-center p-3 bg-white hover:bg-gray-50 transition"
               >
                 <span>{d.servicio?.nombreServicio}</span>
                 <span className="text-gray-500">x{d.cantidad}</span>
@@ -160,30 +171,33 @@ export default function ModalDetalleOrden({
             Notas de la orden
           </h3>
           <textarea
-            value={notaEditada}
-            onChange={(e) => setNotaEditada(e.target.value)}
+            value={observacionesEditadas}
+            onChange={(e) => setObservacionesEditadas(e.target.value)}
             placeholder="Sin notas registradas..."
-            disabled={guardandoNotas}
+            disabled={guardandoObservaciones}
             className="w-full min-h-[80px] px-3 py-2 border rounded-md bg-gray-50 focus:outline-none focus:ring focus:ring-indigo-200 resize-y text-sm"
           />
-          <div className="flex justify-end">
-            <button
-              onClick={guardarNotas}
-              disabled={guardandoNotas || notaEditada === orden.notas}
-              className={`px-4 py-2 flex items-center gap-2 text-white rounded-md ${
-                notaEditada === orden.notas || guardandoNotas
-                  ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700"
-              }`}
-            >
-              <FaSave size={14} />
-              Guardar notas
-            </button>
-          </div>
           <p className="text-xs text-gray-500 italic">
             Puedes agregar comentarios, aclaraciones o notas internas sobre la
             orden.
           </p>
+          <div className="flex justify-end">
+            <button
+              onClick={guardarObservaciones}
+              disabled={
+                guardandoObservaciones ||
+                observacionesEditadas === orden.observaciones
+              }
+              className={`p-3 flex items-center gap-2 text-white font-bold rounded-md ${
+                observacionesEditadas === orden.observaciones ||
+                guardandoObservaciones
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-700"
+              }`}
+            >
+              Guardar notas
+            </button>
+          </div>
         </div>
 
         {/* Acción: registrar pago adicional */}
@@ -194,9 +208,8 @@ export default function ModalDetalleOrden({
             </h4>
             <button
               onClick={() => onAbrirPagoExtra(orden)}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm flex items-center gap-2"
+              className="p-3 bg-green-600 text-white rounded font-bold hover:bg-green-700 text-sm flex items-center gap-2"
             >
-              <FaMoneyBillWave size={16} />
               Agregar pago adicional
             </button>
             <p className="text-xs text-gray-500">

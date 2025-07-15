@@ -54,7 +54,10 @@ export default function TablaOrdenes({
             const estadoPago = o.estadoPago;
 
             return (
-              <tr key={o.id} className="border-t hover:bg-gray-50">
+              <tr
+                key={o.id}
+                className="border-t font-semibold hover:bg-gray-50"
+              >
                 <td className="px-4 py-2 text-gray-600">#{o.id}</td>
 
                 <td className="px-4 py-2">
@@ -89,7 +92,7 @@ export default function TablaOrdenes({
                     : "—"}
                 </td>
 
-                <td className="px-4 py-2 font-semibold">
+                <td className="px-4 py-2">
                   {formatearMoneda(o.total ?? 0, "USD")}
                 </td>
 
@@ -104,18 +107,18 @@ export default function TablaOrdenes({
                     <button
                       onClick={() => onVerDetalles(o)}
                       title="Ver detalles"
-                      className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-0 flex items-center justify-center"
+                      className="p-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-0 flex items-center justify-center"
                     >
-                      <FaSearch size={16} />
+                      <FaSearch size={18} />
                     </button>
 
                     {estadoPago !== "COMPLETO" && o.estado !== "ENTREGADO" && (
                       <button
                         onClick={() => onRegistrarPago(o)}
                         title="Registrar pago"
-                        className="p-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition duration-0 flex items-center justify-center"
+                        className="p-3 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition duration-0 flex items-center justify-center"
                       >
-                        <FaMoneyBillWave size={16} />
+                        <FaMoneyBillWave size={18} />
                       </button>
                     )}
 
@@ -123,18 +126,18 @@ export default function TablaOrdenes({
                       <button
                         onClick={() => onMarcarEntregada(o.id)}
                         title="Marcar entregada"
-                        className="p-2 bg-green-600 text-white rounded hover:bg-green-700 transition duration-0 flex items-center justify-center"
+                        className="p-3 bg-green-600 text-white rounded hover:bg-green-700 transition duration-0 flex items-center justify-center"
                       >
-                        <FaCheckCircle size={16} />
+                        <FaCheckCircle size={18} />
                       </button>
                     )}
 
                     <button
                       onClick={() => onEliminar(o.id)}
                       title="Eliminar orden"
-                      className="p-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-0 flex items-center justify-center"
+                      className="p-3 bg-red-600 text-white rounded hover:bg-red-700 transition duration-0 flex items-center justify-center"
                     >
-                      <FaTrashAlt size={16} />
+                      <FaTrashAlt size={18} />
                     </button>
                   </div>
                 </td>

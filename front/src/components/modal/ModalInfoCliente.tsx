@@ -14,8 +14,8 @@ type Props = {
 
 export default function ModalInfoCliente({ cliente, onClose }: Props) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-xl w-[420px] p-6">
+    <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+      <div className="bg-white rounded-lg font-semibold shadow-xl w-[420px] p-6">
         {/* Encabezado */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold flex items-center gap-2 text-indigo-700">
@@ -56,7 +56,7 @@ export default function ModalInfoCliente({ cliente, onClose }: Props) {
         <div className="flex justify-end mt-6">
           <button
             onClick={onClose}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm font-medium"
+            className="bg-blue-600 text-white p-3 rounded hover:bg-blue-700 text-sm font-bold"
           >
             Cerrar
           </button>

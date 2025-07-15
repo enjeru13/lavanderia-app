@@ -46,7 +46,7 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar por nombre o apellido"
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-blue-200 mb-4"
+          className="w-full p-3 border rounded focus:outline-none focus:ring focus:ring-blue-200 mb-4"
         />
 
         {/* Lista de clientes */}
@@ -65,11 +65,13 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
                   <p className="font-semibold text-gray-800">
                     {c.nombre} {c.apellido}
                   </p>
-                  <p className="text-sm text-gray-600">{c.telefono}</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    {c.telefono}
+                  </p>
                 </div>
                 <button
                   onClick={() => onSelect(c)}
-                  className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition text-sm font-medium"
+                  className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition text-sm font-bold"
                 >
                   Seleccionar
                 </button>
@@ -82,7 +84,7 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
         <div className="flex justify-end mt-6">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 text-sm font-medium"
+            className="p-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 text-sm font-bold"
           >
             Cancelar
           </button>

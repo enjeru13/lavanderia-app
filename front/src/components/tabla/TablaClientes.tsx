@@ -30,7 +30,7 @@ export default function TablaClientes({
   }
 
   return (
-    <table className="w-full text-sm border rounded overflow-hidden bg-white shadow">
+    <table className="w-full text-sm border rounded overflow-hidden bg-white font-semibold shadow">
       <thead className="bg-gray-100 text-gray-600">
         <tr>
           <th className="px-4 py-2 text-left">Nombre</th>

@@ -6,8 +6,8 @@ export function badgeEstado(estado: string) {
 
   return (
     <span
-      className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-        map[estado] || "bg-gray-100 text-gray-700"
+      className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
+        map[estado] || "bg-red-100 text-red-700"
       }`}
     >
       {estado}
@@ -17,15 +17,16 @@ export function badgeEstado(estado: string) {
 
 export function badgePago(estadoPago: string) {
   const map: Record<string, string> = {
-    "Sin pagos": "bg-red-100 text-red-700",
+    "INCOMPLETO": "bg-red-100 text-red-700",
+    "COMPLETO": "bg-green-100 text-green-700",
     Parcial: "bg-yellow-100 text-yellow-800",
     Pagado: "bg-green-100 text-green-800",
   };
 
   return (
     <span
-      className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-        map[estadoPago] || "bg-gray-100 text-gray-700"
+      className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
+        map[estadoPago] || "bg-gray-100 text-gray-600"
       }`}
     >
       {estadoPago}

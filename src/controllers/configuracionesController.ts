@@ -6,10 +6,20 @@ const prisma = new PrismaClient();
 // Obtener la configuración actual del sistema
 export async function getConfiguracion(req: Request, res: Response) {
   try {
-    const config = await prisma.configuracion.findFirst();
+    let config = await prisma.configuracion.findFirst();
+
     if (!config) {
-      return res.status(404).json({ message: "Configuración no encontrada" });
+      config = await prisma.configuracion.create({
+        data: {
+          monedaPrincipal: "USD",
+          tasaUSD: 1,
+          tasaVES: null,
+          tasaCOP: null,
+          nombreNegocio: "Mi negocio",
+        },
+      });
     }
+
     return res.json(config);
   } catch (error) {
     console.error("Error al obtener configuración:", error);
@@ -23,6 +33,7 @@ export async function updateConfiguracion(req: Request, res: Response) {
 
   try {
     const config = await prisma.configuracion.findFirst();
+
     if (!config) {
       return res.status(404).json({ message: "Configuración no encontrada" });
     }
@@ -34,6 +45,7 @@ export async function updateConfiguracion(req: Request, res: Response) {
         monedaPrincipal,
         tasaVES: tasaVES !== undefined ? Number(tasaVES) : undefined,
         tasaCOP: tasaCOP !== undefined ? Number(tasaCOP) : undefined,
+        tasaUSD: 1,
       },
     });
 

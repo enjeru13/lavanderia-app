@@ -30,7 +30,7 @@ export default function ServiciosPanel({
   };
 
   return (
-    <section className="bg-white p-4 rounded shadow">
+    <section className="bg-white p-4 font-semibold rounded shadow">
       <h2 className="text-lg font-bold mb-4">Servicios disponibles</h2>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {serviciosCatalogo.map((servicio) => {
@@ -55,7 +55,7 @@ export default function ServiciosPanel({
                 onChange={(e) =>
                   actualizarCantidad(servicio.id, parseInt(e.target.value))
                 }
-                className="mt-2 px-2 py-1 border rounded w-full"
+                className="mt-2 p-2 border rounded w-full"
                 placeholder="Cantidad"
               />
               {cantidad > 0 && (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaCoins, FaStore, FaSave } from "react-icons/fa";
+import { FaCoins, FaStore } from "react-icons/fa";
 import { MdSettings } from "react-icons/md";
 import { formatearTasa, parsearTasa } from "../utils/formatearMonedaHelpers";
 
@@ -51,8 +51,8 @@ export default function PantallaConfiguracion() {
       </h1>
 
       {/* Datos del negocio */}
-      <section className="bg-white rounded shadow p-4 space-y-4">
-        <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-700">
+      <section className="bg-white font-semibold rounded shadow p-4 space-y-4">
+        <h2 className="text-lg flex items-center gap-2 text-gray-700">
           <FaStore /> Información del negocio
         </h2>
         <label className="block text-sm text-gray-700">
@@ -68,8 +68,8 @@ export default function PantallaConfiguracion() {
       </section>
 
       {/* Tasas de conversión */}
-      <section className="bg-white rounded shadow p-4 space-y-4">
-        <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-700">
+      <section className="bg-white font-semibold rounded shadow p-4 space-y-4">
+        <h2 className="text-lg flex items-center gap-2 text-gray-700">
           <FaCoins /> Tasas de moneda
         </h2>
 
@@ -78,7 +78,7 @@ export default function PantallaConfiguracion() {
           <select
             value={monedaPrincipal}
             onChange={(e) => setMonedaPrincipal(e.target.value)}
-            className="mt-1 w-full border px-3 py-2 rounded"
+            className="mt-1 w-full border p-2 rounded"
           >
             <option value="USD">Dólares (USD)</option>
             <option value="VES">Bolívares (VES)</option>
@@ -93,7 +93,7 @@ export default function PantallaConfiguracion() {
             step="any"
             value={tasas.VES}
             onChange={(e) => setTasas({ ...tasas, VES: e.target.value })}
-            className="mt-1 w-full border px-3 py-2 rounded"
+            className="mt-1 w-full border p-2 rounded"
             placeholder="Ej. 140.00"
           />
         </label>
@@ -105,19 +105,19 @@ export default function PantallaConfiguracion() {
             step="any"
             value={tasas.COP}
             onChange={(e) => setTasas({ ...tasas, COP: e.target.value })}
-            className="mt-1 w-full border px-3 py-2 rounded"
+            className="mt-1 w-full border p-2 rounded"
             placeholder="Ej. 4.000"
           />
         </label>
       </section>
 
       {/* Botón guardar */}
-      <div className="text-right">
+      <div className="items-center flex justify-end">
         <button
           onClick={guardarConfiguracion}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2"
+          className="bg-green-600 text-white font-bold p-3 rounded hover:bg-green-700 flex items-center gap-2"
         >
-          <FaSave /> Guardar configuración
+          Guardar configuración
         </button>
       </div>
     </div>

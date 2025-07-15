@@ -27,7 +27,7 @@ export default function TablaServicios({
   }
 
   return (
-    <table className="w-full bg-white shadow rounded text-sm overflow-hidden">
+    <table className="w-full bg-white shadow rounded text-sm font-semibold overflow-hidden">
       <thead className="bg-gray-100 text-gray-600">
         <tr>
           <th className="px-4 py-2 text-left">Servicio</th>

@@ -155,20 +155,31 @@ export async function deleteOrden(req: Request, res: Response) {
 export async function actualizarObservacion(req: Request, res: Response) {
   const { id } = req.params;
   const { observaciones } = req.body;
+
   if (typeof observaciones !== "string") {
     return res.status(400).json({ message: "Observación inválida" });
   }
 
   try {
-    const orden = await prisma.orden.update({
+    await prisma.orden.update({
       where: { id: Number(id) },
       data: { observaciones },
     });
-    return res.status(200).json(orden);
+
+    const actualizada = await prisma.orden.findUnique({
+      where: { id: Number(id) },
+      include: {
+        cliente: true,
+        pagos: true,
+        detalles: true,
+      },
+    });
+
+    return res.status(200).json(actualizada);
   } catch (error) {
     console.error("Error al actualizar observaciones:", error);
-    return res
-      .status(404)
-      .json({ message: "Orden no encontrada o error al actualizar." });
+    return res.status(404).json({
+      message: "Orden no encontrada o error al actualizar.",
+    });
   }
 }
