@@ -24,12 +24,13 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
   });
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-[500px] shadow-xl">
+    <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-lg space-y-5 text-sm font-medium">
         {/* Encabezado */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold flex items-center gap-2 text-indigo-700">
-            <FaUser /> Seleccionar Cliente
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-indigo-700 flex items-center gap-2">
+            <FaUser />
+            Seleccionar cliente
           </h2>
           <button
             onClick={onClose}
@@ -40,38 +41,36 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
           </button>
         </div>
 
-        {/* Búsqueda */}
+        {/* Buscador */}
         <input
           type="text"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar por nombre o apellido"
-          className="w-full p-3 border rounded focus:outline-none focus:ring focus:ring-blue-200 mb-4"
+          className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
         />
 
-        {/* Lista de clientes */}
-        <div className="max-h-[300px] overflow-y-auto space-y-2">
+        {/* Lista */}
+        <div className="max-h-[300px] overflow-y-auto space-y-3">
           {clientesFiltrados.length === 0 ? (
-            <p className="text-gray-500 text-sm italic text-center">
+            <p className="text-gray-500 italic text-center">
               No se encontraron clientes.
             </p>
           ) : (
             clientesFiltrados.map((c) => (
               <div
                 key={c.id}
-                className="flex justify-between items-center border px-3 py-2 rounded hover:bg-blue-50 transition"
+                className="flex justify-between items-center p-3 border border-gray-200 rounded-md hover:bg-indigo-50 transition"
               >
                 <div>
                   <p className="font-semibold text-gray-800">
                     {c.nombre} {c.apellido}
                   </p>
-                  <p className="text-sm font-medium text-gray-600">
-                    {c.telefono}
-                  </p>
+                  <p className="text-xs text-gray-500">{c.telefono}</p>
                 </div>
                 <button
                   onClick={() => onSelect(c)}
-                  className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition text-sm font-bold"
+                  className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-semibold"
                 >
                   Seleccionar
                 </button>
@@ -80,11 +79,11 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
           )}
         </div>
 
-        {/* Acciones */}
-        <div className="flex justify-end mt-6">
+        {/* Footer */}
+        <div className="flex justify-end pt-3">
           <button
             onClick={onClose}
-            className="p-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 text-sm font-bold"
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition font-semibold"
           >
             Cancelar
           </button>

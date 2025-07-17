@@ -1,10 +1,12 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { FiX } from "react-icons/fi";
 import { BiMessageSquareDetail } from "react-icons/bi";
 import { formatearMoneda } from "../../utils/formatearMonedaHelpers";
 import { badgeEstado } from "../../utils/badgeHelpers";
+import ModalContraseña from "./ModalContraseña";
 import { toast } from "react-toastify";
 
 interface Props {
@@ -28,6 +30,8 @@ export default function ModalDetalleOrden({
     orden.observaciones ?? ""
   );
   const [guardandoObservaciones, setGuardandoObservaciones] = useState(false);
+  const [mostrarProteccionNotas, setMostrarProteccionNotas] = useState(false);
+  const [autorizadoParaEditar, setAutorizadoParaEditar] = useState(false);
 
   const convertirAUSD = (monto: number, moneda: string): number => {
     if (moneda === "USD") return monto;
@@ -66,11 +70,18 @@ export default function ModalDetalleOrden({
     }
   };
 
+  useEffect(() => {
+    if (autorizadoParaEditar) {
+      guardarObservaciones();
+      setAutorizadoParaEditar(false);
+    }
+  }, [autorizadoParaEditar]);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="relative bg-white max-w-2xl w-full p-6 rounded-lg shadow-xl ring-1 ring-gray-200 space-y-6 text-sm text-gray-800 overflow-auto max-h-[90vh]">
         {/* Encabezado */}
-        <div className="flex justify-between items-center border-b pb-2">
+        <div className="flex justify-between items-center pb-2">
           <h2 className="text-xl font-bold text-green-700 flex items-center gap-2">
             <BiMessageSquareDetail />
             Detalle de la orden{" "}
@@ -88,7 +99,7 @@ export default function ModalDetalleOrden({
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <p className="text-gray-700 font-semibold text-sm py-1">Cliente</p>
-            <div className="bg-gray-50 p-3 rounded border font-medium">
+            <div className="bg-gray-50 p-3 rounded border border-gray-300 font-medium">
               {orden.cliente?.nombre} {orden.cliente?.apellido}
             </div>
           </div>
@@ -96,7 +107,7 @@ export default function ModalDetalleOrden({
             <p className="text-gray-700 font-semibold text-sm py-1">
               Estado de la entrega
             </p>
-            <div className="bg-gray-50 px-3 py-2 rounded border flex items-center gap-2">
+            <div className="bg-gray-50 px-3 py-2 rounded border border-gray-300 flex items-center gap-2">
               {badgeEstado(orden.estado)}
             </div>
           </div>
@@ -104,7 +115,7 @@ export default function ModalDetalleOrden({
             <p className="text-gray-700 font-semibold text-sm py-1">
               Fecha de ingreso
             </p>
-            <div className="bg-gray-50 p-3 rounded border">
+            <div className="bg-gray-50 p-3 rounded border border-gray-300">
               {new Date(orden.fechaIngreso).toLocaleDateString()}
             </div>
           </div>
@@ -112,7 +123,7 @@ export default function ModalDetalleOrden({
             <p className="text-gray-700 font-semibold text-sm py-1">
               Fecha estimada de entrega
             </p>
-            <div className="bg-gray-50 p-3 rounded border">
+            <div className="bg-gray-50 p-3 rounded border border-gray-300">
               {orden.fechaEntrega
                 ? new Date(orden.fechaEntrega).toLocaleDateString()
                 : "No definida"}
@@ -125,7 +136,7 @@ export default function ModalDetalleOrden({
           <h3 className="font-semibold text-gray-700 mb-2">
             Servicios contratados
           </h3>
-          <div className="divide-y border rounded-lg overflow-hidden text-sm">
+          <div className="divide-y border border-gray-300 rounded-lg overflow-hidden text-sm">
             {orden.detalles?.map((d: any, idx: number) => (
               <div
                 key={idx}
@@ -149,7 +160,7 @@ export default function ModalDetalleOrden({
             </h3>
             <ul className="space-y-2 text-sm text-gray-700">
               {orden.pagos.map((p: any) => (
-                <li key={p.id} className="bg-gray-50 p-3 rounded border">
+                <li key={p.id} className="bg-gray-50 p-3 rounded border border-gray-300">
                   <div className="flex justify-between items-center">
                     <span>{new Date(p.fechaPago).toLocaleDateString()}</span>
                     <span className="font-semibold">
@@ -166,7 +177,7 @@ export default function ModalDetalleOrden({
         )}
 
         {/* Notas de la orden */}
-        <div className="pt-4 border-t space-y-3">
+        <div className="pt-4 space-y-3">
           <h3 className="font-semibold text-gray-700 mb-1">
             Notas de la orden
           </h3>
@@ -175,7 +186,7 @@ export default function ModalDetalleOrden({
             onChange={(e) => setObservacionesEditadas(e.target.value)}
             placeholder="Sin notas registradas..."
             disabled={guardandoObservaciones}
-            className="w-full min-h-[80px] px-3 py-2 border rounded-md bg-gray-50 focus:outline-none focus:ring focus:ring-indigo-200 resize-y text-sm"
+            className="w-full min-h-[80px] px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring focus:ring-indigo-200 resize-y text-sm"
           />
           <p className="text-xs text-gray-500 italic">
             Puedes agregar comentarios, aclaraciones o notas internas sobre la
@@ -183,7 +194,7 @@ export default function ModalDetalleOrden({
           </p>
           <div className="flex justify-end">
             <button
-              onClick={guardarObservaciones}
+              onClick={() => setMostrarProteccionNotas(true)}
               disabled={
                 guardandoObservaciones ||
                 observacionesEditadas === orden.observaciones
@@ -218,6 +229,16 @@ export default function ModalDetalleOrden({
           </div>
         )}
       </div>
+
+      <ModalContraseña
+        visible={mostrarProteccionNotas}
+        onCancelar={() => setMostrarProteccionNotas(false)}
+        onConfirmado={() => {
+          setMostrarProteccionNotas(false);
+          setAutorizadoParaEditar(true);
+        }}
+        titulo="Editar observaciones de la orden"
+      />
     </div>
   );
 }

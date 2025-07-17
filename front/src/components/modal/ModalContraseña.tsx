@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { FiLock } from "react-icons/fi";
 
 interface ModalContraseñaProps {
   onConfirmado: () => void;
@@ -12,13 +11,12 @@ export default function ModalContraseña({
   onConfirmado,
   onCancelar,
   visible,
-  titulo = "Confirmar acción protegida",
+  titulo = "Acción protegida",
 }: ModalContraseñaProps) {
   const [claveIngresada, setClaveIngresada] = useState("");
   const [error, setError] = useState("");
 
   const claveCorrecta = import.meta.env.VITE_CLAVE_ADMIN;
-  console.log("Clave del .env cargada:", claveCorrecta);
 
   const validarClave = () => {
     if (claveIngresada.trim() === claveCorrecta) {
@@ -26,39 +24,47 @@ export default function ModalContraseña({
       setClaveIngresada("");
       setError("");
     } else {
-      setError("Contraseña incorrecta");
+      setError("La contraseña ingresada no es válida.");
     }
   };
 
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-md shadow-xl w-full max-w-sm text-sm space-y-4">
-        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-          <FiLock />
+    <div className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-md shadow-lg w-full max-w-sm text-sm space-y-5">
+        <h3 className="text-lg font-semibold text-center text-gray-800">
           {titulo}
         </h3>
 
+        <p className="text-xs text-gray-500 text-center">
+          Para continuar, por favor confirma con la contraseña autorizada.
+        </p>
+
         <input
           type="password"
-          placeholder="Ingresa la contraseña"
+          placeholder="Contraseña"
           value={claveIngresada}
           onChange={(e) => setClaveIngresada(e.target.value)}
-          className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-indigo-300"
+          className={`w-full border px-3 py-2 rounded-md focus:outline-none focus:ring ${
+            error
+              ? "border-red-500 focus:ring-red-300"
+              : "border-gray-300 focus:ring-indigo-300"
+          }`}
         />
-        {error && <p className="text-red-500 text-xs">{error}</p>}
 
-        <div className="flex justify-end gap-3 pt-2">
+        {error && <p className="text-red-500 text-xs text-center">{error}</p>}
+
+        <div className="flex justify-end gap-2 pt-2">
           <button
             onClick={onCancelar}
-            className="px-3 py-2 text-gray-600 hover:text-gray-800 text-xs"
+            className="px-4 py-2 text-gray-600 hover:text-gray-800 text-xs"
           >
             Cancelar
           </button>
           <button
             onClick={validarClave}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs rounded"
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs rounded-md"
           >
             Confirmar
           </button>

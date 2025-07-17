@@ -30,9 +30,12 @@ export default function ServiciosPanel({
   };
 
   return (
-    <section className="bg-white p-4 font-semibold rounded shadow">
-      <h2 className="text-lg font-bold mb-4">Servicios disponibles</h2>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <section className="bg-white p-6 font-semibold rounded-xl shadow-lg">
+      <h2 className="text-xl font-bold mb-6 text-gray-800">
+        Servicios disponibles
+      </h2>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {serviciosCatalogo.map((servicio) => {
           const actual = serviciosSeleccionados.find(
             (s) => s.servicioId === servicio.id
@@ -41,13 +44,21 @@ export default function ServiciosPanel({
           const subtotal = cantidad * servicio.precioBase;
 
           return (
-            <div key={servicio.id} className="border rounded p-4 shadow-sm">
-              <h3 className="font-semibold text-gray-800 mb-1">
+            <div
+              key={servicio.id}
+              className="border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-all space-y-3"
+            >
+              {/* Nombre del servicio */}
+              <div className="text-base font-semibold text-gray-800">
                 {servicio.nombreServicio}
-              </h3>
-              <p className="text-sm text-gray-600">
-                Precio base: $ {servicio.precioBase.toFixed(2)}
-              </p>
+              </div>
+
+              {/* Precio base */}
+              <div className="text-sm text-indigo-600 font-bold">
+                ${servicio.precioBase.toFixed(2)}
+              </div>
+
+              {/* Campo cantidad */}
               <input
                 type="number"
                 min={0}
@@ -55,13 +66,15 @@ export default function ServiciosPanel({
                 onChange={(e) =>
                   actualizarCantidad(servicio.id, parseInt(e.target.value))
                 }
-                className="mt-2 p-2 border rounded w-full"
+                className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring focus:ring-indigo-200 text-sm"
                 placeholder="Cantidad"
               />
+
+              {/* Subtotal */}
               {cantidad > 0 && (
-                <p className="mt-2 text-green-700 text-sm font-medium">
-                  Subtotal: $ {subtotal.toFixed(2)}
-                </p>
+                <div className="text-sm text-green-700 font-medium pt-1">
+                  Subtotal: ${subtotal.toFixed(2)}
+                </div>
               )}
             </div>
           );

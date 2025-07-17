@@ -21,24 +21,23 @@ export const ClienteSchema = z.object({
     .string()
     .trim()
     .regex(
-      /^\d{7,15}$/,
-      "El teléfono debe contener solo números (7 a 15 dígitos)"
+      /^[0-9()+\-.\s]{6,20}$/,
+      "Formato inválido (solo números y símbolos)"
     ),
 
   telefono_secundario: z
     .string()
     .trim()
-    .regex(
-      /^\d{7,15}$/,
-      "El teléfono debe contener solo números (7 a 15 dígitos)"
-    )
-    .optional(),
+    .optional()
+    .refine((val) => !val || /^[0-9()+\-.\s]{6,20}$/.test(val), {
+      message: "Formato inválido en teléfono secundario",
+    }),
 
   direccion: z.string().trim().min(4, "La dirección es obligatoria"),
 
   identificacion: z
     .string()
-    .regex(/^(V|J)-\d{6,10}$/, "Identificación inválida"),
+    .regex(/^(V|J|E)-\d{6,10}$/, "Identificación inválida"),
 
-  email: z.string().trim().email("Correo inválido"),
+  email: z.string().trim().email("Correo inválido").optional(),
 });

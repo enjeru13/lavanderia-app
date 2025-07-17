@@ -6,7 +6,7 @@ import ModalInfoCliente from "../components/modal/ModalInfoCliente";
 import TablaClientes from "../components/tabla/TablaClientes";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaSearch } from "react-icons/fa";
 
 export default function PantallaClientes() {
   const [clientes, setClientes] = useState<any[]>([]);
@@ -49,8 +49,7 @@ export default function PantallaClientes() {
       !data.apellido?.trim() ||
       !data.telefono?.trim() ||
       !data.direccion?.trim() ||
-      !data.identificacion?.trim() ||
-      !data.email?.trim()
+      !data.identificacion?.trim()
     ) {
       toast.error("Completa todos los campos requeridos");
       return;
@@ -100,13 +99,18 @@ export default function PantallaClientes() {
         </button>
       </div>
 
-      <input
-        type="text"
-        placeholder="Buscar por nombre o apellido o cédula"
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
-        className="px-3 py-2 border font-semibold rounded w-1/2"
-      />
+      <div className="mb-5 flex items-center gap-3">
+        <div className="relative w-72">
+          <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
+          <input
+            type="text"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Buscar por nombre, apellido o cédula"
+            className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+          />
+        </div>
+      </div>
 
       <TablaClientes
         clientes={clientesFiltrados}

@@ -80,7 +80,7 @@ export default function FormularioServicio({
               type="text"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="w-full border p-3 rounded focus:ring focus:ring-blue-200"
+              className="w-full border border-gray-300 p-3 rounded focus:ring focus:ring-blue-200"
             />
             {errores.nombre && (
               <p className="text-red-600 text-xs font-medium mt-1">
@@ -99,7 +99,7 @@ export default function FormularioServicio({
                 const parsed = parseFloat(e.target.value);
                 setPrecio(isNaN(parsed) ? null : parsed);
               }}
-              className="w-full border p-3 rounded focus:ring focus:ring-blue-200"
+              className="w-full border border-gray-300 p-3 rounded focus:ring focus:ring-blue-200"
               placeholder="Ej. 12.50"
             />
             {errores.precio && (
@@ -114,7 +114,7 @@ export default function FormularioServicio({
             <textarea
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
-              className="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200 resize-none"
+              className="w-full border border-gray-300 px-3 py-2 rounded focus:ring focus:ring-blue-200 resize-none"
               rows={3}
             />
           </div>

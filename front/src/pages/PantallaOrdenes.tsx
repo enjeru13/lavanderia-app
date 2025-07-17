@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import ModalPago from "../components/modal/ModalPago";
 import TablaOrdenes from "../components/tabla/TablaOrdenes";
 import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
+import { FaSearch } from "react-icons/fa";
 
 export default function PantallaOrdenes() {
   const [ordenes, setOrdenes] = useState<any[]>([]);
@@ -100,13 +101,18 @@ export default function PantallaOrdenes() {
     <div className="p-6 font-semibold space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Historial de Órdenes</h1>
 
-      <input
-        type="text"
-        placeholder="Buscar por cliente o número de orden"
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
-        className="px-3 py-2 border rounded w-1/2"
-      />
+      <div className="mb-5 flex items-center gap-3">
+        <div className="relative w-72">
+          <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
+          <input
+            type="text"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Buscar por cliente número de orden"
+            className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+          />
+        </div>
+      </div>
 
       <TablaOrdenes
         ordenes={ordenesFiltradas}

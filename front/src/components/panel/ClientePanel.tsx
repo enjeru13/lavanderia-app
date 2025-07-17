@@ -12,35 +12,44 @@ export default function ClientePanel({
   onAbrirLista,
 }: Props) {
   return (
-    <section className="bg-white p-4 rounded shadow">
-      <h2 className="text-lg font-bold mb-3">Cliente</h2>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <section className="bg-white p-6 rounded-xl shadow-lg space-y-5">
+      <header>
+        <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+          Cliente
+        </h2>
+        <p className="text-sm text-gray-500">
+          Asocia un cliente nuevo o existente con esta orden.
+        </p>
+      </header>
+
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {/* Estado del cliente */}
         <div>
           {cliente ? (
-            <span className="p-3 bg-green-100 rounded text-green-800 font-semibold inline-flex items-center gap-2">
-              <FaUserCheck className="text-green-600 text-lg" />
+            <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded font-semibold inline-flex items-center gap-2">
+              <FaUserCheck className="text-green-600" />
               {cliente.nombre} {cliente.apellido}
-            </span>
+            </div>
           ) : (
-            <span className="text-gray-500 italic">
-              No hay cliente asignado
-            </span>
+            <div className="text-gray-500 italic">No hay cliente asignado</div>
           )}
         </div>
-        <div className="flex gap-2">
+
+        {/* Acciones */}
+        <div className="flex gap-3">
           <button
             onClick={onAbrirFormulario}
-            className="p-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-0 flex items-center justify-center"
-            title="Registrar nuevo cliente"
+            className="px-4 py-2 text-sm font-bold rounded-md flex items-center gap-2 border border-blue-600 text-blue-600 hover:bg-blue-50 transition"
           >
-            <FaUserPlus size={18} />
+            <FaUserPlus />
+            Registrar nuevo
           </button>
           <button
             onClick={onAbrirLista}
-            className="p-3 bg-gray-500 text-white rounded hover:bg-gray-600 transition duration-0 flex items-center justify-center"
-            title="Seleccionar cliente existente"
+            className="px-4 py-2 text-sm font-bold rounded-md flex items-center gap-2 border border-gray-600 text-gray-600 hover:bg-gray-100 transition"
           >
-            <FaUserCheck size={18} />
+            <FaUserCheck />
+            Seleccionar existente
           </button>
         </div>
       </div>

@@ -35,33 +35,51 @@ export default function ResumenOrdenPanel({
   };
 
   return (
-    <section className="bg-white p-4 font-semibold rounded shadow">
-      <h2 className="text-lg font-bold mb-3">Resumen de la orden</h2>
+    <section className="bg-white p-6 rounded-xl shadow-lg space-y-6">
+      <header>
+        <h2 className="text-xl font-bold text-gray-800">Resumen de la orden</h2>
+        <p className="text-sm text-gray-500">
+          Detalle general antes de confirmar
+        </p>
+      </header>
 
-      <div className="space-y-2 text-sm text-gray-700">
+      <div className="space-y-4 text-sm text-gray-700 font-medium">
         {/* Cliente */}
-        <div>
-          <span className="font-semibold">Cliente:</span>{" "}
-          {cliente ? `${cliente.nombre} ${cliente.apellido}` : "No asignado"}
+        <div className="bg-gray-50 p-3 rounded border">
+          <span className="text-gray-600">Cliente:</span>{" "}
+          {cliente ? (
+            <span>
+              {cliente.nombre} {cliente.apellido}
+            </span>
+          ) : (
+            <span className="italic text-gray-500">No asignado</span>
+          )}
         </div>
 
-        {/* Servicios */}
+        {/* Servicios seleccionados */}
         <div>
-          <span className="font-semibold block mb-1">
+          <span className="text-gray-600 block mb-2 font-semibold">
             Servicios seleccionados:
           </span>
           {serviciosSeleccionados.length === 0 ? (
             <p className="text-gray-500 italic">Ningún servicio seleccionado</p>
           ) : (
-            <ul className="list-disc pl-5 space-y-1">
+            <ul className="divide-y border rounded overflow-hidden bg-white text-sm">
               {serviciosSeleccionados.map((s) => {
                 const servicio = serviciosCatalogo.find(
                   (x) => x.id === s.servicioId
                 );
                 return (
-                  <li key={s.servicioId}>
-                    {servicio?.nombreServicio} — {s.cantidad} unidad(es) → $
-                    {calcularSubtotal(s).toFixed(2)}
+                  <li
+                    key={s.servicioId}
+                    className="p-3 flex justify-between items-center"
+                  >
+                    <span>
+                      {servicio?.nombreServicio} × {s.cantidad}
+                    </span>
+                    <span className="font-bold text-green-700">
+                      ${calcularSubtotal(s).toFixed(2)}
+                    </span>
                   </li>
                 );
               })}
@@ -71,16 +89,18 @@ export default function ResumenOrdenPanel({
 
         {/* Observaciones */}
         {observaciones && (
-          <div>
-            <span className="font-semibold">Observaciones:</span>{" "}
-            {observaciones}
+          <div className="bg-gray-50 p-3 rounded border">
+            <span className="text-gray-600 block mb-1 font-semibold">
+              Observaciones:
+            </span>
+            <p className="text-gray-700 italic">{observaciones}</p>
           </div>
         )}
 
-        {/* Fecha estimada */}
+        {/* Fecha de entrega */}
         {fechaEntrega && (
-          <div>
-            <span className="font-semibold">Fecha de entrega:</span>{" "}
+          <div className="bg-gray-50 p-3 rounded border">
+            <span className="text-gray-600">Fecha de entrega:</span>{" "}
             {new Date(fechaEntrega).toLocaleDateString()}
           </div>
         )}
