@@ -1,0 +1,90 @@
+.recibo {
+  width: 100%;
+  margin: 0 auto;
+  padding: 8px;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  color: black;
+  line-height: 1.4;
+  background: white;
+}
+
+/* Encabezado */
+.recibo h2 {
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+/* Separadores */
+hr {
+  border: none;
+  border-top: 1px dashed gray;
+  margin: 6px 0;
+}
+
+/* Ítems */
+.item-linea {
+  display: flex;
+  justify-content: space-between;
+  margin: 2px 0;
+  font-size: 12px;
+}
+
+.item-linea span:first-child {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Datos, totales y observaciones */
+.datos-cliente p,
+.totales p,
+.observaciones p {
+  margin: 2px 0;
+}
+
+.totales p {
+  text-align: right;
+}
+
+.totales p strong {
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
+/* Pie */
+.footer p {
+  text-align: center;
+  font-size: 11px;
+  margin-top: 6px;
+}
+
+/* Espacio de corte térmico */
+.recibo::after {
+  content: "";
+  display: block;
+  height: 40px;
+}
+
+/* Estilos al imprimir */
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+    width: 58mm;
+    background: white;
+    color: black;
+  }
+
+  .recibo {
+    width: 58mm !important;
+    font-size: 11px;
+    box-shadow: none;
+  }
+
+  hr {
+    border-top: 1px dashed black;
+  }
+}

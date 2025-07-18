@@ -108,10 +108,15 @@ model VueltoEntregado {
 }
 
 model Configuracion {
-  id              Int     @id @default(autoincrement())
-  nombreNegocio   String
-  monedaPrincipal String  @default("USD")
-  tasaUSD         Float?  @default(1)
-  tasaVES         Float?
-  tasaCOP         Float?
+  id                Int     @id @default(autoincrement())
+  nombreNegocio     String
+  rif               String?
+  direccion         String?
+  telefonoPrincipal String?
+  telefonoSecundario String?
+  mensajePieRecibo  String? @db.Text
+  monedaPrincipal   String  @default("USD")
+  tasaUSD           Float?  @default(1)
+  tasaVES           Float?
+  tasaCOP           Float?
 }

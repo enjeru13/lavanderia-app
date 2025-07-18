@@ -37,7 +37,7 @@ export default function PantallaOrdenes() {
       setMonedaPrincipal(config.monedaPrincipal || "USD");
       setTasas({
         VES: config.tasaVES || undefined,
-        COP: parseFloat(config.tasaCOP || "0"),
+        COP: config.tasaCOP ? parseFloat(config.tasaCOP) : undefined
       });
     } catch (err) {
       console.error("Error al cargar configuración:", err);
@@ -71,11 +71,35 @@ export default function PantallaOrdenes() {
 
   const marcarComoEntregada = async (id: number) => {
     try {
-      await axios.put(`/api/ordenes/${id}`, { estado: "ENTREGADO" });
+      const ordenActual = ordenes.find((o) => o.id === id);
+
+      console.log("Fecha entrega previa:", ordenActual?.fechaEntrega);
+      console.log("Fecha ingreso:", ordenActual?.fechaIngreso);
+
+      const mismaFecha =
+        ordenActual?.fechaEntrega === ordenActual?.fechaIngreso;
+
+      const fechaEntrega =
+        ordenActual?.fechaEntrega && !mismaFecha
+          ? ordenActual.fechaEntrega // válida → conservar
+          : new Date().toISOString(); // no definida o igual a ingreso → usar fecha actual
+
+      const payload = {
+        estado: "ENTREGADO",
+        fechaEntrega,
+      };
+
+      console.log("Payload final que se envía:", payload);
+
+      const res = await axios.put(`/api/ordenes/${id}`, payload);
+
       toast.success("Orden marcada como entregada");
-      cargarOrdenes();
+
+      // 🔄 Actualizar listado + modal con la orden actualizada desde el backend
+      actualizarOrdenEnLista(res.data);
     } catch (err) {
       toast.error("Error al actualizar estado");
+      console.error(err);
     }
   };
 

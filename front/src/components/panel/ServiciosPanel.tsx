@@ -2,6 +2,7 @@ type Servicio = {
   id: number;
   nombreServicio: string;
   precioBase: number;
+  permiteDecimales?: boolean;
 };
 
 type Seleccionado = {
@@ -23,7 +24,7 @@ export default function ServiciosPanel({
   setServiciosSeleccionados,
 }: Props) {
   const actualizarCantidad = (servicioId: number, cantidad: number) => {
-    setServiciosSeleccionados((prev: Seleccionado[]) => {
+    setServiciosSeleccionados((prev) => {
       const otros = prev.filter((s) => s.servicioId !== servicioId);
       return cantidad > 0 ? [...otros, { servicioId, cantidad }] : [...otros];
     });
@@ -40,7 +41,7 @@ export default function ServiciosPanel({
           const actual = serviciosSeleccionados.find(
             (s) => s.servicioId === servicio.id
           );
-          const cantidad = actual?.cantidad || 0;
+          const cantidad = actual?.cantidad ?? 0;
           const subtotal = cantidad * servicio.precioBase;
 
           return (
@@ -62,9 +63,10 @@ export default function ServiciosPanel({
               <input
                 type="number"
                 min={0}
-                value={cantidad}
+                step={servicio.permiteDecimales ? 0.1 : 1}
+                value={cantidad === 0 ? "" : String(cantidad)}
                 onChange={(e) =>
-                  actualizarCantidad(servicio.id, parseInt(e.target.value))
+                  actualizarCantidad(servicio.id, parseFloat(e.target.value))
                 }
                 className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring focus:ring-indigo-200 text-sm"
                 placeholder="Cantidad"

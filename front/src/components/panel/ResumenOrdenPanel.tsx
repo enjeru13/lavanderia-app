@@ -101,7 +101,14 @@ export default function ResumenOrdenPanel({
         {fechaEntrega && (
           <div className="bg-gray-50 p-3 rounded border">
             <span className="text-gray-600">Fecha de entrega:</span>{" "}
-            {new Date(fechaEntrega).toLocaleDateString()}
+            {(() => {
+              const [y, m, d] = fechaEntrega.split("-");
+              return new Date(
+                Number(y),
+                Number(m) - 1,
+                Number(d)
+              ).toLocaleDateString();
+            })()}
           </div>
         )}
       </div>

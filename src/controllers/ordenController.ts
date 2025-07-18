@@ -108,10 +108,10 @@ export async function createOrden(req: Request, res: Response) {
   }
 }
 
-// Actualizar una orden existente (fechaEntrega opcional)
 export async function updateOrden(req: Request, res: Response) {
   const { id } = req.params;
   const result = ordenUpdateSchema.safeParse(req.body);
+
   if (!result.success) {
     return res.status(400).json({
       error: "Validación fallida",
@@ -119,18 +119,76 @@ export async function updateOrden(req: Request, res: Response) {
     });
   }
 
-  // Separamos fechaEntrega para convertirla, el resto queda en 'rest'
-  const { fechaEntrega, ...rest } = result.data;
+  const { fechaEntrega, estado, ...rest } = result.data;
+
+  console.log("Payload recibido:", result.data);
+  console.log("Fecha entrega recibida:", fechaEntrega);
+  console.log("Estado recibido:", estado);
+
+  const ordenActual = await prisma.orden.findUnique({
+    where: { id: Number(id) },
+    select: { fechaIngreso: true, fechaEntrega: true },
+  });
+
+  console.log("Orden actual en BD:");
+  console.log("Fecha ingreso:", ordenActual?.fechaIngreso);
+  console.log("Fecha entrega actual:", ordenActual?.fechaEntrega);
+
+  let fechaFinalEntrega: Date | null = ordenActual?.fechaEntrega || null;
+
+  if (estado === "ENTREGADO") {
+    const mismoDia =
+      ordenActual?.fechaEntrega &&
+      ordenActual.fechaEntrega.toISOString() ===
+        ordenActual.fechaIngreso.toISOString();
+
+    const seDebeActualizar = !ordenActual?.fechaEntrega || mismoDia;
+
+    if (fechaEntrega) {
+      fechaFinalEntrega = new Date(fechaEntrega);
+    } else if (seDebeActualizar) {
+      fechaFinalEntrega = new Date();
+    }
+
+    console.log(
+      "Nueva fecha entrega generada para ENTREGADO:",
+      fechaFinalEntrega
+    );
+  } else if (fechaEntrega) {
+    fechaFinalEntrega = new Date(fechaEntrega);
+    console.log(
+      "Nueva fecha entrega para estado distinto a ENTREGADO:",
+      fechaFinalEntrega
+    );
+  }
 
   try {
-    const orden = await prisma.orden.update({
+    const datosParaGuardar = {
+      ...rest,
+      ...(estado && { estado }),
+      ...(fechaFinalEntrega && { fechaEntrega: fechaFinalEntrega }),
+    };
+
+    console.log("Data que se va a guardar en BD:", datosParaGuardar);
+
+    await prisma.orden.update({
       where: { id: Number(id) },
-      data: {
-        ...rest,
-        fechaEntrega: fechaEntrega ? new Date(fechaEntrega) : null,
+      data: datosParaGuardar,
+    });
+
+    // 🔄 Reconsultar orden completa para enviar al frontend
+    const ordenActualizada = await prisma.orden.findUnique({
+      where: { id: Number(id) },
+      include: {
+        cliente: true,
+        pagos: true,
+        detalles: {
+          include: { servicio: true },
+        },
       },
     });
-    return res.json(orden);
+
+    return res.json(ordenActualizada);
   } catch (error) {
     console.error("Error al actualizar orden:", error);
     return res.status(500).json({ message: "Error al actualizar orden" });

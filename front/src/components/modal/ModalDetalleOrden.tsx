@@ -7,6 +7,7 @@ import { BiMessageSquareDetail } from "react-icons/bi";
 import { formatearMoneda } from "../../utils/formatearMonedaHelpers";
 import { badgeEstado } from "../../utils/badgeHelpers";
 import ModalContraseña from "./ModalContraseña";
+import ModalReciboEntrega from "./ModalReciboEntrega";
 import { toast } from "react-toastify";
 
 interface Props {
@@ -32,6 +33,20 @@ export default function ModalDetalleOrden({
   const [guardandoObservaciones, setGuardandoObservaciones] = useState(false);
   const [mostrarProteccionNotas, setMostrarProteccionNotas] = useState(false);
   const [autorizadoParaEditar, setAutorizadoParaEditar] = useState(false);
+  const [verModalRecibo, setVerModalRecibo] = useState(false);
+  const [configuracion, setConfiguracion] = useState<any>(null);
+
+  useEffect(() => {
+    async function cargarConfiguracion() {
+      try {
+        const res = await axios.get("/api/configuracion");
+        setConfiguracion(res.data);
+      } catch (err) {
+        console.error("Error al cargar configuración del sistema", err);
+      }
+    }
+    cargarConfiguracion();
+  }, []);
 
   const convertirAUSD = (monto: number, moneda: string): number => {
     if (moneda === "USD") return monto;
@@ -76,6 +91,33 @@ export default function ModalDetalleOrden({
       setAutorizadoParaEditar(false);
     }
   }, [autorizadoParaEditar]);
+
+  const generarDatosRecibo = () => ({
+    cliente: {
+      nombre: `${orden.cliente?.nombre} ${orden.cliente?.apellido}`,
+      identificacion: orden.cliente?.identificacion,
+      fechaIngreso: orden.fechaIngreso,
+      fechaEntrega: orden.fechaEntrega,
+    },
+    items: orden.detalles.map((d: any) => ({
+      descripcion: d.servicio?.nombreServicio,
+      cantidad: d.cantidad,
+      precioUnitario: d.precioUnit,
+    })),
+    abono: orden.abonado,
+    total: orden.total,
+    numeroOrden: orden.id,
+    observaciones: observacionesEditadas,
+    mostrarRecibidoPor: true,
+    recibidoPor: "Annie",
+    lavanderia: {
+      nombre: configuracion?.nombreNegocio ?? "Lavandería sin nombre",
+      rif: configuracion?.rif ?? "",
+      direccion: configuracion?.direccion ?? "",
+      telefono: configuracion?.telefonoPrincipal ?? "",
+    },
+    mensajePieRecibo: configuracion?.mensajePieRecibo ?? undefined,
+  });
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
@@ -160,7 +202,10 @@ export default function ModalDetalleOrden({
             </h3>
             <ul className="space-y-2 text-sm text-gray-700">
               {orden.pagos.map((p: any) => (
-                <li key={p.id} className="bg-gray-50 p-3 rounded border border-gray-300">
+                <li
+                  key={p.id}
+                  className="bg-gray-50 p-3 rounded border border-gray-300"
+                >
                   <div className="flex justify-between items-center">
                     <span>{new Date(p.fechaPago).toLocaleDateString()}</span>
                     <span className="font-semibold">
@@ -209,6 +254,23 @@ export default function ModalDetalleOrden({
               Guardar notas
             </button>
           </div>
+
+          <div className="flex justify-end pt-4">
+            <button
+              onClick={() => setVerModalRecibo(true)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold hover:bg-indigo-700 transition text-sm"
+            >
+              Ver recibo de entrega
+            </button>
+          </div>
+
+          {verModalRecibo && configuracion && (
+            <ModalReciboEntrega
+              visible={true}
+              onClose={() => setVerModalRecibo(false)}
+              datosRecibo={generarDatosRecibo()}
+            />
+          )}
         </div>
 
         {/* Acción: registrar pago adicional */}

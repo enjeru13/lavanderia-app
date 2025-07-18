@@ -8,18 +8,30 @@ export default function PantallaConfiguracion() {
   const [tasas, setTasas] = useState({ VES: "", COP: "" });
   const [monedaPrincipal, setMonedaPrincipal] = useState("USD");
   const [nombreNegocio, setNombreNegocio] = useState("");
+  const [rif, setRif] = useState("");
+  const [direccion, setDireccion] = useState("");
+  const [telefonoPrincipal, setTelefonoPrincipal] = useState("");
+  const [telefonoSecundario, setTelefonoSecundario] = useState("");
+  const [mensajePieRecibo, setMensajePieRecibo] = useState("");
 
   useEffect(() => {
     async function cargarConfiguracion() {
       try {
         const res = await axios.get("/api/configuracion");
         const config = res.data;
-        setNombreNegocio(config.nombreNegocio);
-        setMonedaPrincipal(config.monedaPrincipal);
+
+        setNombreNegocio(config.nombreNegocio ?? "");
+        setMonedaPrincipal(config.monedaPrincipal ?? "USD");
         setTasas({
           VES: formatearTasa(config.tasaVES),
           COP: formatearTasa(config.tasaCOP),
         });
+
+        setRif(config.rif ?? "");
+        setDireccion(config.direccion ?? "");
+        setTelefonoPrincipal(config.telefonoPrincipal ?? "");
+        setTelefonoSecundario(config.telefonoSecundario ?? "");
+        setMensajePieRecibo(config.mensajePieRecibo ?? "");
       } catch (error) {
         console.error("Error al cargar configuración:", error);
       }
@@ -34,6 +46,11 @@ export default function PantallaConfiguracion() {
         monedaPrincipal,
         tasaVES: parsearTasa(tasas.VES),
         tasaCOP: parsearTasa(tasas.COP),
+        rif,
+        direccion,
+        telefonoPrincipal,
+        telefonoSecundario,
+        mensajePieRecibo,
       });
       alert("Configuración guardada correctamente");
     } catch (error) {
@@ -60,17 +77,88 @@ export default function PantallaConfiguracion() {
           <FaStore />
           Información del negocio
         </h2>
-        <div className="space-y-2">
-          <label className="block text-sm text-gray-600">
-            Nombre comercial
-          </label>
-          <input
-            type="text"
-            value={nombreNegocio}
-            onChange={(e) => setNombreNegocio(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
-            placeholder="Ej. Lavandería Estrella"
-          />
+
+        <div className="space-y-4">
+          {/* Nombre comercial */}
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">
+              Nombre comercial
+            </label>
+            <input
+              type="text"
+              value={nombreNegocio}
+              onChange={(e) => setNombreNegocio(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+              placeholder="Ej. Lavandería Estrella"
+            />
+          </div>
+
+          {/* RIF */}
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">RIF</label>
+            <input
+              type="text"
+              value={rif}
+              onChange={(e) => setRif(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+              placeholder="Ej. J-12345678-9"
+            />
+          </div>
+
+          {/* Dirección */}
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">
+              Dirección fiscal
+            </label>
+            <input
+              type="text"
+              value={direccion}
+              onChange={(e) => setDireccion(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+              placeholder="Ej. Av. Libertador, Local 5"
+            />
+          </div>
+
+          {/* Teléfono principal */}
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">
+              Teléfono principal
+            </label>
+            <input
+              type="text"
+              value={telefonoPrincipal}
+              onChange={(e) => setTelefonoPrincipal(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+              placeholder="Ej. 0414-5551122"
+            />
+          </div>
+
+          {/* Teléfono secundario */}
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">
+              Teléfono secundario
+            </label>
+            <input
+              type="text"
+              value={telefonoSecundario}
+              onChange={(e) => setTelefonoSecundario(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+              placeholder="Ej. 0412-7773344"
+            />
+          </div>
+
+          {/* Mensaje pie de recibo */}
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">
+              Mensaje pie de recibo
+            </label>
+            <textarea
+              value={mensajePieRecibo}
+              onChange={(e) => setMensajePieRecibo(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm resize-y"
+              placeholder="Ej. Gracias por su preferencia. Este ticket es indispensable para reclamos."
+            />
+          </div>
         </div>
       </section>
 
@@ -82,6 +170,7 @@ export default function PantallaConfiguracion() {
         </h2>
 
         <div className="space-y-4">
+          {/* Moneda principal */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">
               Moneda principal
@@ -97,6 +186,7 @@ export default function PantallaConfiguracion() {
             </select>
           </div>
 
+          {/* Tasas */}
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-gray-600 mb-1">

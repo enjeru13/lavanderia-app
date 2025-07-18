@@ -11,11 +11,16 @@ export async function getConfiguracion(req: Request, res: Response) {
     if (!config) {
       config = await prisma.configuracion.create({
         data: {
+          nombreNegocio: "Mi negocio",
           monedaPrincipal: "USD",
           tasaUSD: 1,
           tasaVES: null,
           tasaCOP: null,
-          nombreNegocio: "Mi negocio",
+          rif: "",
+          direccion: "",
+          telefonoPrincipal: "",
+          telefonoSecundario: "",
+          mensajePieRecibo: "",
         },
       });
     }
@@ -27,9 +32,19 @@ export async function getConfiguracion(req: Request, res: Response) {
   }
 }
 
-// Actualizar configuración global (tasas, moneda, nombre del negocio)
+// Actualizar configuración global
 export async function updateConfiguracion(req: Request, res: Response) {
-  const { nombreNegocio, monedaPrincipal, tasaVES, tasaCOP } = req.body;
+  const {
+    nombreNegocio,
+    monedaPrincipal,
+    tasaVES,
+    tasaCOP,
+    rif,
+    direccion,
+    telefonoPrincipal,
+    telefonoSecundario,
+    mensajePieRecibo,
+  } = req.body;
 
   try {
     const config = await prisma.configuracion.findFirst();
@@ -43,9 +58,14 @@ export async function updateConfiguracion(req: Request, res: Response) {
       data: {
         nombreNegocio,
         monedaPrincipal,
-        tasaVES: tasaVES !== undefined ? Number(tasaVES) : undefined,
-        tasaCOP: tasaCOP !== undefined ? Number(tasaCOP) : undefined,
-        tasaUSD: 1,
+        tasaUSD: 1, // se mantiene fija
+        tasaVES: tasaVES !== undefined ? Number(tasaVES) : null,
+        tasaCOP: tasaCOP !== undefined ? Number(tasaCOP) : null,
+        rif,
+        direccion,
+        telefonoPrincipal,
+        telefonoSecundario,
+        mensajePieRecibo,
       },
     });
 

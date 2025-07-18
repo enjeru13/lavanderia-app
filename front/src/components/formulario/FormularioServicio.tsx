@@ -17,12 +17,14 @@ export default function FormularioServicio({
   const [errores, setErrores] = useState<{ nombre?: string; precio?: string }>(
     {}
   );
+  const [permiteDecimales, setPermiteDecimales] = useState(false);
 
   useEffect(() => {
     if (servicio) {
       setNombre(servicio.nombreServicio || "");
       setPrecio(servicio.precioBase || null);
       setDescripcion(servicio.descripcion || "");
+      setPermiteDecimales(!!servicio.permiteDecimales);
     }
   }, [servicio]);
 
@@ -40,6 +42,7 @@ export default function FormularioServicio({
       nombreServicio: nombre.trim(),
       precioBase: precio,
       descripcion: descripcion.trim() || undefined,
+      permiteDecimales,
     };
 
     try {
@@ -117,6 +120,18 @@ export default function FormularioServicio({
               className="w-full border border-gray-300 px-3 py-2 rounded focus:ring focus:ring-blue-200 resize-none"
               rows={3}
             />
+          </div>
+
+          <div>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={permiteDecimales}
+                onChange={(e) => setPermiteDecimales(e.target.checked)}
+                className="accent-blue-600 w-4 h-4"
+              />
+              <span>¿Permite decimales en cantidad?</span>
+            </label>
           </div>
         </div>
 
