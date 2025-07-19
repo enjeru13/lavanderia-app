@@ -58,6 +58,7 @@ export interface Servicio {
   descripcion: string | null;
   precioBase: number;
   detalleOrdenes?: DetalleOrden[];
+  permiteDecimales: boolean;
 }
 
 // DTO para la creación de un Servicio (definición manual, consistente con ServicioSchema)
@@ -65,14 +66,11 @@ export interface ServicioCreate {
   nombreServicio: string;
   descripcion?: string | null;
   precioBase: number;
+  permiteDecimales: boolean;
 }
 
 // DTO para la actualización parcial de un Servicio (definición manual, consistente con ServicioSchema.partial())
-export interface ServicioUpdatePayload {
-  nombreServicio?: string;
-  descripcion?: string | null;
-  precioBase?: number;
-}
+export type ServicioUpdatePayload = Partial<ServicioCreate>;
 
 export type ServicioSeleccionado = {
   servicioId: number;
@@ -101,13 +99,7 @@ export interface DetalleOrdenCreate {
 }
 
 // DTO para la actualización parcial de un Detalle de Orden (definición manual, consistente con DetalleOrdenSchema.partial())
-export interface DetalleOrdenUpdatePayload {
-  ordenId?: number;
-  servicioId?: number;
-  cantidad?: number;
-  precioUnit?: number;
-  subtotal?: number;
-}
+export type DetalleOrdenUpdatePayload = Partial<DetalleOrdenCreate>;
 
 // DTO para la creación de una Orden (definición manual, consistente con ordenSchema)
 export interface OrdenCreate {
@@ -119,13 +111,7 @@ export interface OrdenCreate {
 }
 
 // DTO para la actualización parcial de una Orden (definición manual, consistente con ordenSchema.partial())
-export interface OrdenUpdatePayload {
-  clienteId?: number;
-  estado?: EstadoOrden;
-  observaciones?: string | null;
-  fechaEntrega?: string | null;
-  servicios?: ServicioSeleccionado[];
-}
+export type OrdenUpdatePayload = Partial<OrdenCreate>;
 
 // Orden (representa la orden completa tal como la devuelve el backend)
 export interface Orden {
@@ -195,7 +181,7 @@ export interface VueltoEntregadoCreate {
 // Configuracion (Coincide con el modelo de Prisma)
 export interface Configuracion {
   id: number;
-  nombreNegocio: string;
+  nombreNegocio: string | null;
   monedaPrincipal: Moneda;
   tasaUSD: number | null;
   tasaVES: number | null;
@@ -222,18 +208,7 @@ export interface ConfiguracionCreate {
 }
 
 // DTO para la actualización parcial de una Configuración (definición manual, consistente con ConfiguracionSchema.partial())
-export interface ConfiguracionUpdatePayload {
-  nombreNegocio?: string | null;
-  monedaPrincipal?: Moneda;
-  tasaUSD?: number | null;
-  tasaVES?: number | null;
-  tasaCOP?: number | null;
-  rif?: string | null;
-  direccion?: string | null;
-  telefonoPrincipal?: string | null;
-  telefonoSecundario?: string | null;
-  mensajePieRecibo?: string | null;
-}
+export type ConfiguracionUpdatePayload = Partial<Configuracion>;
 
 // Exportar TasasConversion con propiedades opcionales
 export interface TasasConversion {

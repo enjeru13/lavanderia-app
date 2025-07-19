@@ -11,9 +11,14 @@
 
 /* Encabezado */
 .recibo h2 {
-  text-align: center;
+  text-align: center; /* Mantener el título centrado */
   font-size: 14px;
   margin-bottom: 4px;
+}
+
+/* Alineación de texto para los párrafos dentro del encabezado */
+.encabezado p {
+  text-align: left;
 }
 
 /* Separadores */
@@ -40,12 +45,13 @@ hr {
 
 /* Datos, totales y observaciones */
 .datos-cliente p,
-.totales p,
 .observaciones p {
   margin: 2px 0;
+  text-align: left;
 }
 
 .totales p {
+  margin: 2px 0;
   text-align: right;
 }
 
