@@ -1,4 +1,5 @@
 import { FaPen, FaTrashAlt } from "react-icons/fa";
+import { formatearMoneda } from "../../utils/monedaHelpers"; // ajustá el path si necesario
 
 type Servicio = {
   id: number;
@@ -45,7 +46,7 @@ export default function TablaServicios({
             >
               <td className="px-6 py-4 text-gray-800">{s.nombreServicio}</td>
               <td className="px-6 py-4 text-indigo-600 font-semibold">
-                ${s.precioBase.toFixed(2)}
+                {formatearMoneda(s.precioBase, "USD")}
               </td>
               <td className="px-6 py-4 text-gray-500 max-w-[250px] truncate">
                 <span title={s.descripcion || "—"}>{s.descripcion || "—"}</span>

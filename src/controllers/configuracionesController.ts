@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma";
+import { ConfiguracionSchema } from "../schemas/configuracion.schema";
 
-const prisma = new PrismaClient();
-
-// Obtener la configuración actual del sistema
 export async function getConfiguracion(req: Request, res: Response) {
   try {
     let config = await prisma.configuracion.findFirst();
@@ -32,23 +30,20 @@ export async function getConfiguracion(req: Request, res: Response) {
   }
 }
 
-// Actualizar configuración global
 export async function updateConfiguracion(req: Request, res: Response) {
-  const {
-    nombreNegocio,
-    monedaPrincipal,
-    tasaVES,
-    tasaCOP,
-    rif,
-    direccion,
-    telefonoPrincipal,
-    telefonoSecundario,
-    mensajePieRecibo,
-  } = req.body;
+  const result = ConfiguracionSchema.safeParse(req.body);
+
+  if (!result.success) {
+    return res.status(400).json({
+      error: "Datos inválidos",
+      detalles: result.error.format(),
+    });
+  }
+
+  const data = result.data;
 
   try {
     const config = await prisma.configuracion.findFirst();
-
     if (!config) {
       return res.status(404).json({ message: "Configuración no encontrada" });
     }
@@ -56,16 +51,8 @@ export async function updateConfiguracion(req: Request, res: Response) {
     const actualizada = await prisma.configuracion.update({
       where: { id: config.id },
       data: {
-        nombreNegocio,
-        monedaPrincipal,
-        tasaUSD: 1, // se mantiene fija
-        tasaVES: tasaVES !== undefined ? Number(tasaVES) : null,
-        tasaCOP: tasaCOP !== undefined ? Number(tasaCOP) : null,
-        rif,
-        direccion,
-        telefonoPrincipal,
-        telefonoSecundario,
-        mensajePieRecibo,
+        ...data,
+        tasaUSD: 1,
       },
     });
 

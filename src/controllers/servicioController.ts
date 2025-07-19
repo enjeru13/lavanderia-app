@@ -7,10 +7,10 @@ const prisma = new PrismaClient();
 export async function getAllServicios(req: Request, res: Response) {
   try {
     const servicios = await prisma.servicio.findMany();
-    res.json(servicios);
+    return res.json(servicios);
   } catch (error) {
     console.error("Error al obtener servicios:", error);
-    res.status(500).json({ message: "Error al obtener servicios" });
+    return res.status(500).json({ message: "Error al obtener servicios" });
   }
 }
 
@@ -43,12 +43,10 @@ export async function createServicio(req: Request, res: Response) {
 
   try {
     const servicio = await prisma.servicio.create({ data: result.data });
-    res.status(201).json(servicio);
-    return;
+    return res.status(201).json(servicio);
   } catch (error) {
     console.error("Error al crear servicio:", error);
-    res.status(500).json({ message: "Error al crear servicio" });
-    return;
+    return res.status(500).json({ message: "Error al crear servicio" });
   }
 }
 
@@ -68,12 +66,10 @@ export async function updateServicio(req: Request, res: Response) {
       data: result.data,
     });
 
-    res.json(servicio);
-    return;
+    return res.json(servicio);
   } catch (error) {
     console.error("Error al actualizar servicio:", error);
-    res.status(500).json({ message: "Error al actualizar servicio" });
-    return;
+    return res.status(500).json({ message: "Error al actualizar servicio" });
   }
 }
 
@@ -81,10 +77,18 @@ export async function deleteServicio(req: Request, res: Response) {
   const { id } = req.params;
 
   try {
+    const existente = await prisma.servicio.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!existente) {
+      return res.status(404).json({ message: "Servicio no encontrado" });
+    }
+
     await prisma.servicio.delete({ where: { id: Number(id) } });
-    res.status(204).send();
+    return res.status(204).send();
   } catch (error) {
     console.error("Error al eliminar servicio:", error);
-    res.status(500).json({ message: "Error al eliminar servicio" });
+    return res.status(500).json({ message: "Error al eliminar servicio" });
   }
 }

@@ -1,4 +1,5 @@
 import { forwardRef } from "react";
+import { formatearMoneda } from "../utils/monedaHelpers";
 import "../components/styles/recibo.css";
 
 type Item = {
@@ -94,9 +95,11 @@ const ReciboEntrega = forwardRef<HTMLDivElement, Props>(
             <div key={idx} className="item-linea">
               <span>{item.descripcion}</span>
               <span>
-                {item.cantidad} x {item.precioUnitario.toFixed(2)}
+                {item.cantidad} x {formatearMoneda(item.precioUnitario, "USD")}
               </span>
-              <span>= {(item.cantidad * item.precioUnitario).toFixed(2)}</span>
+              <span>
+                = {formatearMoneda(item.cantidad * item.precioUnitario, "USD")}
+              </span>
             </div>
           ))}
         </div>
@@ -105,10 +108,10 @@ const ReciboEntrega = forwardRef<HTMLDivElement, Props>(
 
         {/* Totales */}
         <div className="totales">
-          <p>Subtotal: {total.toFixed(2)}</p>
-          <p>Abono: {abono.toFixed(2)}</p>
+          <p>Subtotal: {formatearMoneda(total, "USD")}</p>
+          <p>Abono: {formatearMoneda(abono, "USD")}</p>
           <p>
-            <strong>Por pagar:</strong> {restante.toFixed(2)}
+            <strong>Por pagar:</strong> {formatearMoneda(restante, "USD")}
           </p>
         </div>
 

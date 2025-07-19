@@ -1,16 +1,29 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
 import { FiX, FiPlus } from "react-icons/fi";
 import { MdOutlinePayments } from "react-icons/md";
-import { formatearMoneda } from "../../utils/formatearMonedaHelpers";
-import { convertirDesdePrincipal } from "../../utils/conversionHelpers";
+import { toast } from "react-toastify";
+import { pagosService } from "../../services/pagosService";
+import { ordenesService } from "../../services/ordenesService";
+import {
+  convertirDesdePrincipal,
+  convertirAmonedaPrincipal,
+  normalizarMoneda,
+  formatearMoneda,
+  type Moneda,
+} from "../../utils/monedaHelpers";
+import { calcularResumenPago } from "../../../../src/utils/pagoFinance";
+import type { Orden } from "../../types/types";
+
+type PagoInput = {
+  monto: number;
+  moneda: Moneda;
+  metodo: "Efectivo" | "Transferencia" | "Pago móvil";
+};
 
 interface ModalPagoProps {
-  orden: any;
+  orden: Orden;
   onClose: () => void;
-  onPagoRegistrado: (nuevaOrden: any) => void;
+  onPagoRegistrado: (ordenActualizada: Orden) => void;
   tasas: { VES?: number; COP?: number };
   monedaPrincipal: string;
 }
@@ -20,35 +33,17 @@ export default function ModalPago({
   onClose,
   onPagoRegistrado,
   tasas,
+  monedaPrincipal,
 }: ModalPagoProps) {
-  const [pagos, setPagos] = useState([
+  const [pagos, setPagos] = useState<PagoInput[]>([
     { monto: 0, moneda: "USD", metodo: "Efectivo" },
   ]);
   const [proyeccionRestante, setProyeccionRestante] = useState<number | null>(
     null
   );
 
-  const convertirAUSD = (monto: number, moneda: string): number => {
-    if (moneda === "USD") return monto;
-    if (moneda === "VES") return monto / (tasas.VES || 1);
-    if (moneda === "COP") return monto / (tasas.COP || 1);
-    return monto;
-  };
-
-  const totalPagadoUSD =
-    orden.pagos?.reduce(
-      (sum: number, p: any) => sum + convertirAUSD(p.monto, p.moneda),
-      0
-    ) || 0;
-
-  const totalUSD = orden.total;
-  const faltanteUSD = Math.max(totalUSD - totalPagadoUSD, 0);
-
-  const metodoMap: Record<string, string> = {
-    Efectivo: "EFECTIVO",
-    Transferencia: "TRANSFERENCIA",
-    "Pago móvil": "PAGO_MOVIL",
-  };
+  const principalSegura: Moneda = normalizarMoneda(monedaPrincipal);
+  const resumen = calcularResumenPago(orden, tasas, principalSegura);
 
   const registrarPago = async () => {
     const pagosValidos = pagos.filter(
@@ -60,56 +55,68 @@ export default function ModalPago({
       return;
     }
 
-    if (faltanteUSD <= 0) {
+    if (resumen.faltante <= 0) {
       toast.info("La orden ya ha sido saldada");
       return;
     }
 
     try {
       for (const p of pagosValidos) {
-        await axios.post("/api/pagos", {
+        await pagosService.registrar({
           ordenId: orden.id,
           monto: p.monto,
-          metodoPago: metodoMap[p.metodo],
           moneda: p.moneda,
+          metodoPago:
+            p.metodo === "Efectivo"
+              ? "EFECTIVO"
+              : p.metodo === "Transferencia"
+              ? "TRANSFERENCIA"
+              : "PAGO_MOVIL",
         });
       }
 
       toast.success("Pagos registrados exitosamente");
 
-      const res = await axios.get("/api/ordenes");
-      const actualizada = res.data.find((o: any) => o.id === orden.id);
-      onPagoRegistrado(actualizada);
+      const res = await ordenesService.getAll();
+      const actualizada = res.data.find((o) => o.id === orden.id);
+
+      if (actualizada) {
+        onPagoRegistrado(actualizada);
+      }
       onClose();
     } catch (err) {
       toast.error("Error al registrar el pago");
-      console.error("Pago error:", err);
+      console.error("Error pago:", err);
     }
   };
 
   const actualizarPago = (
     idx: number,
-    campo: "monto" | "moneda" | "metodo",
-    valor: any
+    campo: keyof PagoInput,
+    valor: string
   ) => {
     const nuevos = [...pagos];
-    if (campo === "monto") nuevos[idx].monto = parseFloat(valor) || 0;
-    else nuevos[idx][campo] = valor;
+
+    if (campo === "monto") {
+      nuevos[idx].monto = parseFloat(valor) || 0;
+    } else if (campo === "moneda") {
+      nuevos[idx].moneda = valor as Moneda;
+    } else if (campo === "metodo") {
+      nuevos[idx].metodo = valor as PagoInput["metodo"];
+    }
+
     setPagos(nuevos);
   };
 
   const agregarPago = () => {
     const totalExtraUSD = pagos.reduce(
-      (sum, p) => sum + convertirAUSD(p.monto, p.moneda),
+      (sum, p) => sum + convertirAmonedaPrincipal(p.monto, p.moneda, tasas),
       0
     );
 
-    const nuevoRestante = Math.max(
-      totalUSD - totalPagadoUSD - totalExtraUSD,
-      0
-    );
-
+    const nuevoRestante = Math.max(resumen.faltante - totalExtraUSD, 0);
     setProyeccionRestante(nuevoRestante);
+
     setPagos([...pagos, { monto: 0, moneda: "USD", metodo: "Efectivo" }]);
   };
 
@@ -120,17 +127,14 @@ export default function ModalPago({
   };
 
   const restanteVES = convertirDesdePrincipal(
-    proyeccionRestante ?? faltanteUSD,
+    proyeccionRestante ?? resumen.faltante,
     "VES",
-    tasas,
-    "USD"
+    tasas
   );
-
   const restanteCOP = convertirDesdePrincipal(
-    proyeccionRestante ?? faltanteUSD,
+    proyeccionRestante ?? resumen.faltante,
     "COP",
-    tasas,
-    "USD"
+    tasas
   );
 
   return (
@@ -151,9 +155,8 @@ export default function ModalPago({
           </button>
         </div>
 
-        {/* Contenido scrollable */}
+        {/* Formulario */}
         <div className="px-6 py-4 overflow-y-auto flex-1 space-y-6 text-sm text-gray-800">
-          {/* Campos de pago */}
           {pagos.map((p, idx) => (
             <div
               key={idx}
@@ -201,6 +204,7 @@ export default function ModalPago({
                   </select>
                 </div>
               </div>
+
               {pagos.length > 1 && (
                 <button
                   onClick={() => eliminarPago(idx)}
@@ -213,7 +217,7 @@ export default function ModalPago({
             </div>
           ))}
 
-          {/* Agregar otro pago */}
+          {/* Botón agregar */}
           <div className="flex justify-end">
             <button
               onClick={agregarPago}
@@ -224,29 +228,28 @@ export default function ModalPago({
             </button>
           </div>
 
-          {/* Resumen financiero */}
+          {/* Resumen */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 text-sm font-medium">
             <div>
               <span className="text-gray-500">Total</span>
               <span className="block text-green-700 font-semibold">
-                {formatearMoneda(totalUSD, "USD")}
+                {formatearMoneda(orden.total, "USD")}
               </span>
             </div>
             <div>
               <span className="text-gray-500">Abonado</span>
               <span className="block text-blue-700 font-semibold">
-                {formatearMoneda(totalPagadoUSD, "USD")}
+                {formatearMoneda(resumen.abonado, "USD")}
               </span>
             </div>
             <div>
               <span className="text-gray-500">Faltante actual</span>
               <span className="block text-red-600 font-semibold">
-                {formatearMoneda(faltanteUSD, "USD")}
+                {formatearMoneda(resumen.faltante, "USD")}
               </span>
             </div>
           </div>
 
-          {/* Proyección local */}
           <div className="bg-gray-50 border border-gray-300 rounded-md p-4 shadow-sm ring-1 ring-gray-100 space-y-3">
             <p className="font-semibold text-gray-700">
               Faltante proyectado en moneda local
@@ -281,9 +284,9 @@ export default function ModalPago({
           </button>
           <button
             onClick={registrarPago}
-            disabled={faltanteUSD <= 0}
+            disabled={resumen.faltante <= 0}
             className={`px-4 py-2 text-white rounded-md font-semibold transition ${
-              faltanteUSD <= 0
+              resumen.faltante <= 0
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-green-600 hover:bg-green-700"
             }`}

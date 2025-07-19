@@ -1,18 +1,18 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { formatearMoneda } from "../utils/formatearMonedaHelpers";
-import { FaUndo, FaSearch } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
+import { formatearMoneda, normalizarMoneda } from "../utils/monedaHelpers";
+import { pagosService } from "../services/pagosService";
+import type { Pago } from "../types/types";
 
 export default function PantallaPagos() {
-  const [pagos, setPagos] = useState<any[]>([]);
+  const [pagos, setPagos] = useState<Pago[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState("");
 
   useEffect(() => {
     async function fetchPagos() {
       try {
-        const res = await axios.get("/api/pagos");
+        const res = await pagosService.getAll();
         setPagos(res.data || []);
       } catch (err) {
         console.error("Error al cargar pagos:", err);
@@ -24,7 +24,7 @@ export default function PantallaPagos() {
   }, []);
 
   const pagosFiltrados = pagos.filter((p) =>
-    String(p.orden.id).includes(filtro.trim())
+    String(p.ordenId).includes(filtro.trim())
   );
 
   return (
@@ -60,48 +60,33 @@ export default function PantallaPagos() {
                 <th className="px-5 py-3 font-medium">Método</th>
                 <th className="px-5 py-3 font-medium">Moneda</th>
                 <th className="px-5 py-3 font-medium">Monto abonado</th>
-                <th className="px-5 py-3 font-medium">Vuelto entregado</th>
               </tr>
             </thead>
             <tbody>
-              {pagosFiltrados.map((pago) => (
-                <tr key={pago.id} className="border-t hover:bg-gray-50">
-                  <td className="px-5 py-3">
-                    {new Date(pago.fechaPago).toLocaleDateString("es-VE", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </td>
-                  <td className="px-5 py-3 font-semibold text-blue-600">
-                    #{pago.orden.id}
-                  </td>
-                  <td className="px-5 py-3 capitalize">
-                    {pago.metodoPago.replaceAll("_", " ")}
-                  </td>
-                  <td className="px-5 py-3 font-medium">{pago.moneda}</td>
-                  <td className="px-5 py-3 text-green-700 font-semibold">
-                    {formatearMoneda(pago.monto, "USD")}
-                  </td>
-                  <td className="px-5 py-3">
-                    {pago.vueltos && pago.vueltos.length > 0 ? (
-                      <ul className="text-yellow-700 space-x-1 space-y-1">
-                        {pago.vueltos.map((v: any, idx: number) => (
-                          <li
-                            key={idx}
-                            className="inline-flex items-center gap-2 font-medium"
-                          >
-                            <FaUndo className="text-xs" />
-                            {formatearMoneda(v.monto, v.moneda)}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <span className="text-gray-400">—</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {pagosFiltrados.map((pago) => {
+                const monedaSegura = normalizarMoneda(pago.moneda);
+                return (
+                  <tr key={pago.id} className="border-t hover:bg-gray-50">
+                    <td className="px-5 py-3">
+                      {new Date(pago.fecha).toLocaleDateString("es-VE", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td className="px-5 py-3 font-semibold text-blue-600">
+                      #{pago.ordenId}
+                    </td>
+                    <td className="px-5 py-3 capitalize">
+                      {pago.metodo.replaceAll("_", " ")}
+                    </td>
+                    <td className="px-5 py-3 font-medium">{monedaSegura}</td>
+                    <td className="px-5 py-3 text-green-700 font-semibold">
+                      {formatearMoneda(pago.monto, monedaSegura)}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

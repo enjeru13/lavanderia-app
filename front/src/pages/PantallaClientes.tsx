@@ -1,28 +1,29 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { getClientes } from "../services/clientesService";
+import { clientesService } from "../services/clientesService";
+import type { Cliente, ClienteData } from "../types/types";
 import FormularioCliente from "../components/formulario/FormularioCliente";
 import ModalInfoCliente from "../components/modal/ModalInfoCliente";
 import TablaClientes from "../components/tabla/TablaClientes";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { FaPlus, FaSearch } from "react-icons/fa";
 
 export default function PantallaClientes() {
-  const [clientes, setClientes] = useState<any[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [clienteSeleccionado, setClienteSeleccionado] =
-    useState<any>(undefined);
-  const [clienteInfo, setClienteInfo] = useState<any>(undefined);
+  const [clienteSeleccionado, setClienteSeleccionado] = useState<
+    Cliente | undefined
+  >();
+  const [clienteInfo, setClienteInfo] = useState<Cliente | undefined>();
 
-  const cargarClientes = () => {
-    getClientes()
-      .then((res) => setClientes(res.data))
-      .catch((err) => {
-        console.error("Error al cargar clientes:", err);
-        toast.error("Error al cargar clientes");
-      });
+  const cargarClientes = async () => {
+    try {
+      const res = await clientesService.getAll();
+      setClientes(res.data);
+    } catch (err) {
+      console.error("Error al cargar clientes:", err);
+      toast.error("Error al cargar clientes");
+    }
   };
 
   useEffect(() => {
@@ -43,24 +44,13 @@ export default function PantallaClientes() {
     setMostrarFormulario(true);
   };
 
-  const guardarCliente = async (data: any) => {
-    if (
-      !data.nombre?.trim() ||
-      !data.apellido?.trim() ||
-      !data.telefono?.trim() ||
-      !data.direccion?.trim() ||
-      !data.identificacion?.trim()
-    ) {
-      toast.error("Completa todos los campos requeridos");
-      return;
-    }
-
+  const guardarCliente = async (data: ClienteData) => {
     try {
-      if (data.id && typeof data.id === "number") {
-        await axios.put(`/api/clientes/${data.id}`, data);
+      if (data.id) {
+        await clientesService.update(data.id, data);
         toast.success("Cliente actualizado correctamente");
       } else {
-        await axios.post("/api/clientes", data);
+        await clientesService.create(data);
         toast.success("Cliente registrado correctamente");
       }
       setMostrarFormulario(false);
@@ -69,7 +59,6 @@ export default function PantallaClientes() {
     } catch (error) {
       console.error("Error al guardar cliente:", error);
       toast.error("Error al guardar cliente");
-      throw error;
     }
   };
 
@@ -77,7 +66,7 @@ export default function PantallaClientes() {
     if (!window.confirm("¿Estás segura de que deseas eliminar este cliente?"))
       return;
     try {
-      await axios.delete(`/api/clientes/${id}`);
+      await clientesService.delete(id);
       toast.success("Cliente eliminado correctamente");
       cargarClientes();
     } catch (error) {
@@ -114,8 +103,8 @@ export default function PantallaClientes() {
 
       <TablaClientes
         clientes={clientesFiltrados}
-        onVerInfo={(c: any) => setClienteInfo(c)}
-        onEditar={(c: any) => {
+        onVerInfo={(c) => setClienteInfo(c)}
+        onEditar={(c) => {
           setClienteSeleccionado(c);
           setMostrarFormulario(true);
         }}

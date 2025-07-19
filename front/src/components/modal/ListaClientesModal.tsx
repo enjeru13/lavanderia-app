@@ -1,19 +1,20 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { getClientes } from "../../services/clientesService";
+import { clientesService } from "../../services/clientesService";
 import { FaUser } from "react-icons/fa";
+import type { Cliente } from "../../types/types";
 
 type Props = {
-  onSelect: (cliente: any) => void;
+  onSelect: (cliente: Cliente) => void;
   onClose: () => void;
 };
 
 export default function ListaClientesModal({ onSelect, onClose }: Props) {
-  const [clientes, setClientes] = useState<any[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [busqueda, setBusqueda] = useState("");
 
   useEffect(() => {
-    getClientes()
+    clientesService
+      .getAll()
       .then((res) => setClientes(res.data))
       .catch((err) => console.error("Error al cargar clientes:", err));
   }, []);

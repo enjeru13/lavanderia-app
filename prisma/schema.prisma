@@ -78,7 +78,7 @@ model DetalleOrden {
   id           Int     @id @default(autoincrement())
   ordenId      Int
   servicioId   Int
-  cantidad     Int
+  cantidad     Float
   precioUnit   Float
   subtotal     Float
   orden        Orden   @relation(fields: [ordenId], references: [id])

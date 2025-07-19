@@ -1,12 +1,18 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { FaCoins, FaStore } from "react-icons/fa";
 import { MdSettings } from "react-icons/md";
-import { formatearTasa, parsearTasa } from "../utils/formatearMonedaHelpers";
+import {
+  formatearTasa,
+  parsearTasa,
+  normalizarMoneda,
+  type Moneda,
+} from "../utils/monedaHelpers";
+import { configuracionService } from "../services/configuracionService";
+import type { Configuracion } from "../types/types";
 
 export default function PantallaConfiguracion() {
   const [tasas, setTasas] = useState({ VES: "", COP: "" });
-  const [monedaPrincipal, setMonedaPrincipal] = useState("USD");
+  const [monedaPrincipal, setMonedaPrincipal] = useState<Moneda>("USD");
   const [nombreNegocio, setNombreNegocio] = useState("");
   const [rif, setRif] = useState("");
   const [direccion, setDireccion] = useState("");
@@ -17,16 +23,15 @@ export default function PantallaConfiguracion() {
   useEffect(() => {
     async function cargarConfiguracion() {
       try {
-        const res = await axios.get("/api/configuracion");
-        const config = res.data;
+        const res = await configuracionService.get();
+        const config: Configuracion = res.data;
 
         setNombreNegocio(config.nombreNegocio ?? "");
-        setMonedaPrincipal(config.monedaPrincipal ?? "USD");
+        setMonedaPrincipal(normalizarMoneda(config.monedaPrincipal));
         setTasas({
           VES: formatearTasa(config.tasaVES),
           COP: formatearTasa(config.tasaCOP),
         });
-
         setRif(config.rif ?? "");
         setDireccion(config.direccion ?? "");
         setTelefonoPrincipal(config.telefonoPrincipal ?? "");
@@ -41,9 +46,10 @@ export default function PantallaConfiguracion() {
 
   const guardarConfiguracion = async () => {
     try {
-      await axios.put("/api/configuracion", {
+      const principalValidada: Moneda = normalizarMoneda(monedaPrincipal);
+      await configuracionService.update({
         nombreNegocio,
-        monedaPrincipal,
+        monedaPrincipal: principalValidada,
         tasaVES: parsearTasa(tasas.VES),
         tasaCOP: parsearTasa(tasas.COP),
         rif,
@@ -71,7 +77,6 @@ export default function PantallaConfiguracion() {
         </p>
       </header>
 
-      {/* Información del negocio */}
       <section className="bg-white p-6 rounded-xl shadow-md space-y-4">
         <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
           <FaStore />
@@ -79,7 +84,6 @@ export default function PantallaConfiguracion() {
         </h2>
 
         <div className="space-y-4">
-          {/* Nombre comercial */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">
               Nombre comercial
@@ -88,24 +92,22 @@ export default function PantallaConfiguracion() {
               type="text"
               value={nombreNegocio}
               onChange={(e) => setNombreNegocio(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+              className="w-full px-4 py-2 border rounded-md bg-gray-50 focus:ring-2 focus:ring-indigo-200 text-sm"
               placeholder="Ej. Lavandería Estrella"
             />
           </div>
 
-          {/* RIF */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">RIF</label>
             <input
               type="text"
               value={rif}
               onChange={(e) => setRif(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+              className="w-full px-4 py-2 border rounded-md bg-gray-50 focus:ring-2 focus:ring-indigo-200 text-sm"
               placeholder="Ej. J-12345678-9"
             />
           </div>
 
-          {/* Dirección */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">
               Dirección fiscal
@@ -114,12 +116,11 @@ export default function PantallaConfiguracion() {
               type="text"
               value={direccion}
               onChange={(e) => setDireccion(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+              className="w-full px-4 py-2 border rounded-md bg-gray-50 focus:ring-2 focus:ring-indigo-200 text-sm"
               placeholder="Ej. Av. Libertador, Local 5"
             />
           </div>
 
-          {/* Teléfono principal */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">
               Teléfono principal
@@ -128,12 +129,11 @@ export default function PantallaConfiguracion() {
               type="text"
               value={telefonoPrincipal}
               onChange={(e) => setTelefonoPrincipal(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+              className="w-full px-4 py-2 border rounded-md bg-gray-50 focus:ring-2 focus:ring-indigo-200 text-sm"
               placeholder="Ej. 0414-5551122"
             />
           </div>
 
-          {/* Teléfono secundario */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">
               Teléfono secundario
@@ -142,12 +142,11 @@ export default function PantallaConfiguracion() {
               type="text"
               value={telefonoSecundario}
               onChange={(e) => setTelefonoSecundario(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+              className="w-full px-4 py-2 border rounded-md bg-gray-50 focus:ring-2 focus:ring-indigo-200 text-sm"
               placeholder="Ej. 0412-7773344"
             />
           </div>
 
-          {/* Mensaje pie de recibo */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">
               Mensaje pie de recibo
@@ -155,14 +154,13 @@ export default function PantallaConfiguracion() {
             <textarea
               value={mensajePieRecibo}
               onChange={(e) => setMensajePieRecibo(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm resize-y"
+              className="w-full px-4 py-2 border rounded-md bg-gray-50 focus:ring-2 focus:ring-indigo-200 text-sm resize-y"
               placeholder="Ej. Gracias por su preferencia. Este ticket es indispensable para reclamos."
             />
           </div>
         </div>
       </section>
 
-      {/* Tasas monetarias */}
       <section className="bg-white p-6 rounded-xl shadow-md space-y-4">
         <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
           <FaCoins />
@@ -170,15 +168,16 @@ export default function PantallaConfiguracion() {
         </h2>
 
         <div className="space-y-4">
-          {/* Moneda principal */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">
               Moneda principal
             </label>
             <select
               value={monedaPrincipal}
-              onChange={(e) => setMonedaPrincipal(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+              onChange={(e) =>
+                setMonedaPrincipal(normalizarMoneda(e.target.value))
+              }
+              className="w-full px-4 py-2 border rounded-md bg-gray-50 focus:ring-2 focus:ring-indigo-200 text-sm"
             >
               <option value="USD">Dólares (USD)</option>
               <option value="VES">Bolívares (VES)</option>
@@ -186,7 +185,6 @@ export default function PantallaConfiguracion() {
             </select>
           </div>
 
-          {/* Tasas */}
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-gray-600 mb-1">
@@ -197,7 +195,7 @@ export default function PantallaConfiguracion() {
                 step="any"
                 value={tasas.VES}
                 onChange={(e) => setTasas({ ...tasas, VES: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+                className="w-full px-4 py-2 border rounded-md bg-gray-50 focus:ring-2 focus:ring-indigo-200 text-sm"
                 placeholder="Ej. 140.00"
               />
             </div>
@@ -211,7 +209,7 @@ export default function PantallaConfiguracion() {
                 step="any"
                 value={tasas.COP}
                 onChange={(e) => setTasas({ ...tasas, COP: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+                className="w-full px-4 py-2 border rounded-md bg-gray-50 focus:ring-2 focus:ring-indigo-200 text-sm"
                 placeholder="Ej. 4000.00"
               />
             </div>
@@ -219,7 +217,6 @@ export default function PantallaConfiguracion() {
         </div>
       </section>
 
-      {/* Botón guardar */}
       <div className="flex justify-end">
         <button
           onClick={guardarConfiguracion}

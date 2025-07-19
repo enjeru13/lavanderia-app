@@ -1,30 +1,35 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { ordenesService } from "../../services/ordenesService";
+import { configuracionService } from "../../services/configuracionService";
 import { FiX } from "react-icons/fi";
 import { BiMessageSquareDetail } from "react-icons/bi";
-import { formatearMoneda } from "../../utils/formatearMonedaHelpers";
+import {
+  formatearMoneda,
+  normalizarMoneda,
+  type Moneda,
+} from "../../utils/monedaHelpers";
 import { badgeEstado } from "../../utils/badgeHelpers";
 import ModalContraseña from "./ModalContraseña";
 import ModalReciboEntrega from "./ModalReciboEntrega";
 import { toast } from "react-toastify";
+import { calcularResumenPago } from "../../../../src/utils/pagoFinance";
+import type { Orden, Configuracion } from "../../types/types";
 
 interface Props {
-  orden: any;
+  orden: Orden;
   onClose: () => void;
-  onPagoRegistrado: (nuevaOrden: any) => void;
-  onAbrirPagoExtra: (orden: any) => void;
+  onPagoRegistrado: (nuevaOrden: Orden) => void;
+  onAbrirPagoExtra: (orden: Orden) => void;
   tasas: { VES?: number; COP?: number };
-  monedaPrincipal: string;
+  monedaPrincipal: Moneda;
 }
 
 export default function ModalDetalleOrden({
   orden,
   onClose,
   tasas,
-  onAbrirPagoExtra,
   monedaPrincipal,
+  onAbrirPagoExtra,
   onPagoRegistrado,
 }: Props) {
   const [observacionesEditadas, setObservacionesEditadas] = useState(
@@ -34,47 +39,35 @@ export default function ModalDetalleOrden({
   const [mostrarProteccionNotas, setMostrarProteccionNotas] = useState(false);
   const [autorizadoParaEditar, setAutorizadoParaEditar] = useState(false);
   const [verModalRecibo, setVerModalRecibo] = useState(false);
-  const [configuracion, setConfiguracion] = useState<any>(null);
+  const [configuracion, setConfiguracion] = useState<Configuracion | null>(
+    null
+  );
 
   useEffect(() => {
-    async function cargarConfiguracion() {
-      try {
-        const res = await axios.get("/api/configuracion");
-        setConfiguracion(res.data);
-      } catch (err) {
-        console.error("Error al cargar configuración del sistema", err);
-      }
-    }
-    cargarConfiguracion();
+    configuracionService
+      .get()
+      .then((res) => setConfiguracion(res.data))
+      .catch((err) =>
+        console.error("Error al cargar configuración del sistema", err)
+      );
   }, []);
 
-  const convertirAUSD = (monto: number, moneda: string): number => {
-    if (moneda === "USD") return monto;
-    if (moneda === "VES") return monto / (tasas.VES || 1);
-    if (moneda === "COP") return monto / (tasas.COP || 1);
-    return monto;
-  };
+  const principalSeguro: Moneda = normalizarMoneda(monedaPrincipal);
 
-  const totalPagadoUSD =
-    orden.pagos?.reduce(
-      (sum: number, p: any) => sum + convertirAUSD(p.monto, p.moneda),
-      0
-    ) || 0;
+  const resumen = useMemo(
+    () => calcularResumenPago(orden, tasas, principalSeguro),
+    [orden, tasas, principalSeguro]
+  );
 
-  const faltanteUSD = Math.max(orden.total - totalPagadoUSD, 0);
-
-  const guardarObservaciones = async () => {
+  const guardarObservaciones = useCallback(async () => {
     if (observacionesEditadas === orden.observaciones) {
       toast.info("No hay cambios en las observaciones");
       return;
     }
     setGuardandoObservaciones(true);
     try {
-      await axios.put(`/api/ordenes/${orden.id}`, {
-        observaciones: observacionesEditadas,
-      });
-
-      const res = await axios.get(`/api/ordenes/${orden.id}`);
+      await ordenesService.updateObservacion(orden.id, observacionesEditadas);
+      const res = await ordenesService.getById(orden.id);
       toast.success("Observaciones actualizadas correctamente");
       onPagoRegistrado(res.data);
     } catch (err) {
@@ -83,40 +76,43 @@ export default function ModalDetalleOrden({
     } finally {
       setGuardandoObservaciones(false);
     }
-  };
+  }, [orden.id, orden.observaciones, observacionesEditadas, onPagoRegistrado]);
 
   useEffect(() => {
     if (autorizadoParaEditar) {
       guardarObservaciones();
       setAutorizadoParaEditar(false);
     }
-  }, [autorizadoParaEditar]);
+  }, [autorizadoParaEditar, guardarObservaciones]);
 
   const generarDatosRecibo = () => ({
     cliente: {
-      nombre: `${orden.cliente?.nombre} ${orden.cliente?.apellido}`,
-      identificacion: orden.cliente?.identificacion,
+      nombre: `${orden.cliente?.nombre ?? ""} ${
+        orden.cliente?.apellido ?? ""
+      }`.trim(),
+      identificacion: orden.cliente?.identificacion ?? "",
       fechaIngreso: orden.fechaIngreso,
-      fechaEntrega: orden.fechaEntrega,
+      fechaEntrega: orden.fechaEntrega ?? undefined,
     },
-    items: orden.detalles.map((d: any) => ({
-      descripcion: d.servicio?.nombreServicio,
-      cantidad: d.cantidad,
-      precioUnitario: d.precioUnit,
-    })),
-    abono: orden.abonado,
+    items:
+      orden.detalles?.map((d) => ({
+        descripcion: d.servicio?.nombre ?? "Descripción no disponible",
+        cantidad: d.cantidad,
+        precioUnitario: d.precioUnit,
+      })) ?? [],
+    abono: resumen.abonado,
     total: orden.total,
     numeroOrden: orden.id,
     observaciones: observacionesEditadas,
     mostrarRecibidoPor: true,
-    recibidoPor: "Annie",
+    recibidoPor: "Annie", // Considera si este valor debe ser dinámico
     lavanderia: {
       nombre: configuracion?.nombreNegocio ?? "Lavandería sin nombre",
       rif: configuracion?.rif ?? "",
       direccion: configuracion?.direccion ?? "",
       telefono: configuracion?.telefonoPrincipal ?? "",
     },
-    mensajePieRecibo: configuracion?.mensajePieRecibo ?? undefined,
+    mensajePieRecibo: configuracion?.mensajePieRecibo ?? "",
   });
 
   return (
@@ -137,7 +133,7 @@ export default function ModalDetalleOrden({
           </button>
         </div>
 
-        {/* Cliente & Estado */}
+        {/* Cliente, Estado y Fechas */}
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <p className="text-gray-700 font-semibold text-sm py-1">Cliente</p>
@@ -158,7 +154,7 @@ export default function ModalDetalleOrden({
               Fecha de ingreso
             </p>
             <div className="bg-gray-50 p-3 rounded border border-gray-300">
-              {new Date(orden.fechaIngreso).toLocaleDateString()}
+              {new Date(orden.fechaIngreso).toLocaleDateString("es-VE")}
             </div>
           </div>
           <div>
@@ -167,7 +163,7 @@ export default function ModalDetalleOrden({
             </p>
             <div className="bg-gray-50 p-3 rounded border border-gray-300">
               {orden.fechaEntrega
-                ? new Date(orden.fechaEntrega).toLocaleDateString()
+                ? new Date(orden.fechaEntrega).toLocaleDateString("es-VE")
                 : "No definida"}
             </div>
           </div>
@@ -179,15 +175,15 @@ export default function ModalDetalleOrden({
             Servicios contratados
           </h3>
           <div className="divide-y border border-gray-300 rounded-lg overflow-hidden text-sm">
-            {orden.detalles?.map((d: any, idx: number) => (
+            {orden.detalles?.map((d, idx) => (
               <div
                 key={idx}
                 className="flex justify-between items-center p-3 bg-white hover:bg-gray-50 transition"
               >
-                <span>{d.servicio?.nombreServicio}</span>
+                <span>{d.servicio?.nombre}</span>
                 <span className="text-gray-500">x{d.cantidad}</span>
                 <span className="font-semibold">
-                  {formatearMoneda(d.subtotal, monedaPrincipal)}
+                  {formatearMoneda(d.subtotal, principalSeguro)}
                 </span>
               </div>
             ))}
@@ -195,25 +191,25 @@ export default function ModalDetalleOrden({
         </div>
 
         {/* Pagos realizados */}
-        {orden.pagos?.length > 0 && (
+        {(orden.pagos?.length ?? 0) > 0 && (
           <div>
             <h3 className="font-semibold text-gray-700 mb-2">
               Pagos realizados
             </h3>
             <ul className="space-y-2 text-sm text-gray-700">
-              {orden.pagos.map((p: any) => (
+              {orden.pagos?.map((p) => (
                 <li
                   key={p.id}
                   className="bg-gray-50 p-3 rounded border border-gray-300"
                 >
                   <div className="flex justify-between items-center">
-                    <span>{new Date(p.fechaPago).toLocaleDateString()}</span>
+                    <span>{new Date(p.fecha).toLocaleDateString("es-VE")}</span>
                     <span className="font-semibold">
                       {formatearMoneda(p.monto, p.moneda)}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 italic mt-1">
-                    Pago en {p.moneda} vía {p.metodoPago}
+                    Pago en {p.moneda} vía {p.metodo}
                   </p>
                 </li>
               ))}
@@ -273,8 +269,8 @@ export default function ModalDetalleOrden({
           )}
         </div>
 
-        {/* Acción: registrar pago adicional */}
-        {orden.estado === "ENTREGADO" && faltanteUSD > 0 && (
+        {/* Pago adicional */}
+        {orden.estado === "ENTREGADO" && resumen.faltante > 0 && (
           <div className="pt-5 border-t mt-6 space-y-2">
             <h4 className="text-sm text-gray-600 font-semibold">
               Registrar nuevo pago
@@ -292,6 +288,7 @@ export default function ModalDetalleOrden({
         )}
       </div>
 
+      {/* Modal de autorización */}
       <ModalContraseña
         visible={mostrarProteccionNotas}
         onCancelar={() => setMostrarProteccionNotas(false)}

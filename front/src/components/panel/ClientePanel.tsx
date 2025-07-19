@@ -1,7 +1,8 @@
 import { FaUserPlus, FaUserCheck } from "react-icons/fa";
+import type { ClienteResumen } from "../../types/types";
 
 type Props = {
-  cliente: { nombre: string; apellido: string } | null;
+  cliente: ClienteResumen | null;
   onAbrirFormulario: () => void;
   onAbrirLista: () => void;
 };

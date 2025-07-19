@@ -1,22 +1,12 @@
-type Servicio = {
-  id: number;
-  nombreServicio: string;
-  precioBase: number;
-};
-
-type Seleccionado = {
-  servicioId: number;
-  cantidad: number;
-};
-
-type Cliente = {
-  nombre: string;
-  apellido: string;
-};
+import type {
+  ClienteResumen,
+  Servicio,
+  ServicioSeleccionado,
+} from "../../types/types"; // Ajustá el path según tu estructura
 
 type Props = {
-  cliente: Cliente | null;
-  serviciosSeleccionados: Seleccionado[];
+  cliente: ClienteResumen | null;
+  serviciosSeleccionados: ServicioSeleccionado[];
   serviciosCatalogo: Servicio[];
   observaciones: string;
   fechaEntrega: string;
@@ -29,7 +19,7 @@ export default function ResumenOrdenPanel({
   observaciones,
   fechaEntrega,
 }: Props) {
-  const calcularSubtotal = (s: Seleccionado) => {
+  const calcularSubtotal = (s: ServicioSeleccionado) => {
     const servicio = serviciosCatalogo.find((x) => x.id === s.servicioId);
     return servicio ? servicio.precioBase * s.cantidad : 0;
   };
@@ -75,7 +65,7 @@ export default function ResumenOrdenPanel({
                     className="p-3 flex justify-between items-center"
                   >
                     <span>
-                      {servicio?.nombreServicio} × {s.cantidad}
+                      {servicio?.nombre} × {s.cantidad}
                     </span>
                     <span className="font-bold text-green-700">
                       ${calcularSubtotal(s).toFixed(2)}
@@ -107,7 +97,11 @@ export default function ResumenOrdenPanel({
                 Number(y),
                 Number(m) - 1,
                 Number(d)
-              ).toLocaleDateString();
+              ).toLocaleDateString("es-VE", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              });
             })()}
           </div>
         )}

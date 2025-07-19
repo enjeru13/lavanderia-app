@@ -1,20 +1,11 @@
-type Servicio = {
-  id: number;
-  nombreServicio: string;
-  precioBase: number;
-  permiteDecimales?: boolean;
-};
-
-type Seleccionado = {
-  servicioId: number;
-  cantidad: number;
-};
+import { formatearMoneda } from "../../utils/monedaHelpers";
+import type { Servicio, ServicioSeleccionado } from "../../types/types";
 
 type Props = {
   serviciosCatalogo: Servicio[];
-  serviciosSeleccionados: Seleccionado[];
+  serviciosSeleccionados: ServicioSeleccionado[];
   setServiciosSeleccionados: React.Dispatch<
-    React.SetStateAction<Seleccionado[]>
+    React.SetStateAction<ServicioSeleccionado[]>
   >;
 };
 
@@ -51,19 +42,19 @@ export default function ServiciosPanel({
             >
               {/* Nombre del servicio */}
               <div className="text-base font-semibold text-gray-800">
-                {servicio.nombreServicio}
+                {servicio.nombre}
               </div>
 
               {/* Precio base */}
               <div className="text-sm text-indigo-600 font-bold">
-                ${servicio.precioBase.toFixed(2)}
+                {formatearMoneda(servicio.precioBase, "USD")}
               </div>
 
               {/* Campo cantidad */}
               <input
                 type="number"
                 min={0}
-                step={servicio.permiteDecimales ? 0.1 : 1}
+                step={servicio.descripcion?.includes("decimal") ? 0.1 : 1}
                 value={cantidad === 0 ? "" : String(cantidad)}
                 onChange={(e) =>
                   actualizarCantidad(servicio.id, parseFloat(e.target.value))
@@ -75,7 +66,7 @@ export default function ServiciosPanel({
               {/* Subtotal */}
               {cantidad > 0 && (
                 <div className="text-sm text-green-700 font-medium pt-1">
-                  Subtotal: ${subtotal.toFixed(2)}
+                  Subtotal: {formatearMoneda(subtotal, "USD")}
                 </div>
               )}
             </div>

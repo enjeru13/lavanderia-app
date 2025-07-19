@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-import { ordenSchema, ordenUpdateSchema } from "../schemas/orden.schema";
+import prisma from "../lib/prisma";
+import {
+  ordenSchema,
+  ordenUpdateSchema,
+  ObservacionUpdateSchema,
+} from "../schemas/orden.schema";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
-const prisma = new PrismaClient();
-
-// Obtener todas las órdenes
 export async function getAllOrdenes(req: Request, res: Response) {
   try {
     const ordenes = await prisma.orden.findMany({
@@ -22,7 +24,6 @@ export async function getAllOrdenes(req: Request, res: Response) {
   }
 }
 
-// Obtener una orden por ID
 export async function getOrdenById(req: Request, res: Response) {
   const { id } = req.params;
   try {
@@ -44,7 +45,6 @@ export async function getOrdenById(req: Request, res: Response) {
   }
 }
 
-// Crear una nueva orden (fechaEntrega opcional) con campos financieros
 export async function createOrden(req: Request, res: Response) {
   const result = ordenSchema.safeParse(req.body);
   if (!result.success) {
@@ -54,7 +54,7 @@ export async function createOrden(req: Request, res: Response) {
     });
   }
 
-  const { cliente_id, estado, observaciones, servicios, fechaEntrega } =
+  const { clienteId, estado, observaciones, servicios, fechaEntrega } =
     result.data;
 
   try {
@@ -70,7 +70,11 @@ export async function createOrden(req: Request, res: Response) {
       const servicio = await prisma.servicio.findUnique({
         where: { id: item.servicioId },
       });
-      if (!servicio) continue;
+      if (!servicio) {
+        return res.status(400).json({
+          message: `Servicio con ID ${item.servicioId} no encontrado.`,
+        });
+      }
 
       const precioUnit = servicio.precioBase;
       const subtotal = precioUnit * item.cantidad;
@@ -78,20 +82,20 @@ export async function createOrden(req: Request, res: Response) {
         servicioId: item.servicioId,
         cantidad: item.cantidad,
         precioUnit,
-        subtotal,
+        subtotal: parseFloat(subtotal.toFixed(2)),
       });
       total += subtotal;
     }
 
     const orden = await prisma.orden.create({
       data: {
-        clienteId: cliente_id,
+        clienteId: clienteId,
         estado,
-        total,
+        total: parseFloat(total.toFixed(2)),
         observaciones,
         fechaEntrega: fechaEntrega ? new Date(fechaEntrega) : null,
         abonado: 0,
-        faltante: total,
+        faltante: parseFloat(total.toFixed(2)),
         estadoPago: "INCOMPLETO",
         detalles: { create: detalleData },
       },
@@ -121,62 +125,50 @@ export async function updateOrden(req: Request, res: Response) {
 
   const { fechaEntrega, estado, ...rest } = result.data;
 
-  console.log("Payload recibido:", result.data);
-  console.log("Fecha entrega recibida:", fechaEntrega);
-  console.log("Estado recibido:", estado);
+  try {
+    const ordenActual = await prisma.orden.findUnique({
+      where: { id: Number(id) },
+      select: { fechaIngreso: true, fechaEntrega: true },
+    });
 
-  const ordenActual = await prisma.orden.findUnique({
-    where: { id: Number(id) },
-    select: { fechaIngreso: true, fechaEntrega: true },
-  });
-
-  console.log("Orden actual en BD:");
-  console.log("Fecha ingreso:", ordenActual?.fechaIngreso);
-  console.log("Fecha entrega actual:", ordenActual?.fechaEntrega);
-
-  let fechaFinalEntrega: Date | null = ordenActual?.fechaEntrega || null;
-
-  if (estado === "ENTREGADO") {
-    const mismoDia =
-      ordenActual?.fechaEntrega &&
-      ordenActual.fechaEntrega.toISOString() ===
-        ordenActual.fechaIngreso.toISOString();
-
-    const seDebeActualizar = !ordenActual?.fechaEntrega || mismoDia;
-
-    if (fechaEntrega) {
-      fechaFinalEntrega = new Date(fechaEntrega);
-    } else if (seDebeActualizar) {
-      fechaFinalEntrega = new Date();
+    if (!ordenActual) {
+      return res
+        .status(404)
+        .json({ message: "Orden no encontrada para actualizar." });
     }
 
-    console.log(
-      "Nueva fecha entrega generada para ENTREGADO:",
-      fechaFinalEntrega
-    );
-  } else if (fechaEntrega) {
-    fechaFinalEntrega = new Date(fechaEntrega);
-    console.log(
-      "Nueva fecha entrega para estado distinto a ENTREGADO:",
-      fechaFinalEntrega
-    );
-  }
+    let fechaFinalEntrega: Date | null = ordenActual.fechaEntrega || null;
 
-  try {
-    const datosParaGuardar = {
+    if (fechaEntrega !== undefined) {
+      fechaFinalEntrega = fechaEntrega === null ? null : new Date(fechaEntrega);
+    }
+
+    if (estado === "ENTREGADO") {
+      const mismoDia =
+        ordenActual.fechaEntrega &&
+        ordenActual.fechaEntrega.toISOString().split("T")[0] ===
+          ordenActual.fechaIngreso.toISOString().split("T")[0];
+
+      const seDebeActualizar = !ordenActual.fechaEntrega || mismoDia;
+
+      if (fechaEntrega === undefined && seDebeActualizar) {
+        fechaFinalEntrega = new Date();
+      }
+    }
+
+    const datosParaGuardar: any = {
       ...rest,
-      ...(estado && { estado }),
-      ...(fechaFinalEntrega && { fechaEntrega: fechaFinalEntrega }),
+      ...(estado !== undefined && { estado }),
+      ...(fechaFinalEntrega !== undefined && {
+        fechaEntrega: fechaFinalEntrega,
+      }),
     };
-
-    console.log("Data que se va a guardar en BD:", datosParaGuardar);
 
     await prisma.orden.update({
       where: { id: Number(id) },
       data: datosParaGuardar,
     });
 
-    // 🔄 Reconsultar orden completa para enviar al frontend
     const ordenActualizada = await prisma.orden.findUnique({
       where: { id: Number(id) },
       include: {
@@ -190,33 +182,61 @@ export async function updateOrden(req: Request, res: Response) {
 
     return res.json(ordenActualizada);
   } catch (error) {
+    if (error instanceof PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return res
+          .status(404)
+          .json({ message: "Orden no encontrada para actualizar." });
+      }
+    }
     console.error("Error al actualizar orden:", error);
     return res.status(500).json({ message: "Error al actualizar orden" });
   }
 }
 
-// Eliminar una orden y sus detalles
 export async function deleteOrden(req: Request, res: Response) {
   const { id } = req.params;
   try {
+    const existente = await prisma.orden.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!existente) {
+      return res
+        .status(404)
+        .json({ message: "Orden no encontrada para eliminar." });
+    }
+
     await prisma.detalleOrden.deleteMany({ where: { ordenId: Number(id) } });
     await prisma.pago.deleteMany({ where: { ordenId: Number(id) } });
+    // Finalmente, eliminar la orden
     await prisma.orden.delete({ where: { id: Number(id) } });
     return res.status(204).send();
   } catch (error) {
+    if (error instanceof PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return res
+          .status(404)
+          .json({ message: "Orden no encontrada para eliminar." });
+      }
+    }
     console.error("Error al eliminar orden:", error);
     return res.status(500).json({ message: "Error al eliminar orden" });
   }
 }
 
-// Actualizar observaciones únicamente
 export async function actualizarObservacion(req: Request, res: Response) {
   const { id } = req.params;
-  const { observaciones } = req.body;
+  const result = ObservacionUpdateSchema.safeParse(req.body);
 
-  if (typeof observaciones !== "string") {
-    return res.status(400).json({ message: "Observación inválida" });
+  if (!result.success) {
+    return res.status(400).json({
+      error: "Validación fallida",
+      detalles: result.error.format(),
+    });
   }
+
+  const { observaciones } = result.data;
 
   try {
     await prisma.orden.update({
@@ -233,11 +253,24 @@ export async function actualizarObservacion(req: Request, res: Response) {
       },
     });
 
+    if (!actualizada) {
+      return res.status(404).json({
+        message: "Orden no encontrada después de actualizar observaciones.",
+      });
+    }
+
     return res.status(200).json(actualizada);
   } catch (error) {
+    if (error instanceof PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return res.status(404).json({
+          message: "Orden no encontrada para actualizar observaciones.",
+        });
+      }
+    }
     console.error("Error al actualizar observaciones:", error);
-    return res.status(404).json({
-      message: "Orden no encontrada o error al actualizar.",
-    });
+    return res
+      .status(500)
+      .json({ message: "Error al actualizar observaciones" });
   }
 }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import {
   FaSearch,
@@ -8,13 +7,18 @@ import {
 } from "react-icons/fa";
 import ModalContraseña from "../modal/ModalContraseña";
 import { badgeEstado, badgePago } from "../../utils/badgeHelpers";
-import { formatearMoneda } from "../../utils/formatearMonedaHelpers";
+import {
+  formatearMoneda,
+  type Moneda,
+  normalizarMoneda,
+} from "../../utils/monedaHelpers";
+import type { Orden } from "../../types/types";
 
 interface Props {
-  ordenes: any[];
+  ordenes: Orden[];
   monedaPrincipal: string;
-  onVerDetalles: (orden: any) => void;
-  onRegistrarPago: (orden: any) => void;
+  onVerDetalles: (orden: Orden) => void;
+  onRegistrarPago: (orden: Orden) => void;
   onMarcarEntregada: (id: number) => Promise<void>;
   onEliminar: (id: number) => Promise<void>;
 }
@@ -28,7 +32,9 @@ export default function TablaOrdenes({
   onEliminar,
 }: Props) {
   const [mostrarProteccion, setMostrarProteccion] = useState(false);
-  const [ordenAEliminar, setOrdenAEliminar] = useState<any>(null);
+  const [ordenAEliminar, setOrdenAEliminar] = useState<Orden | null>(null);
+
+  const principalSeguro: Moneda = normalizarMoneda(monedaPrincipal);
 
   return (
     <>
@@ -58,7 +64,7 @@ export default function TablaOrdenes({
                 </td>
               </tr>
             ) : (
-              ordenes.map((o: any) => (
+              ordenes.map((o) => (
                 <tr
                   key={o.id}
                   className="border-t hover:bg-gray-50 transition-colors duration-100 font-medium"
@@ -75,10 +81,11 @@ export default function TablaOrdenes({
                   </td>
                   <td className="px-6 py-4 text-xs space-y-0.5">
                     <div className="text-gray-500">
-                      Abonado: {formatearMoneda(o.abonado ?? 0, "USD")}
+                      Abonado:{" "}
+                      {formatearMoneda(o.abonado ?? 0, principalSeguro)}
                     </div>
                     <div className="text-red-600">
-                      Falta: {formatearMoneda(o.faltante ?? 0, "USD")}
+                      Falta: {formatearMoneda(o.faltante ?? 0, principalSeguro)}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -90,11 +97,11 @@ export default function TablaOrdenes({
                       : "—"}
                   </td>
                   <td className="px-6 py-4 text-indigo-600 font-semibold">
-                    {formatearMoneda(o.total ?? 0, monedaPrincipal)}
+                    {formatearMoneda(o.total ?? 0, principalSeguro)}
                   </td>
                   <td className="px-6 py-4 text-gray-600 max-w-[220px] truncate">
-                    <span title={o.observaciones || "—"}>
-                      {o.observaciones || "—"}
+                    <span title={o.observaciones ?? "—"}>
+                      {o.observaciones ?? "—"}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-center">

@@ -1,15 +1,8 @@
 import { FaUser } from "react-icons/fa";
+import type { Cliente } from "../../types/types";
 
 type Props = {
-  cliente: {
-    nombre: string;
-    apellido: string;
-    identificacion: string;
-    telefono: string;
-    telefono_secundario?: string;
-    direccion: string;
-    email: string;
-  };
+  cliente: Cliente;
   onClose: () => void;
 };
 
@@ -60,7 +53,7 @@ export default function ModalInfoCliente({ cliente, onClose }: Props) {
 
           <div>
             <p className="text-xs text-gray-500 mb-1">Correo electrónico</p>
-            <p>{cliente.email}</p>
+            <p>{cliente.email ?? "—"}</p>
           </div>
 
           <div>

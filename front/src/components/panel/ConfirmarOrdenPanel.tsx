@@ -1,3 +1,5 @@
+import { formatearMoneda } from "../../utils/monedaHelpers";
+
 type Props = {
   total: number;
   onRegistrar: () => void;
@@ -9,7 +11,7 @@ export default function ConfirmarOrdenPanel({ total, onRegistrar }: Props) {
       <div>
         <p className="text-sm text-gray-500 mb-1">Total de la orden</p>
         <p className="text-2xl font-bold text-green-700 tracking-tight">
-          ${total.toFixed(2)}
+          {formatearMoneda(total, "USD")}
         </p>
       </div>
 

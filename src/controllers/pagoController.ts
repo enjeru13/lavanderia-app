@@ -1,9 +1,40 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma";
+import { calcularResumenPago } from "../utils/pagoFinance";
+import { PagoSchema } from "../schemas/pago.schema";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
-const prisma = new PrismaClient();
+async function recalcularEstadoOrden(ordenId: number, res: Response) {
+  const orden = await prisma.orden.findUnique({ where: { id: ordenId } });
+  if (!orden) {
+    console.error(
+      `Inconsistencia de datos: Orden con ID ${ordenId} no encontrada para recalcular estado.`
+    );
+    throw new Error(
+      `Orden con ID ${ordenId} no encontrada para recalcular estado.`
+    );
+  }
 
-// Obtener todos los pagos
+  const pagos = await prisma.pago.findMany({ where: { ordenId } });
+  const config = await prisma.configuracion.findFirst();
+
+  const tasas = {
+    VES: config?.tasaVES ?? 1,
+    COP: config?.tasaCOP ?? 1,
+  };
+
+  const resumen = calcularResumenPago({ total: orden.total, pagos }, tasas);
+
+  await prisma.orden.update({
+    where: { id: ordenId },
+    data: {
+      abonado: resumen.abonado,
+      faltante: resumen.faltante,
+      estadoPago: resumen.estadoRaw,
+    },
+  });
+}
+
 export async function getAllPagos(req: Request, res: Response) {
   try {
     const pagos = await prisma.pago.findMany({
@@ -31,7 +62,6 @@ export async function getAllPagos(req: Request, res: Response) {
   }
 }
 
-// Obtener un pago por ID
 export async function getPagoById(req: Request, res: Response) {
   const { id } = req.params;
 
@@ -55,82 +85,56 @@ export async function getPagoById(req: Request, res: Response) {
   }
 }
 
-// Registrar un nuevo pago con múltiples vueltos
 export async function createPago(req: Request, res: Response) {
-  const { ordenId, monto, metodoPago, moneda, nota, vueltos = [] } = req.body;
+  const result = PagoSchema.safeParse(req.body);
 
-  if (!ordenId || !monto || !metodoPago || !moneda) {
-    return res.status(400).json({ message: "Faltan campos requeridos" });
+  if (!result.success) {
+    return res.status(400).json({
+      error: "Datos inválidos",
+      detalles: result.error.format(),
+    });
   }
 
+  const {
+    ordenId,
+    monto,
+    metodoPago,
+    moneda,
+    nota,
+    vueltos = [],
+  } = result.data;
+
   try {
-    // Registrar el pago original como fue ingresado
+    const ordenExistente = await prisma.orden.findUnique({
+      where: { id: ordenId },
+    });
+    if (!ordenExistente) {
+      return res
+        .status(404)
+        .json({ message: `Orden con ID ${ordenId} no encontrada.` });
+    }
+
     const nuevoPago = await prisma.pago.create({
       data: {
         ordenId,
-        monto: Number(monto),
+        monto,
         metodoPago,
         moneda,
         nota: nota ?? null,
       },
     });
 
-    // Registrar vueltos si existen
-    if (Array.isArray(vueltos) && vueltos.length > 0) {
-      await prisma.vueltoEntregado.createMany({
-        data: vueltos
-          .filter((v) => v.monto && v.moneda)
-          .map((v) => ({
-            pagoId: nuevoPago.id,
-            monto: Number(v.monto),
-            moneda: v.moneda,
-          })),
-      });
+    if (vueltos.length > 0) {
+      const vueltosValidos = vueltos.map((v) => ({
+        pagoId: nuevoPago.id,
+        monto: v.monto,
+        moneda: v.moneda,
+      }));
+
+      await prisma.vueltoEntregado.createMany({ data: vueltosValidos });
     }
 
-    // Obtener pagos actuales de la orden
-    const pagosActuales = await prisma.pago.findMany({
-      where: { ordenId },
-    });
-
-    // Obtener configuración de tasas
-    const config = await prisma.configuracion.findFirst();
-    const tasaVES = config?.tasaVES || 1;
-    const tasaCOP = config?.tasaCOP || 1;
-
-    // Función para convertir a USD
-    const convertirAUSD = (monto: number, moneda: string): number => {
-      if (moneda === "USD") return monto;
-      if (moneda === "VES") return monto / tasaVES;
-      if (moneda === "COP") return monto / tasaCOP;
-      return monto;
-    };
-
-    // Calcular total abonado en USD
-    const totalPagadoUSD = pagosActuales.reduce(
-      (sum, p) => sum + convertirAUSD(p.monto, p.moneda),
-      0
-    );
-
-    const ordenOriginal = await prisma.orden.findUnique({
-      where: { id: ordenId },
-    });
-
-    if (!ordenOriginal) {
-      return res.status(404).json({ message: "Orden no encontrada" });
-    }
-
-    const faltante = Math.max(ordenOriginal.total - totalPagadoUSD, 0);
-    const estadoPago = faltante <= 0 ? "COMPLETO" : "INCOMPLETO";
-
-    await prisma.orden.update({
-      where: { id: ordenId },
-      data: {
-        abonado: totalPagadoUSD,
-        faltante,
-        estadoPago,
-      },
-    });
+    await recalcularEstadoOrden(ordenId, res);
 
     return res.status(201).json(nuevoPago);
   } catch (error) {
@@ -139,32 +143,72 @@ export async function createPago(req: Request, res: Response) {
   }
 }
 
-// Actualizar un pago existente
 export async function updatePago(req: Request, res: Response) {
   const { id } = req.params;
+  const result = PagoSchema.partial().safeParse(req.body);
+
+  if (!result.success) {
+    return res.status(400).json({
+      error: "Datos inválidos para actualizar pago",
+      detalles: result.error.format(),
+    });
+  }
 
   try {
-    const pago = await prisma.pago.update({
+    const pagoExistente = await prisma.pago.findUnique({
       where: { id: Number(id) },
-      data: req.body,
+    });
+    if (!pagoExistente) {
+      return res
+        .status(404)
+        .json({ message: "Pago no encontrado para actualizar." });
+    }
+
+    const pagoActualizado = await prisma.pago.update({
+      where: { id: Number(id) },
+      data: result.data,
     });
 
-    return res.json(pago);
+    await recalcularEstadoOrden(pagoActualizado.ordenId, res);
+
+    return res.json(pagoActualizado);
   } catch (error) {
+    if (error instanceof PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return res
+          .status(404)
+          .json({ message: "Pago no encontrado para actualizar." });
+      }
+    }
     console.error("Error al actualizar pago:", error);
     return res.status(500).json({ message: "Error al actualizar pago" });
   }
 }
 
-// Eliminar un pago
 export async function deletePago(req: Request, res: Response) {
   const { id } = req.params;
 
   try {
+    const pago = await prisma.pago.findUnique({ where: { id: Number(id) } });
+    if (!pago) {
+      return res
+        .status(404)
+        .json({ message: "Pago no encontrado para eliminar." });
+    }
+
     await prisma.pago.delete({ where: { id: Number(id) } });
+
+    await recalcularEstadoOrden(pago.ordenId, res);
 
     return res.status(204).send();
   } catch (error) {
+    if (error instanceof PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return res
+          .status(404)
+          .json({ message: "Pago no encontrado para eliminar." });
+      }
+    }
     console.error("Error al eliminar pago:", error);
     return res.status(500).json({ message: "Error al eliminar pago" });
   }

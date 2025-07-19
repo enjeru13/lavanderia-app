@@ -1,18 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { FaUserEdit } from "react-icons/fa";
-
-type ClienteData = {
-  id?: number;
-  nombre: string;
-  apellido: string;
-  tipo: "NATURAL" | "EMPRESA";
-  telefono: string;
-  telefono_secundario?: string;
-  direccion: string;
-  identificacion: string;
-  email?: string;
-};
+import { type ClienteData } from "../../types/types";
+import { isAxiosError } from "axios";
 
 type Props = {
   cliente?: ClienteData;
@@ -36,7 +25,7 @@ export default function FormularioCliente({
     email: "",
   });
 
-  const [errores, setErrores] = useState<{ [key: string]: string }>({});
+  const [errores, setErrores] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (cliente) setForm(cliente);
@@ -65,8 +54,8 @@ export default function FormularioCliente({
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  function validarFormularioLocal(data: ClienteData) {
-    const errores: { [key: string]: string } = {};
+  function validarFormularioLocal(data: ClienteData): Record<string, string> {
+    const errores: Record<string, string> = {};
     const soloLetras = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/;
     const soloNumeros = /^[0-9\s+()-]+$/;
 
@@ -99,16 +88,27 @@ export default function FormularioCliente({
     return errores;
   }
 
+  const resetForm = () => {
+    setForm({
+      nombre: "",
+      apellido: "",
+      tipo: "NATURAL",
+      telefono: "",
+      telefono_secundario: "",
+      direccion: "",
+      identificacion: "V-",
+      email: "",
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const erroresDetectados = validarFormularioLocal(form);
     setErrores(erroresDetectados);
 
-    if (Object.keys(erroresDetectados).length > 0) {
-      return;
-    }
+    if (Object.keys(erroresDetectados).length > 0) return;
 
-    const datosFinales = {
+    const datosFinales: ClienteData = {
       ...form,
       telefono_secundario: form.telefono_secundario?.trim() || undefined,
       email: form.email?.trim() ? form.email.trim() : undefined,
@@ -116,20 +116,15 @@ export default function FormularioCliente({
 
     try {
       await onSubmit(datosFinales);
-      setForm({
-        nombre: "",
-        apellido: "",
-        tipo: "NATURAL",
-        telefono: "",
-        telefono_secundario: "",
-        direccion: "",
-        identificacion: "V-",
-        email: "",
-      });
-    } catch (error: any) {
-      if (error.response?.status === 400 && error.response.data?.detalles) {
+      resetForm();
+    } catch (error: unknown) {
+      if (
+        isAxiosError(error) &&
+        error.response?.status === 400 &&
+        error.response.data?.detalles
+      ) {
         const detalles = error.response.data.detalles;
-        const erroresFormateados: { [key: string]: string } = {};
+        const erroresFormateados: Record<string, string> = {};
         for (const campo in detalles) {
           erroresFormateados[campo] =
             detalles[campo]?._errors?.[0] || "Campo inválido";

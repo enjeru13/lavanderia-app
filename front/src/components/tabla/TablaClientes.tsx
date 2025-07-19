@@ -1,14 +1,7 @@
 import { useState } from "react";
 import ModalContraseña from "../modal/ModalContraseña";
 import { FaSearch, FaPen, FaTrashAlt } from "react-icons/fa";
-
-type Cliente = {
-  id: number;
-  nombre: string;
-  apellido: string;
-  telefono: string;
-  email: string;
-};
+import type { Cliente } from "../../types/types";
 
 type Props = {
   clientes: Cliente[];
@@ -62,7 +55,7 @@ export default function TablaClientes({
                 </td>
                 <td className="px-6 py-4 text-gray-600">{c.telefono}</td>
                 <td className="px-6 py-4 text-gray-500 max-w-[200px] truncate">
-                  <span title={c.email}>{c.email}</span>
+                  <span title={c.email}>{c.email ?? "—"}</span>
                 </td>
                 <td className="px-6 py-4 text-center">
                   <div className="inline-flex gap-2">
@@ -101,6 +94,7 @@ export default function TablaClientes({
         </table>
       </div>
 
+      {/* Modal para eliminar cliente */}
       <ModalContraseña
         visible={mostrarProteccionCliente}
         onCancelar={() => {
@@ -118,6 +112,8 @@ export default function TablaClientes({
           clienteAEliminar?.apellido ?? ""
         }`}
       />
+
+      {/* Modal para editar cliente */}
       <ModalContraseña
         visible={mostrarProteccionEditar}
         onCancelar={() => {
