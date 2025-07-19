@@ -49,10 +49,11 @@ model Cliente {
 
 // Modelo Servicio (para catálogo de precios)
 model Servicio {
-  id             Int     @id @default(autoincrement())
-  nombreServicio String
+  id             Int          @id @default(autoincrement())
+  nombreServicio String       @unique //
   precioBase     Float
   descripcion    String?
+  permiteDecimales Boolean @default(false) // O Boolean? si es opcional en la DB
   detalleOrdenes DetalleOrden[]
 }
 

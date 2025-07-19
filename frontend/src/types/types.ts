@@ -1,10 +1,10 @@
+// Enums
 export type Moneda = "USD" | "VES" | "COP";
 export type TipoCliente = "NATURAL" | "EMPRESA";
 export type EstadoOrden = "PENDIENTE" | "ENTREGADO";
 export type MetodoPago = "EFECTIVO" | "TRANSFERENCIA" | "PAGO_MOVIL";
 export type EstadoPagoRaw = "COMPLETO" | "INCOMPLETO";
 export type EstadoPagoTexto = "Sin pagos" | "Parcial" | "Pagado";
-export type EstadoPagoDisplay = EstadoPagoRaw | EstadoPagoTexto;
 
 // Cliente
 export interface Cliente {
@@ -21,7 +21,7 @@ export interface Cliente {
   ordenes?: Orden[];
 }
 
-// DTO para la creación de un Cliente (definición manual)
+// DTO para la creación de un Cliente (definición manual, consistente con ClienteSchema)
 export interface ClienteCreate {
   nombre: string;
   apellido: string;
@@ -33,7 +33,7 @@ export interface ClienteCreate {
   email?: string | null;
 }
 
-// DTO para la actualización parcial de un Cliente (definición manual)
+// DTO para la actualización parcial de un Cliente (definición manual, consistente con ClienteSchema.partial())
 export interface ClienteUpdatePayload {
   nombre?: string;
   apellido?: string;
@@ -57,24 +57,21 @@ export interface Servicio {
   nombreServicio: string;
   descripcion: string | null;
   precioBase: number;
-  permiteDecimales: boolean;
   detalleOrdenes?: DetalleOrden[];
 }
 
-// DTO para la creación de un Servicio (definición manual)
+// DTO para la creación de un Servicio (definición manual, consistente con ServicioSchema)
 export interface ServicioCreate {
   nombreServicio: string;
   descripcion?: string | null;
   precioBase: number;
-  permiteDecimales?: boolean;
 }
 
-// DTO para la actualización parcial de un Servicio (definición manual)
+// DTO para la actualización parcial de un Servicio (definición manual, consistente con ServicioSchema.partial())
 export interface ServicioUpdatePayload {
   nombreServicio?: string;
   descripcion?: string | null;
   precioBase?: number;
-  permiteDecimales?: boolean;
 }
 
 export type ServicioSeleccionado = {
@@ -94,7 +91,7 @@ export interface DetalleOrden {
   servicio?: Servicio;
 }
 
-// DTO para la creación de un Detalle de Orden (definición manual)
+// DTO para la creación de un Detalle de Orden (definición manual, consistente con DetalleOrdenSchema)
 export interface DetalleOrdenCreate {
   ordenId: number;
   servicioId: number;
@@ -103,7 +100,7 @@ export interface DetalleOrdenCreate {
   subtotal: number;
 }
 
-// DTO para la actualización parcial de un Detalle de Orden (definición manual)
+// DTO para la actualización parcial de un Detalle de Orden (definición manual, consistente con DetalleOrdenSchema.partial())
 export interface DetalleOrdenUpdatePayload {
   ordenId?: number;
   servicioId?: number;
@@ -112,7 +109,7 @@ export interface DetalleOrdenUpdatePayload {
   subtotal?: number;
 }
 
-// DTO para la creación de una Orden (definición manual)
+// DTO para la creación de una Orden (definición manual, consistente con ordenSchema)
 export interface OrdenCreate {
   clienteId: number;
   estado: EstadoOrden;
@@ -121,7 +118,7 @@ export interface OrdenCreate {
   servicios: ServicioSeleccionado[];
 }
 
-// DTO para la actualización parcial de una Orden (definición manual)
+// DTO para la actualización parcial de una Orden (definición manual, consistente con ordenSchema.partial())
 export interface OrdenUpdatePayload {
   clienteId?: number;
   estado?: EstadoOrden;
@@ -160,7 +157,7 @@ export interface Pago {
   vueltos?: VueltoEntregado[];
 }
 
-// DTO para la creación de un Pago (definición manual)
+// DTO para la creación de un Pago (definición manual, consistente con PagoSchema)
 export interface PagoCreate {
   ordenId: number;
   monto: number;
@@ -170,7 +167,7 @@ export interface PagoCreate {
   vueltos?: VueltoEntregadoCreate[];
 }
 
-// DTO para la actualización parcial de un Pago (definición manual)
+// DTO para la actualización parcial de un Pago (definición manual, consistente con PagoSchema.partial())
 export interface PagoUpdatePayload {
   ordenId?: number;
   monto?: number;
@@ -189,7 +186,7 @@ export interface VueltoEntregado {
   pago?: Pago;
 }
 
-// DTO para la creación de un VueltoEntregado (definición manual)
+// DTO para la creación de un VueltoEntregado (definición manual, consistente con VueltoSchema)
 export interface VueltoEntregadoCreate {
   monto: number;
   moneda: Moneda;
@@ -198,7 +195,7 @@ export interface VueltoEntregadoCreate {
 // Configuracion (Coincide con el modelo de Prisma)
 export interface Configuracion {
   id: number;
-  nombreNegocio: string | null;
+  nombreNegocio: string;
   monedaPrincipal: Moneda;
   tasaUSD: number | null;
   tasaVES: number | null;
@@ -210,9 +207,9 @@ export interface Configuracion {
   mensajePieRecibo: string | null;
 }
 
-// DTO para la creación de una Configuración (definición manual)
+// DTO para la creación de una Configuración (definición manual, consistente con ConfiguracionSchema)
 export interface ConfiguracionCreate {
-  nombreNegocio: string | null;
+  nombreNegocio: string;
   monedaPrincipal: Moneda;
   tasaUSD?: number | null;
   tasaVES?: number | null;
@@ -224,7 +221,7 @@ export interface ConfiguracionCreate {
   mensajePieRecibo?: string | null;
 }
 
-// DTO para la actualización parcial de una Configuración (definición manual)
+// DTO para la actualización parcial de una Configuración (definición manual, consistente con ConfiguracionSchema.partial())
 export interface ConfiguracionUpdatePayload {
   nombreNegocio?: string | null;
   monedaPrincipal?: Moneda;
@@ -236,4 +233,10 @@ export interface ConfiguracionUpdatePayload {
   telefonoPrincipal?: string | null;
   telefonoSecundario?: string | null;
   mensajePieRecibo?: string | null;
+}
+
+// Exportar TasasConversion con propiedades opcionales
+export interface TasasConversion {
+  VES?: number | null;
+  COP?: number | null;
 }

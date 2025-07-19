@@ -3,8 +3,12 @@ import prisma from "../lib/prisma";
 import { calcularResumenPago } from "../../../shared/utils/pagoFinance";
 import { PagoSchema } from "../schemas/pago.schema";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import {
+  Moneda,
+  TasasConversion,
+} from "../../../frontend/src/utils/monedaHelpers";
 
-async function recalcularEstadoOrden(ordenId: number, res: Response) {
+async function recalcularEstadoOrden(ordenId: number) {
   const orden = await prisma.orden.findUnique({ where: { id: ordenId } });
   if (!orden) {
     console.error(
@@ -18,12 +22,17 @@ async function recalcularEstadoOrden(ordenId: number, res: Response) {
   const pagos = await prisma.pago.findMany({ where: { ordenId } });
   const config = await prisma.configuracion.findFirst();
 
-  const tasas = {
-    VES: config?.tasaVES ?? 1,
-    COP: config?.tasaCOP ?? 1,
+  const principalMoneda: Moneda = (config?.monedaPrincipal || "USD") as Moneda;
+  const tasas: TasasConversion = {
+    VES: config?.tasaVES ?? null,
+    COP: config?.tasaCOP ?? null,
   };
 
-  const resumen = calcularResumenPago({ total: orden.total, pagos }, tasas);
+  const resumen = calcularResumenPago(
+    { total: orden.total, pagos },
+    tasas,
+    principalMoneda
+  );
 
   await prisma.orden.update({
     where: { id: ordenId },
@@ -134,7 +143,7 @@ export async function createPago(req: Request, res: Response) {
       await prisma.vueltoEntregado.createMany({ data: vueltosValidos });
     }
 
-    await recalcularEstadoOrden(ordenId, res);
+    await recalcularEstadoOrden(ordenId);
 
     return res.status(201).json(nuevoPago);
   } catch (error) {
@@ -154,6 +163,8 @@ export async function updatePago(req: Request, res: Response) {
     });
   }
 
+  const { ordenId, vueltos, ...rest } = result.data;
+
   try {
     const pagoExistente = await prisma.pago.findUnique({
       where: { id: Number(id) },
@@ -166,10 +177,11 @@ export async function updatePago(req: Request, res: Response) {
 
     const pagoActualizado = await prisma.pago.update({
       where: { id: Number(id) },
-      data: result.data,
+      data: rest,
     });
 
-    await recalcularEstadoOrden(pagoActualizado.ordenId, res);
+    // Recalcular y actualizar el estado de la orden
+    await recalcularEstadoOrden(pagoActualizado.ordenId);
 
     return res.json(pagoActualizado);
   } catch (error) {
@@ -198,7 +210,8 @@ export async function deletePago(req: Request, res: Response) {
 
     await prisma.pago.delete({ where: { id: Number(id) } });
 
-    await recalcularEstadoOrden(pago.ordenId, res);
+    // Recalcular y actualizar el estado de la orden
+    await recalcularEstadoOrden(pago.ordenId);
 
     return res.status(204).send();
   } catch (error) {

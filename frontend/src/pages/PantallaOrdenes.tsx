@@ -5,7 +5,7 @@ import TablaOrdenes from "../components/tabla/TablaOrdenes";
 import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
 import ConfirmacionModal from "../components/modal/ConfirmacionModal";
 import { FaSearch } from "react-icons/fa";
-import { calcularResumenPago } from "../../../shared/shared/utils/pagoFinance";
+import { calcularResumenPago } from "../../../shared/utils/pagoFinance";
 import {
   normalizarMoneda,
   type Moneda,

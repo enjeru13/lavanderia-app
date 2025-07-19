@@ -13,7 +13,7 @@ import { badgeEstado } from "../../utils/badgeHelpers";
 import ModalContraseña from "./ModalContraseña";
 import ModalReciboEntrega from "./ModalReciboEntrega";
 import { toast } from "react-toastify";
-import { calcularResumenPago } from "../../../../shared/shared/utils/pagoFinance";
+import { calcularResumenPago } from "../../../../shared/utils/pagoFinance";
 import type { Orden, Configuracion } from "../../types/types";
 
 interface Props {

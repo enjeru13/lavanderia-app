@@ -40,7 +40,7 @@ export default function TablaClientes({
             <tr>
               <th className="px-6 py-3 text-left">Nombre</th>
               <th className="px-6 py-3 text-left">Teléfono</th>
-              <th className="px-6 py-3 text-left">Email</th>
+              <th className="px-6 py-3 text-left">Dirección</th>
               <th className="px-6 py-3 text-center">Acciones</th>
             </tr>
           </thead>
@@ -55,7 +55,9 @@ export default function TablaClientes({
                 </td>
                 <td className="px-6 py-4 text-gray-600">{c.telefono}</td>
                 <td className="px-6 py-4 text-gray-500 max-w-[200px] truncate">
-                  <span title={c.email ?? undefined}>{c.email ?? "—"}</span>
+                  <span title={c.direccion ?? undefined}>
+                    {c.direccion ?? "—"}
+                  </span>
                 </td>
                 <td className="px-6 py-4 text-center">
                   <div className="inline-flex gap-2">

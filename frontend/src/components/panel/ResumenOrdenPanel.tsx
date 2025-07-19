@@ -22,12 +22,11 @@ export default function ResumenOrdenPanel({
   fechaEntrega,
   monedaPrincipal,
 }: Props) {
-  const calcularSubtotal = (s: ServicioSeleccionado) => {
+  const calcularSubtotalServicio = (s: ServicioSeleccionado) => {
     const servicio = serviciosCatalogo.find((x) => x.id === s.servicioId);
     return servicio ? servicio.precioBase * s.cantidad : 0;
   };
 
-  // Función para formatear la fecha de entrega
   const formatFechaEntrega = (dateString: string) => {
     if (!dateString) return "No definida";
     try {
@@ -91,7 +90,10 @@ export default function ResumenOrdenPanel({
                       {s.cantidad}
                     </span>
                     <span className="font-bold text-green-700">
-                      {formatearMoneda(calcularSubtotal(s), monedaPrincipal)}{" "}
+                      {formatearMoneda(
+                        calcularSubtotalServicio(s),
+                        monedaPrincipal
+                      )}
                     </span>
                   </li>
                 );
@@ -114,7 +116,7 @@ export default function ResumenOrdenPanel({
         {fechaEntrega && (
           <div className="bg-gray-50 p-3 rounded border">
             <span className="text-gray-600">Fecha de entrega:</span>{" "}
-            <span>{formatFechaEntrega(fechaEntrega)}</span>{" "}
+            <span>{formatFechaEntrega(fechaEntrega)}</span>
           </div>
         )}
       </div>

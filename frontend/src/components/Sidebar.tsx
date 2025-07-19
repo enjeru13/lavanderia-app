@@ -16,9 +16,9 @@ export default function Sidebar() {
       section: "Gestión",
       items: [
         { to: "/", label: "Inicio", icon: <FaHome /> },
+        { to: "/ordenes", label: "Órdenes", icon: <FaClipboardList /> },
         { to: "/clientes", label: "Clientes", icon: <FaUsers /> },
         { to: "/servicios", label: "Servicios", icon: <FaTshirt /> },
-        { to: "/ordenes", label: "Órdenes", icon: <FaClipboardList /> },
       ],
     },
     {

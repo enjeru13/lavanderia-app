@@ -12,7 +12,7 @@ import {
   type Moneda,
   type TasasConversion,
 } from "../../utils/monedaHelpers";
-import { calcularResumenPago } from "../../../../shared/shared/utils/pagoFinance";
+import { calcularResumenPago } from "../../../../shared/utils/pagoFinance";
 import type { Orden, MetodoPago } from "../../types/types";
 
 type PagoInput = {
@@ -43,7 +43,7 @@ export default function ModalPago({
   monedaPrincipal,
 }: ModalPagoProps) {
   const [pagos, setPagos] = useState<PagoInput[]>([
-    { monto: 0, moneda: "USD", metodo: "Efectivo" },
+    { monto: 0, moneda: "USD", metodo: "Efectivo" } as PagoInput,
   ]);
   const [proyeccionRestante, setProyeccionRestante] = useState<number | null>(
     null
@@ -53,6 +53,13 @@ export default function ModalPago({
   const resumen = calcularResumenPago(orden, tasas, principalSegura);
 
   const registrarPago = async () => {
+    const totalExtraUSD = pagos.reduce(
+      (sum, p) => sum + convertirAmonedaPrincipal(p.monto, p.moneda, tasas),
+      0
+    );
+    const nuevoRestante = Math.max(resumen.faltante - totalExtraUSD, 0);
+    setProyeccionRestante(nuevoRestante);
+
     const pagosValidos = pagos.filter(
       (p) => p.monto > 0 && p.moneda && p.metodo
     );
@@ -61,14 +68,16 @@ export default function ModalPago({
       toast.error("Ingresa al menos un pago válido");
       return;
     }
-
     if (resumen.faltante <= 0) {
-      toast.info("La orden ya ha sido saldada");
+      toast.info(
+        "La orden ya ha sido saldada y no se pueden añadir más pagos."
+      );
       onClose();
       return;
     }
 
     try {
+      console.log("DEBUG: Intentando registrar pagos...");
       for (const p of pagosValidos) {
         await pagosService.create({
           ordenId: orden.id,
@@ -85,6 +94,9 @@ export default function ModalPago({
 
       if (actualizada) {
         onPagoRegistrado(actualizada);
+        if (actualizada.estadoPago === "COMPLETO") {
+          toast.info("¡La orden ha sido saldada por completo!");
+        }
       }
       onClose();
     } catch (err) {
@@ -109,17 +121,21 @@ export default function ModalPago({
     }
 
     setPagos(nuevos);
+  };
 
-    const totalExtraUSD = nuevos.reduce(
+  const agregarPago = () => {
+    const nuevosPagos = [
+      ...pagos,
+      { monto: 0, moneda: "USD", metodo: "Efectivo" } as PagoInput,
+    ];
+    setPagos(nuevosPagos);
+
+    const totalExtraUSD = nuevosPagos.reduce(
       (sum, p) => sum + convertirAmonedaPrincipal(p.monto, p.moneda, tasas),
       0
     );
     const nuevoRestante = Math.max(resumen.faltante - totalExtraUSD, 0);
     setProyeccionRestante(nuevoRestante);
-  };
-
-  const agregarPago = () => {
-    setPagos([...pagos, { monto: 0, moneda: "USD", metodo: "Efectivo" }]);
   };
 
   const eliminarPago = (idx: number) => {
@@ -182,6 +198,7 @@ export default function ModalPago({
                   <label className="text-xs text-gray-500">Monto</label>
                   <input
                     type="number"
+                    step="0.01"
                     value={p.monto === 0 ? "" : p.monto}
                     onChange={(e) =>
                       actualizarPago(idx, "monto", e.target.value)
@@ -299,9 +316,9 @@ export default function ModalPago({
           </button>
           <button
             onClick={registrarPago}
-            disabled={resumen.faltante <= 0}
+            disabled={faltanteActual <= 0}
             className={`px-4 py-2 text-white rounded-md font-semibold transition ${
-              resumen.faltante <= 0
+              faltanteActual <= 0
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-green-600 hover:bg-green-700"
             }`}

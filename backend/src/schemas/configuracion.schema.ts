@@ -21,6 +21,7 @@ export const ConfiguracionSchema = z.object({
   tasaUSD: z.number().nullable().default(1),
   tasaVES: parseTasa,
   tasaCOP: parseTasa,
+  rif: z.string().nullable().optional(),
   direccion: z.string().nullable().optional(),
   telefonoPrincipal: z.string().nullable().optional(),
   telefonoSecundario: z.string().nullable().optional(),
