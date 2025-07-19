@@ -1,4 +1,3 @@
-// configuracionRoute.ts
 import { Router } from "express";
 import { getConfiguracion, updateConfiguracion } from "../controllers/configuracionesController";
 

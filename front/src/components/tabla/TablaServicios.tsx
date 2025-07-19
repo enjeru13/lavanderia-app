@@ -1,23 +1,19 @@
 import { FaPen, FaTrashAlt } from "react-icons/fa";
-import { formatearMoneda } from "../../utils/monedaHelpers"; // ajustá el path si necesario
-
-type Servicio = {
-  id: number;
-  nombreServicio: string;
-  precioBase: number;
-  descripcion?: string;
-};
+import { formatearMoneda, type Moneda } from "../../utils/monedaHelpers";
+import type { Servicio } from "../../types/types";
 
 type Props = {
   servicios: Servicio[];
   onEditar: (servicio: Servicio) => void;
   onEliminar: (id: number) => void;
+  monedaPrincipal: Moneda;
 };
 
 export default function TablaServicios({
   servicios,
   onEditar,
   onEliminar,
+  monedaPrincipal,
 }: Props) {
   if (servicios.length === 0) {
     return (
@@ -46,7 +42,7 @@ export default function TablaServicios({
             >
               <td className="px-6 py-4 text-gray-800">{s.nombreServicio}</td>
               <td className="px-6 py-4 text-indigo-600 font-semibold">
-                {formatearMoneda(s.precioBase, "USD")}
+                {formatearMoneda(s.precioBase, monedaPrincipal)}{" "}
               </td>
               <td className="px-6 py-4 text-gray-500 max-w-[250px] truncate">
                 <span title={s.descripcion || "—"}>{s.descripcion || "—"}</span>

@@ -1,12 +1,22 @@
 import { useState, useEffect } from "react";
 import { FaUserEdit } from "react-icons/fa";
-import { type ClienteData } from "../../types/types";
+import type {
+  Cliente,
+  ClienteCreate,
+  ClienteUpdatePayload,
+  TipoCliente,
+} from "../../types/types";
 import { isAxiosError } from "axios";
+import { toast } from "react-toastify";
+
+type ClienteFormState = ClienteCreate & { id?: number };
 
 type Props = {
-  cliente?: ClienteData;
+  cliente?: Cliente;
   onClose: () => void;
-  onSubmit: (data: ClienteData) => Promise<void>;
+  onSubmit: (
+    data: ClienteCreate | (ClienteUpdatePayload & { id: number })
+  ) => Promise<void>;
 };
 
 export default function FormularioCliente({
@@ -14,28 +24,54 @@ export default function FormularioCliente({
   onClose,
   onSubmit,
 }: Props) {
-  const [form, setForm] = useState<ClienteData>({
+  const [form, setForm] = useState<ClienteFormState>({
     nombre: "",
     apellido: "",
     tipo: "NATURAL",
     telefono: "",
-    telefono_secundario: "",
+    telefono_secundario: null,
     direccion: "",
     identificacion: "V-",
-    email: "",
+    email: null,
   });
 
   const [errores, setErrores] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (cliente) setForm(cliente);
+    if (cliente) {
+      setForm({
+        id: cliente.id,
+        nombre: cliente.nombre,
+        apellido: cliente.apellido,
+        tipo: cliente.tipo,
+        telefono: cliente.telefono,
+        telefono_secundario:
+          cliente.telefono_secundario === ""
+            ? null
+            : cliente.telefono_secundario,
+        direccion: cliente.direccion,
+        identificacion: cliente.identificacion,
+        email: cliente.email === "" ? null : cliente.email,
+      });
+    } else {
+      setForm({
+        nombre: "",
+        apellido: "",
+        tipo: "NATURAL",
+        telefono: "",
+        telefono_secundario: null,
+        direccion: "",
+        identificacion: "V-",
+        email: null,
+      });
+    }
   }, [cliente]);
 
   const handleIdentificacionChange = (
     prefijo: "V-" | "J-" | "E-",
     valorSinPrefijo: string
   ) => {
-    const tipoMap: Record<"V-" | "J-" | "E-", "NATURAL" | "EMPRESA"> = {
+    const tipoMap: Record<"V-" | "J-" | "E-", TipoCliente> = {
       "V-": "NATURAL",
       "J-": "EMPRESA",
       "E-": "NATURAL",
@@ -48,41 +84,76 @@ export default function FormularioCliente({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const newValue =
+      (name === "telefono_secundario" || name === "email") && value === ""
+        ? null
+        : value;
+    setForm((prev) => ({ ...prev, [name]: newValue }));
   };
 
-  function validarFormularioLocal(data: ClienteData): Record<string, string> {
+  function validarFormularioLocal(
+    data: ClienteFormState
+  ): Record<string, string> {
     const errores: Record<string, string> = {};
-    const soloLetras = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/;
-    const soloNumeros = /^[0-9\s+()-]+$/;
+    const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+    const regexTelefono = /^[0-9()+\-.\s]{6,20}$/;
+    const regexIdentificacion = /^(V|J|E)-\d{6,10}$/;
 
     if (!data.nombre.trim()) {
       errores.nombre = "Nombre obligatorio";
     } else if (!soloLetras.test(data.nombre)) {
       errores.nombre = "Solo letras permitidas";
+    } else if (data.nombre.trim().length < 2) {
+      errores.nombre = "El nombre debe tener al menos 2 caracteres";
     }
 
     if (!data.apellido.trim()) {
       errores.apellido = "Apellido obligatorio";
     } else if (!soloLetras.test(data.apellido)) {
       errores.apellido = "Solo letras permitidas";
+    } else if (data.apellido.trim().length < 2) {
+      errores.apellido = "El apellido debe tener al menos 2 caracteres";
     }
 
     if (!data.telefono.trim()) {
       errores.telefono = "Teléfono obligatorio";
-    } else if (!soloNumeros.test(data.telefono)) {
-      errores.telefono = "Formato inválido";
+    } else if (!regexTelefono.test(data.telefono)) {
+      errores.telefono =
+        "Formato de teléfono inválido (solo números y símbolos)";
+    }
+
+    if (
+      data.telefono_secundario &&
+      data.telefono_secundario.trim() !== "" &&
+      !regexTelefono.test(data.telefono_secundario)
+    ) {
+      errores.telefono_secundario = "Formato de teléfono secundario inválido";
     }
 
     if (!data.direccion.trim()) {
       errores.direccion = "Dirección obligatoria";
+    } else if (data.direccion.trim().length < 4) {
+      errores.direccion = "La dirección debe tener al menos 4 caracteres";
     }
 
     if (!data.identificacion.trim()) {
       errores.identificacion = "Identificación obligatoria";
+    } else if (!regexIdentificacion.test(data.identificacion)) {
+      errores.identificacion =
+        "Formato de identificación inválido (Ej: V-12345678)";
+    }
+
+    if (
+      data.email &&
+      data.email.trim() !== "" &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)
+    ) {
+      errores.email = "Formato de correo inválido";
     }
 
     return errores;
@@ -94,10 +165,10 @@ export default function FormularioCliente({
       apellido: "",
       tipo: "NATURAL",
       telefono: "",
-      telefono_secundario: "",
+      telefono_secundario: null,
       direccion: "",
       identificacion: "V-",
-      email: "",
+      email: null,
     });
   };
 
@@ -108,14 +179,40 @@ export default function FormularioCliente({
 
     if (Object.keys(erroresDetectados).length > 0) return;
 
-    const datosFinales: ClienteData = {
+    const datosParaBackend = {
       ...form,
-      telefono_secundario: form.telefono_secundario?.trim() || undefined,
-      email: form.email?.trim() ? form.email.trim() : undefined,
+      telefono_secundario:
+        form.telefono_secundario === "" ? null : form.telefono_secundario,
+      email: form.email === "" ? null : form.email,
     };
 
     try {
-      await onSubmit(datosFinales);
+      if (cliente && cliente.id) {
+        const updateData: ClienteUpdatePayload & { id: number } = {
+          id: cliente.id,
+          nombre: datosParaBackend.nombre,
+          apellido: datosParaBackend.apellido,
+          tipo: datosParaBackend.tipo,
+          telefono: datosParaBackend.telefono,
+          telefono_secundario: datosParaBackend.telefono_secundario,
+          direccion: datosParaBackend.direccion,
+          identificacion: datosParaBackend.identificacion,
+          email: datosParaBackend.email,
+        };
+        await onSubmit(updateData);
+      } else {
+        const createData: ClienteCreate = {
+          nombre: datosParaBackend.nombre,
+          apellido: datosParaBackend.apellido,
+          tipo: datosParaBackend.tipo,
+          telefono: datosParaBackend.telefono,
+          telefono_secundario: datosParaBackend.telefono_secundario,
+          direccion: datosParaBackend.direccion,
+          identificacion: datosParaBackend.identificacion,
+          email: datosParaBackend.email,
+        };
+        await onSubmit(createData);
+      }
       resetForm();
     } catch (error: unknown) {
       if (
@@ -131,7 +228,7 @@ export default function FormularioCliente({
         }
         setErrores(erroresFormateados);
       } else {
-        alert("Error inesperado al guardar el cliente.");
+        toast.error("Error inesperado al guardar el cliente.");
       }
     }
   };
@@ -169,6 +266,7 @@ export default function FormularioCliente({
                 value={form.nombre}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                required
               />
               {errores.nombre && (
                 <p className="text-red-600 text-xs mt-1">{errores.nombre}</p>
@@ -183,6 +281,7 @@ export default function FormularioCliente({
                 value={form.apellido}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                required
               />
               {errores.apellido && (
                 <p className="text-red-600 text-xs mt-1">{errores.apellido}</p>
@@ -201,6 +300,7 @@ export default function FormularioCliente({
                 value={form.telefono}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                required
               />
               {errores.telefono && (
                 <p className="text-red-600 text-xs mt-1">{errores.telefono}</p>
@@ -212,10 +312,15 @@ export default function FormularioCliente({
               </label>
               <input
                 name="telefono_secundario"
-                value={form.telefono_secundario}
+                value={form.telefono_secundario || ""}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200"
               />
+              {errores.telefono_secundario && (
+                <p className="text-red-600 text-xs mt-1">
+                  {errores.telefono_secundario}
+                </p>
+              )}
             </div>
           </div>
 
@@ -229,6 +334,7 @@ export default function FormularioCliente({
               value={form.direccion}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              required
             />
             {errores.direccion && (
               <p className="text-red-600 text-xs mt-1">{errores.direccion}</p>
@@ -269,6 +375,7 @@ export default function FormularioCliente({
                 }}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 placeholder="Número sin prefijo"
+                required
               />
             </div>
             {errores.identificacion && (
@@ -285,11 +392,14 @@ export default function FormularioCliente({
             </label>
             <input
               name="email"
-              value={form.email}
+              value={form.email || ""}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200"
               placeholder="Ej. cliente@email.com"
             />
+            {errores.email && (
+              <p className="text-red-600 text-xs mt-1">{errores.email}</p>
+            )}
           </div>
         </form>
 

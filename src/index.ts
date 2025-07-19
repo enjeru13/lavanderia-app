@@ -12,6 +12,7 @@ import ordenRouter from "./routes/ordenRoute";
 import detalleRouter from "./routes/detalleOrdenRoute";
 import pagoRouter from "./routes/pagoRoute";
 import configuracionRouter from "./routes/configuracionRoute";
+import authRoute from "./routes/authRoute"
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use("/api/ordenes", ordenRouter);
 app.use("/api/detalleOrdenes", detalleRouter);
 app.use("/api/pagos", pagoRouter);
 app.use("/api/configuracion", configuracionRouter);
+app.use("/api/auth", authRoute);
 
 // Manejador de errores
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

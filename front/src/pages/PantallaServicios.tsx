@@ -1,29 +1,54 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { FaPlus } from "react-icons/fa";
 import TablaServicios from "../components/tabla/TablaServicios";
 import FormularioServicio from "../components/formulario/FormularioServicio";
+import ConfirmacionModal from "../components/modal/ConfirmacionModal";
+import { servicioService } from "../services/serviciosService";
+import { configuracionService } from "../services/configuracionService";
+import type {
+  Servicio,
+  ServicioCreate,
+  ServicioUpdatePayload,
+  Moneda,
+} from "../types/types";
 
 export default function PantallaServicios() {
-  const [servicios, setServicios] = useState<any[]>([]);
+  const [servicios, setServicios] = useState<Servicio[]>([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [servicioSeleccionado, setServicioSeleccionado] =
-    useState<any>(undefined);
+  const [servicioSeleccionado, setServicioSeleccionado] = useState<
+    Servicio | undefined
+  >();
+  const [mostrarConfirmacionEliminar, setMostrarConfirmacionEliminar] =
+    useState(false);
+  const [servicioAEliminarId, setServicioAEliminarId] = useState<
+    number | undefined
+  >();
+  const [monedaPrincipal, setMonedaPrincipal] = useState<Moneda>("USD");
 
   const cargarServicios = async () => {
     try {
-      const res = await axios.get("/api/servicios");
-      setServicios(res.data);
+      const res = await servicioService.getAll();
+      setServicios(res.data || []);
     } catch (error) {
       console.error("Error al cargar servicios:", error);
       toast.error("No se pudieron cargar los servicios");
     }
   };
 
+  const cargarConfiguracion = async () => {
+    try {
+      const res = await configuracionService.get();
+      setMonedaPrincipal(res.data.monedaPrincipal);
+    } catch (error) {
+      console.error("Error al cargar configuración:", error);
+      toast.error("Error al cargar la configuración de moneda.");
+    }
+  };
+
   useEffect(() => {
     cargarServicios();
+    cargarConfiguracion();
   }, []);
 
   const abrirNuevoServicio = () => {
@@ -31,18 +56,20 @@ export default function PantallaServicios() {
     setMostrarFormulario(true);
   };
 
-  const editarServicio = (servicio: any) => {
+  const editarServicio = (servicio: Servicio) => {
     setServicioSeleccionado(servicio);
     setMostrarFormulario(true);
   };
 
-  const guardarServicio = async (data: any) => {
+  const guardarServicio = async (
+    data: ServicioCreate | (ServicioUpdatePayload & { id: number })
+  ) => {
     try {
-      if (data.id) {
-        await axios.put(`/api/servicios/${data.id}`, data);
+      if ("id" in data && data.id) {
+        await servicioService.update(data.id, data as ServicioUpdatePayload);
         toast.success("Servicio actualizado correctamente");
       } else {
-        await axios.post("/api/servicios", data);
+        await servicioService.create(data as ServicioCreate);
         toast.success("Servicio registrado correctamente");
       }
       setMostrarFormulario(false);
@@ -54,16 +81,24 @@ export default function PantallaServicios() {
     }
   };
 
-  const eliminarServicio = async (id: number) => {
-    if (!window.confirm("¿Estás segura de que deseas eliminar este servicio?"))
-      return;
+  const confirmarEliminarServicio = (id: number) => {
+    setServicioAEliminarId(id);
+    setMostrarConfirmacionEliminar(true);
+  };
+
+  const ejecutarEliminarServicio = async () => {
+    if (servicioAEliminarId === undefined) return;
+
     try {
-      await axios.delete(`/api/servicios/${id}`);
+      await servicioService.delete(servicioAEliminarId);
       toast.success("Servicio eliminado correctamente");
       cargarServicios();
     } catch (error) {
       console.error("Error al eliminar servicio:", error);
       toast.error("Error al eliminar servicio");
+    } finally {
+      setMostrarConfirmacionEliminar(false);
+      setServicioAEliminarId(undefined);
     }
   };
 
@@ -83,27 +118,30 @@ export default function PantallaServicios() {
       <TablaServicios
         servicios={servicios}
         onEditar={editarServicio}
-        onEliminar={eliminarServicio}
+        onEliminar={confirmarEliminarServicio}
+        monedaPrincipal={monedaPrincipal}
       />
 
       {mostrarFormulario && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow w-full max-w-md">
-            <FormularioServicio
-              servicio={servicioSeleccionado}
-              onClose={() => setMostrarFormulario(false)}
-              onSubmit={guardarServicio}
-            />
-            <div className="text-right mt-4">
-              <button
-                onClick={() => setMostrarFormulario(false)}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
+        <FormularioServicio
+          servicio={servicioSeleccionado}
+          onClose={() => {
+            setMostrarFormulario(false);
+            setServicioSeleccionado(undefined);
+          }}
+          onSubmit={guardarServicio}
+        />
+      )}
+
+      {mostrarConfirmacionEliminar && (
+        <ConfirmacionModal
+          mensaje="¿Estás segura de que deseas eliminar este servicio? Esta acción no se puede deshacer."
+          onConfirm={ejecutarEliminarServicio}
+          onCancel={() => {
+            setMostrarConfirmacionEliminar(false);
+            setServicioAEliminarId(undefined);
+          }}
+        />
       )}
     </div>
   );

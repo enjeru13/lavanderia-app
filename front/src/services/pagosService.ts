@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Pago, Moneda } from "../types/types";
+import type { Pago, PagoCreate, PagoUpdatePayload } from "../types/types";
 
 const api = axios.create({
   baseURL: "/api",
@@ -9,12 +9,35 @@ const api = axios.create({
 });
 
 export const pagosService = {
-  registrar: (data: {
-    ordenId: number;
-    monto: number;
-    moneda: Moneda;
-    metodoPago: "EFECTIVO" | "TRANSFERENCIA" | "PAGO_MOVIL";
-  }): Promise<{ data: Pago }> => api.post("/pagos", data),
+  /**
+   * @param
+   * @returns
+   */
+  create: (data: PagoCreate): Promise<{ data: Pago }> =>
+    api.post("/pagos", data),
 
+  /**
+   * @returns
+   */
   getAll: (): Promise<{ data: Pago[] }> => api.get("/pagos"),
+
+  /**
+   * @param
+   * @returns
+   */
+  getById: (id: number): Promise<{ data: Pago }> => api.get(`/pagos/${id}`),
+
+  /**
+   * @param
+   * @param
+   * @returns
+   */
+  update: (id: number, data: PagoUpdatePayload): Promise<{ data: Pago }> =>
+    api.put(`/pagos/${id}`, data),
+
+  /**
+   * @param
+   * @returns
+   */
+  delete: (id: number): Promise<void> => api.delete(`/pagos/${id}`),
 };

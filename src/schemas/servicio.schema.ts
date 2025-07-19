@@ -15,4 +15,6 @@ export const ServicioSchema = z.object({
     }),
 
   descripcion: z.string().nullable().optional(),
+
+  permiteDecimales: z.boolean().optional(),
 });

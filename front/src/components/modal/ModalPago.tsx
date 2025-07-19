@@ -10,9 +10,10 @@ import {
   normalizarMoneda,
   formatearMoneda,
   type Moneda,
+  type TasasConversion,
 } from "../../utils/monedaHelpers";
-import { calcularResumenPago } from "../../../../src/utils/pagoFinance";
-import type { Orden } from "../../types/types";
+import { calcularResumenPago } from "../../../../shared/shared/utils/pagoFinance";
+import type { Orden, MetodoPago } from "../../types/types";
 
 type PagoInput = {
   monto: number;
@@ -20,12 +21,18 @@ type PagoInput = {
   metodo: "Efectivo" | "Transferencia" | "Pago móvil";
 };
 
+const metodoPagoMap: Record<PagoInput["metodo"], MetodoPago> = {
+  Efectivo: "EFECTIVO",
+  Transferencia: "TRANSFERENCIA",
+  "Pago móvil": "PAGO_MOVIL",
+};
+
 interface ModalPagoProps {
   orden: Orden;
   onClose: () => void;
   onPagoRegistrado: (ordenActualizada: Orden) => void;
-  tasas: { VES?: number; COP?: number };
-  monedaPrincipal: string;
+  tasas: TasasConversion;
+  monedaPrincipal: Moneda;
 }
 
 export default function ModalPago({
@@ -57,28 +64,24 @@ export default function ModalPago({
 
     if (resumen.faltante <= 0) {
       toast.info("La orden ya ha sido saldada");
+      onClose();
       return;
     }
 
     try {
       for (const p of pagosValidos) {
-        await pagosService.registrar({
+        await pagosService.create({
           ordenId: orden.id,
           monto: p.monto,
           moneda: p.moneda,
-          metodoPago:
-            p.metodo === "Efectivo"
-              ? "EFECTIVO"
-              : p.metodo === "Transferencia"
-              ? "TRANSFERENCIA"
-              : "PAGO_MOVIL",
+          metodoPago: metodoPagoMap[p.metodo],
         });
       }
 
       toast.success("Pagos registrados exitosamente");
 
-      const res = await ordenesService.getAll();
-      const actualizada = res.data.find((o) => o.id === orden.id);
+      const res = await ordenesService.getById(orden.id);
+      const actualizada = res.data;
 
       if (actualizada) {
         onPagoRegistrado(actualizada);
@@ -106,35 +109,47 @@ export default function ModalPago({
     }
 
     setPagos(nuevos);
-  };
 
-  const agregarPago = () => {
-    const totalExtraUSD = pagos.reduce(
+    const totalExtraUSD = nuevos.reduce(
       (sum, p) => sum + convertirAmonedaPrincipal(p.monto, p.moneda, tasas),
       0
     );
-
     const nuevoRestante = Math.max(resumen.faltante - totalExtraUSD, 0);
     setProyeccionRestante(nuevoRestante);
+  };
 
+  const agregarPago = () => {
     setPagos([...pagos, { monto: 0, moneda: "USD", metodo: "Efectivo" }]);
   };
 
   const eliminarPago = (idx: number) => {
     const nuevaLista = pagos.filter((_, i) => i !== idx);
     setPagos(nuevaLista);
-    setProyeccionRestante(null);
+
+    if (nuevaLista.length > 0) {
+      const totalExtraUSD = nuevaLista.reduce(
+        (sum, p) => sum + convertirAmonedaPrincipal(p.monto, p.moneda, tasas),
+        0
+      );
+      const nuevoRestante = Math.max(resumen.faltante - totalExtraUSD, 0);
+      setProyeccionRestante(nuevoRestante);
+    } else {
+      setProyeccionRestante(null);
+    }
   };
 
+  const faltanteActual = proyeccionRestante ?? resumen.faltante;
   const restanteVES = convertirDesdePrincipal(
-    proyeccionRestante ?? resumen.faltante,
+    faltanteActual,
     "VES",
-    tasas
+    tasas,
+    principalSegura
   );
   const restanteCOP = convertirDesdePrincipal(
-    proyeccionRestante ?? resumen.faltante,
+    faltanteActual,
     "COP",
-    tasas
+    tasas,
+    principalSegura
   );
 
   return (
@@ -167,7 +182,7 @@ export default function ModalPago({
                   <label className="text-xs text-gray-500">Monto</label>
                   <input
                     type="number"
-                    value={p.monto || ""}
+                    value={p.monto === 0 ? "" : p.monto}
                     onChange={(e) =>
                       actualizarPago(idx, "monto", e.target.value)
                     }
@@ -233,19 +248,19 @@ export default function ModalPago({
             <div>
               <span className="text-gray-500">Total</span>
               <span className="block text-green-700 font-semibold">
-                {formatearMoneda(orden.total, "USD")}
+                {formatearMoneda(orden.total, principalSegura)}{" "}
               </span>
             </div>
             <div>
               <span className="text-gray-500">Abonado</span>
               <span className="block text-blue-700 font-semibold">
-                {formatearMoneda(resumen.abonado, "USD")}
+                {formatearMoneda(resumen.abonado, principalSegura)}{" "}
               </span>
             </div>
             <div>
               <span className="text-gray-500">Faltante actual</span>
               <span className="block text-red-600 font-semibold">
-                {formatearMoneda(resumen.faltante, "USD")}
+                {formatearMoneda(resumen.faltante, principalSegura)}{" "}
               </span>
             </div>
           </div>

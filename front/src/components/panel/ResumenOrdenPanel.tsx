@@ -1,8 +1,9 @@
+import { formatearMoneda, type Moneda } from "../../utils/monedaHelpers";
 import type {
   ClienteResumen,
   Servicio,
   ServicioSeleccionado,
-} from "../../types/types"; // Ajustá el path según tu estructura
+} from "../../types/types";
 
 type Props = {
   cliente: ClienteResumen | null;
@@ -10,6 +11,7 @@ type Props = {
   serviciosCatalogo: Servicio[];
   observaciones: string;
   fechaEntrega: string;
+  monedaPrincipal: Moneda;
 };
 
 export default function ResumenOrdenPanel({
@@ -18,10 +20,30 @@ export default function ResumenOrdenPanel({
   serviciosCatalogo,
   observaciones,
   fechaEntrega,
+  monedaPrincipal,
 }: Props) {
   const calcularSubtotal = (s: ServicioSeleccionado) => {
     const servicio = serviciosCatalogo.find((x) => x.id === s.servicioId);
     return servicio ? servicio.precioBase * s.cantidad : 0;
+  };
+
+  // Función para formatear la fecha de entrega
+  const formatFechaEntrega = (dateString: string) => {
+    if (!dateString) return "No definida";
+    try {
+      const [y, m, d] = dateString.split("-");
+      return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString(
+        "es-VE",
+        {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }
+      );
+    } catch (error) {
+      console.error("Error al formatear fecha de entrega:", error);
+      return dateString;
+    }
   };
 
   return (
@@ -65,10 +87,11 @@ export default function ResumenOrdenPanel({
                     className="p-3 flex justify-between items-center"
                   >
                     <span>
-                      {servicio?.nombre} × {s.cantidad}
+                      {servicio?.nombreServicio ?? "Servicio desconocido"} ×{" "}
+                      {s.cantidad}
                     </span>
                     <span className="font-bold text-green-700">
-                      ${calcularSubtotal(s).toFixed(2)}
+                      {formatearMoneda(calcularSubtotal(s), monedaPrincipal)}{" "}
                     </span>
                   </li>
                 );
@@ -91,18 +114,7 @@ export default function ResumenOrdenPanel({
         {fechaEntrega && (
           <div className="bg-gray-50 p-3 rounded border">
             <span className="text-gray-600">Fecha de entrega:</span>{" "}
-            {(() => {
-              const [y, m, d] = fechaEntrega.split("-");
-              return new Date(
-                Number(y),
-                Number(m) - 1,
-                Number(d)
-              ).toLocaleDateString("es-VE", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              });
-            })()}
+            <span>{formatFechaEntrega(fechaEntrega)}</span>{" "}
           </div>
         )}
       </div>

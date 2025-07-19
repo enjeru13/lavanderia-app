@@ -2,35 +2,43 @@ import { FiX } from "react-icons/fi";
 import ReciboEntrega from "../ReciboEntrega";
 import { useRef } from "react";
 import { useReactToPrint } from "react-to-print";
+import { type Moneda } from "../../utils/monedaHelpers";
+
+interface ReciboItem {
+  descripcion: string;
+  cantidad: number;
+  precioUnitario: number;
+}
+
+interface ReciboClienteInfo {
+  nombre: string;
+  apellido: string;
+  identificacion: string;
+  fechaIngreso: string | Date;
+  fechaEntrega?: string | Date | null;
+}
+
+interface ReciboLavanderiaInfo {
+  nombre: string;
+  rif: string | null;
+  direccion: string | null;
+  telefonoPrincipal: string | null;
+  telefonoSecundario: string | null;
+}
 
 type Props = {
   visible: boolean;
   onClose: () => void;
   datosRecibo: {
-    cliente: {
-      nombre: string;
-      identificacion: string;
-      fechaIngreso: string | Date;
-      fechaEntrega?: string | Date;
-    };
-    items: {
-      descripcion: string;
-      cantidad: number;
-      precioUnitario: number;
-    }[];
+    clienteInfo: ReciboClienteInfo;
+    items: ReciboItem[];
     abono: number;
     total: number;
-    lavanderia: {
-      nombre: string;
-      rif: string;
-      direccion: string;
-      telefono: string;
-    };
+    lavanderiaInfo: ReciboLavanderiaInfo;
     numeroOrden?: number;
-    observaciones?: string;
-    mostrarRecibidoPor?: boolean;
-    recibidoPor?: string;
-    mensajePieRecibo?: string;
+    observaciones?: string | null;
+    mensajePieRecibo?: string | null;
+    monedaPrincipal: Moneda;
   };
 };
 
@@ -53,7 +61,7 @@ export default function ModalReciboEntrega({
         font-size: 11px;
       }
     }
-  `,
+    `,
   });
 
   if (!visible) return null;
@@ -72,7 +80,18 @@ export default function ModalReciboEntrega({
 
         {/* Recibo */}
         <div>
-          <ReciboEntrega ref={reciboRef} {...datosRecibo} />
+          <ReciboEntrega
+            ref={reciboRef}
+            clienteInfo={datosRecibo.clienteInfo}
+            items={datosRecibo.items}
+            abono={datosRecibo.abono}
+            total={datosRecibo.total}
+            lavanderiaInfo={datosRecibo.lavanderiaInfo}
+            numeroOrden={datosRecibo.numeroOrden}
+            observaciones={datosRecibo.observaciones}
+            mensajePieRecibo={datosRecibo.mensajePieRecibo}
+            monedaPrincipal={datosRecibo.monedaPrincipal}
+          />
         </div>
 
         {/* Botón de impresión */}

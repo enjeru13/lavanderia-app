@@ -1,5 +1,9 @@
 import axios from "axios";
-import type { DetalleOrden } from "../types/types";
+import type {
+  DetalleOrden,
+  DetalleOrdenCreate,
+  DetalleOrdenUpdatePayload,
+} from "../types/types";
 
 const api = axios.create({
   baseURL: "/api",
@@ -9,21 +13,39 @@ const api = axios.create({
 });
 
 export const detalleOrdenService = {
+  /**
+   * @param
+   * @returns
+   */
   getByOrdenId: (ordenId: number) =>
-    api.get<DetalleOrden[]>(`/ordenes/${ordenId}/detalles`),
+    api.get<DetalleOrden[]>(`/detalleOrdenes/by-order?ordenId=${ordenId}`),
 
+  /**
+   * @param
+   * @returns
+   */
   getById: (detalleId: number) =>
-    api.get<DetalleOrden>(`/detalles/${detalleId}`),
+    api.get<DetalleOrden>(`/detalleOrdenes/${detalleId}`),
 
-  create: (data: {
-    ordenId: number;
-    servicioId: number;
-    cantidad: number;
-    precioUnit: number;
-  }) => api.post<DetalleOrden>("/detalles", data),
+  /**
+   * @param
+   * @returns
+   */
+  create: (data: DetalleOrdenCreate) =>
+    api.post<DetalleOrden>("/detalleOrdenes", data),
 
-  update: (detalleId: number, data: Partial<DetalleOrden>) =>
-    api.put<DetalleOrden>(`/detalles/${detalleId}`, data),
+  /**
+   * @param
+   * @param
+   * @returns
+   */
+  update: (detalleId: number, data: DetalleOrdenUpdatePayload) =>
+    api.put<DetalleOrden>(`/detalleOrdenes/${detalleId}`, data),
 
-  delete: (detalleId: number) => api.delete<void>(`/detalles/${detalleId}`),
+  /**
+   * @param
+   * @returns
+   */
+  delete: (detalleId: number) =>
+    api.delete<void>(`/detalleOrdenes/${detalleId}`),
 };

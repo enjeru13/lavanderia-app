@@ -14,7 +14,7 @@ router.get("/", getAllOrdenes);
 router.get("/:id", getOrdenById);
 router.post("/", createOrden);
 router.put("/:id", updateOrden);
-router.put("/:id/observaciones", actualizarObservacion);
 router.delete("/:id", deleteOrden);
+router.put("/:id/observacion", actualizarObservacion);
 
 export default router;

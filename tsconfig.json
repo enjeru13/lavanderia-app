@@ -39,7 +39,7 @@
   },
 
   /* Archivos y carpetas incluidas en la compilación */
-  "include": ["src"],
+  "include": ["src", "shared/shared/utils"],
 
   /* Excluir node_modules y carpeta de build */
   "exclude": ["node_modules", "build"]

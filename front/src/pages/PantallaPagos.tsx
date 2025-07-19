@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
-import { formatearMoneda, normalizarMoneda } from "../utils/monedaHelpers";
+import { toast } from "react-toastify";
+import { formatearMoneda } from "../utils/monedaHelpers";
 import { pagosService } from "../services/pagosService";
-import type { Pago } from "../types/types";
+import type { Pago, Moneda, MetodoPago } from "../types/types";
+
+const metodoPagoDisplay: Record<MetodoPago, string> = {
+  EFECTIVO: "Efectivo",
+  TRANSFERENCIA: "Transferencia",
+  PAGO_MOVIL: "Pago móvil",
+};
 
 export default function PantallaPagos() {
   const [pagos, setPagos] = useState<Pago[]>([]);
@@ -16,6 +23,7 @@ export default function PantallaPagos() {
         setPagos(res.data || []);
       } catch (err) {
         console.error("Error al cargar pagos:", err);
+        toast.error("Error al cargar el historial de pagos."); // ✅ Usar toast
       } finally {
         setLoading(false);
       }
@@ -23,8 +31,8 @@ export default function PantallaPagos() {
     fetchPagos();
   }, []);
 
-  const pagosFiltrados = pagos.filter((p) =>
-    String(p.ordenId).includes(filtro.trim())
+  const pagosFiltrados = pagos.filter((pago) =>
+    String(pago.ordenId).includes(filtro.trim())
   );
 
   return (
@@ -64,11 +72,11 @@ export default function PantallaPagos() {
             </thead>
             <tbody>
               {pagosFiltrados.map((pago) => {
-                const monedaSegura = normalizarMoneda(pago.moneda);
+                const monedaSegura: Moneda = pago.moneda;
                 return (
                   <tr key={pago.id} className="border-t hover:bg-gray-50">
                     <td className="px-5 py-3">
-                      {new Date(pago.fecha).toLocaleDateString("es-VE", {
+                      {new Date(pago.fechaPago).toLocaleDateString("es-VE", {
                         day: "2-digit",
                         month: "short",
                         year: "numeric",
@@ -78,7 +86,7 @@ export default function PantallaPagos() {
                       #{pago.ordenId}
                     </td>
                     <td className="px-5 py-3 capitalize">
-                      {pago.metodo.replaceAll("_", " ")}
+                      {metodoPagoDisplay[pago.metodoPago]}
                     </td>
                     <td className="px-5 py-3 font-medium">{monedaSegura}</td>
                     <td className="px-5 py-3 text-green-700 font-semibold">

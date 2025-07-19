@@ -7,12 +7,13 @@ import {
   formatearMoneda,
   normalizarMoneda,
   type Moneda,
+  type TasasConversion,
 } from "../../utils/monedaHelpers";
 import { badgeEstado } from "../../utils/badgeHelpers";
 import ModalContraseña from "./ModalContraseña";
 import ModalReciboEntrega from "./ModalReciboEntrega";
 import { toast } from "react-toastify";
-import { calcularResumenPago } from "../../../../src/utils/pagoFinance";
+import { calcularResumenPago } from "../../../../shared/shared/utils/pagoFinance";
 import type { Orden, Configuracion } from "../../types/types";
 
 interface Props {
@@ -20,7 +21,7 @@ interface Props {
   onClose: () => void;
   onPagoRegistrado: (nuevaOrden: Orden) => void;
   onAbrirPagoExtra: (orden: Orden) => void;
-  tasas: { VES?: number; COP?: number };
+  tasas: TasasConversion;
   monedaPrincipal: Moneda;
 }
 
@@ -47,9 +48,10 @@ export default function ModalDetalleOrden({
     configuracionService
       .get()
       .then((res) => setConfiguracion(res.data))
-      .catch((err) =>
-        console.error("Error al cargar configuración del sistema", err)
-      );
+      .catch((err) => {
+        console.error("Error al cargar configuración del sistema", err);
+        toast.error("Error al cargar configuración del sistema");
+      });
   }, []);
 
   const principalSeguro: Moneda = normalizarMoneda(monedaPrincipal);
@@ -60,13 +62,16 @@ export default function ModalDetalleOrden({
   );
 
   const guardarObservaciones = useCallback(async () => {
-    if (observacionesEditadas === orden.observaciones) {
+    if (observacionesEditadas === (orden.observaciones ?? "")) {
       toast.info("No hay cambios en las observaciones");
       return;
     }
     setGuardandoObservaciones(true);
     try {
-      await ordenesService.updateObservacion(orden.id, observacionesEditadas);
+      const obsPayload =
+        observacionesEditadas === "" ? null : observacionesEditadas;
+      await ordenesService.updateObservacion(orden.id, obsPayload);
+
       const res = await ordenesService.getById(orden.id);
       toast.success("Observaciones actualizadas correctamente");
       onPagoRegistrado(res.data);
@@ -86,33 +91,36 @@ export default function ModalDetalleOrden({
   }, [autorizadoParaEditar, guardarObservaciones]);
 
   const generarDatosRecibo = () => ({
-    cliente: {
-      nombre: `${orden.cliente?.nombre ?? ""} ${
-        orden.cliente?.apellido ?? ""
-      }`.trim(),
+    clienteInfo: {
+      nombre: orden.cliente?.nombre ?? "",
+      apellido: orden.cliente?.apellido ?? "",
       identificacion: orden.cliente?.identificacion ?? "",
       fechaIngreso: orden.fechaIngreso,
-      fechaEntrega: orden.fechaEntrega ?? undefined,
+      fechaEntrega: orden.fechaEntrega ?? null,
     },
     items:
       orden.detalles?.map((d) => ({
-        descripcion: d.servicio?.nombre ?? "Descripción no disponible",
+        descripcion: d.servicio?.nombreServicio ?? "Descripción no disponible",
         cantidad: d.cantidad,
         precioUnitario: d.precioUnit,
       })) ?? [],
     abono: resumen.abonado,
     total: orden.total,
     numeroOrden: orden.id,
-    observaciones: observacionesEditadas,
-    mostrarRecibidoPor: true,
-    recibidoPor: "Annie", // Considera si este valor debe ser dinámico
-    lavanderia: {
+    observaciones: observacionesEditadas === "" ? null : observacionesEditadas,
+
+    lavanderiaInfo: {
       nombre: configuracion?.nombreNegocio ?? "Lavandería sin nombre",
-      rif: configuracion?.rif ?? "",
-      direccion: configuracion?.direccion ?? "",
-      telefono: configuracion?.telefonoPrincipal ?? "",
+      rif: configuracion?.rif ?? null,
+      direccion: configuracion?.direccion ?? null,
+      telefonoPrincipal: configuracion?.telefonoPrincipal ?? null,
+      telefonoSecundario: configuracion?.telefonoSecundario ?? null,
     },
-    mensajePieRecibo: configuracion?.mensajePieRecibo ?? "",
+    mensajePieRecibo:
+      configuracion?.mensajePieRecibo === ""
+        ? null
+        : configuracion?.mensajePieRecibo ?? null,
+    monedaPrincipal: principalSeguro,
   });
 
   return (
@@ -180,7 +188,9 @@ export default function ModalDetalleOrden({
                 key={idx}
                 className="flex justify-between items-center p-3 bg-white hover:bg-gray-50 transition"
               >
-                <span>{d.servicio?.nombre}</span>
+                <span>
+                  {d.servicio?.nombreServicio ?? "Servicio no disponible"}
+                </span>{" "}
                 <span className="text-gray-500">x{d.cantidad}</span>
                 <span className="font-semibold">
                   {formatearMoneda(d.subtotal, principalSeguro)}
@@ -203,13 +213,15 @@ export default function ModalDetalleOrden({
                   className="bg-gray-50 p-3 rounded border border-gray-300"
                 >
                   <div className="flex justify-between items-center">
-                    <span>{new Date(p.fecha).toLocaleDateString("es-VE")}</span>
+                    <span>
+                      {new Date(p.fechaPago).toLocaleDateString("es-VE")}
+                    </span>{" "}
                     <span className="font-semibold">
                       {formatearMoneda(p.monto, p.moneda)}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 italic mt-1">
-                    Pago en {p.moneda} vía {p.metodo}
+                    Pago en {p.moneda} vía {p.metodoPago}{" "}
                   </p>
                 </li>
               ))}
@@ -238,10 +250,10 @@ export default function ModalDetalleOrden({
               onClick={() => setMostrarProteccionNotas(true)}
               disabled={
                 guardandoObservaciones ||
-                observacionesEditadas === orden.observaciones
+                observacionesEditadas === (orden.observaciones ?? "")
               }
               className={`p-3 flex items-center gap-2 text-white font-bold rounded-md ${
-                observacionesEditadas === orden.observaciones ||
+                observacionesEditadas === (orden.observaciones ?? "") ||
                 guardandoObservaciones
                   ? "bg-gray-300 cursor-not-allowed"
                   : "bg-indigo-600 hover:bg-indigo-700"

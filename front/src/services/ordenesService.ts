@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Orden } from "../types/types";
+import type { Orden, OrdenCreate, OrdenUpdatePayload } from "../types/types";
 
 const api = axios.create({
   baseURL: "/api",
@@ -13,17 +13,17 @@ export const ordenesService = {
 
   getById: (id: number): Promise<{ data: Orden }> => api.get(`/ordenes/${id}`),
 
-  create: (data: Partial<Orden>): Promise<{ data: Orden }> =>
+  create: (data: OrdenCreate): Promise<{ data: Orden }> =>
     api.post("/ordenes", data),
 
-  update: (id: number, data: Partial<Orden>): Promise<{ data: Orden }> =>
+  update: (id: number, data: OrdenUpdatePayload): Promise<{ data: Orden }> =>
     api.put(`/ordenes/${id}`, data),
 
   delete: (id: number): Promise<void> => api.delete(`/ordenes/${id}`),
 
   updateObservacion: (
     id: number,
-    observaciones: string
+    observaciones: string | null
   ): Promise<{ data: Orden }> =>
     api.put(`/ordenes/${id}/observacion`, { observaciones }),
 };

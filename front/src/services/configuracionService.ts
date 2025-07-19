@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Configuracion } from "../types/types";
+import type { Configuracion, ConfiguracionUpdatePayload } from "../types/types";
 
 const api = axios.create({
   baseURL: "/api",
@@ -9,8 +9,15 @@ const api = axios.create({
 });
 
 export const configuracionService = {
+  /**
+   * @returns
+   */
   get: (): Promise<{ data: Configuracion }> => api.get("/configuracion"),
 
-  update: (data: Partial<Configuracion>) =>
+  /**
+   * @param
+   * @returns
+   */
+  update: (data: ConfiguracionUpdatePayload) =>
     api.put<Configuracion>("/configuracion", data),
 };

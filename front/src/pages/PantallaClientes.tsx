@@ -1,9 +1,13 @@
+// src/screens/PantallaClientes.tsx
+
 import { useEffect, useState } from "react";
 import { clientesService } from "../services/clientesService";
-import type { Cliente, ClienteData } from "../types/types";
+// Importa los tipos específicos para creación y actualización
+import type { Cliente, ClienteCreate, ClienteUpdatePayload } from "../types/types";
 import FormularioCliente from "../components/formulario/FormularioCliente";
 import ModalInfoCliente from "../components/modal/ModalInfoCliente";
 import TablaClientes from "../components/tabla/TablaClientes";
+import ConfirmacionModal from "../components/modal/ConfirmacionModal"; // ✅ Necesitarás crear este componente
 import { toast } from "react-toastify";
 import { FaPlus, FaSearch } from "react-icons/fa";
 
@@ -15,6 +19,10 @@ export default function PantallaClientes() {
     Cliente | undefined
   >();
   const [clienteInfo, setClienteInfo] = useState<Cliente | undefined>();
+  // ✅ Estado para el modal de confirmación de eliminación
+  const [mostrarConfirmacionEliminar, setMostrarConfirmacionEliminar] = useState(false);
+  const [clienteAEliminarId, setClienteAEliminarId] = useState<number | undefined>();
+
 
   const cargarClientes = async () => {
     try {
@@ -32,7 +40,7 @@ export default function PantallaClientes() {
 
   const clientesFiltrados = clientes.filter((c) => {
     const nombreCompleto = `${c.nombre} ${c.apellido}`.toLowerCase();
-    const cedula = (c.identificacion || "").toLowerCase();
+    const cedula = (c.identificacion || "").toLowerCase(); // Usar || "" para seguridad
     return (
       nombreCompleto.includes(busqueda.toLowerCase()) ||
       cedula.includes(busqueda.toLowerCase())
@@ -40,38 +48,52 @@ export default function PantallaClientes() {
   });
 
   const abrirNuevoCliente = () => {
-    setClienteSeleccionado(undefined);
+    setClienteSeleccionado(undefined); // Para un nuevo cliente, no hay cliente seleccionado
     setMostrarFormulario(true);
   };
 
-  const guardarCliente = async (data: ClienteData) => {
+  // ✅ Firma de la función guardarCliente para aceptar los tipos correctos
+  const guardarCliente = async (data: ClienteCreate | (ClienteUpdatePayload & { id: number })) => {
     try {
-      if (data.id) {
-        await clientesService.update(data.id, data);
+      if ('id' in data && data.id) { // Si 'id' existe en los datos, es una actualización
+        // Asegúrate de que data sea compatible con ClienteUpdatePayload
+        await clientesService.update(data.id, data as ClienteUpdatePayload);
         toast.success("Cliente actualizado correctamente");
       } else {
-        await clientesService.create(data);
+        // Si no hay 'id', es una creación
+        // Asegúrate de que data sea compatible con ClienteCreate
+        await clientesService.create(data as ClienteCreate);
         toast.success("Cliente registrado correctamente");
       }
       setMostrarFormulario(false);
       setClienteSeleccionado(undefined);
-      cargarClientes();
+      cargarClientes(); // Recargar la lista de clientes
     } catch (error) {
       console.error("Error al guardar cliente:", error);
       toast.error("Error al guardar cliente");
     }
   };
 
-  const eliminarCliente = async (id: number) => {
-    if (!window.confirm("¿Estás segura de que deseas eliminar este cliente?"))
-      return;
+  // ✅ Función para iniciar el proceso de eliminación (abrir modal)
+  const confirmarEliminarCliente = (id: number) => {
+    setClienteAEliminarId(id);
+    setMostrarConfirmacionEliminar(true);
+  };
+
+  // ✅ Función que se ejecuta al confirmar la eliminación en el modal
+  const ejecutarEliminarCliente = async () => {
+    if (clienteAEliminarId === undefined) return; // No debería pasar si el modal se abre correctamente
+
     try {
-      await clientesService.delete(id);
+      await clientesService.delete(clienteAEliminarId);
       toast.success("Cliente eliminado correctamente");
-      cargarClientes();
+      cargarClientes(); // Recargar la lista de clientes
     } catch (error) {
       console.error("Error al eliminar cliente:", error);
       toast.error("Error al eliminar cliente");
+    } finally {
+      setMostrarConfirmacionEliminar(false); // Cerrar el modal
+      setClienteAEliminarId(undefined); // Limpiar el ID
     }
   };
 
@@ -108,12 +130,12 @@ export default function PantallaClientes() {
           setClienteSeleccionado(c);
           setMostrarFormulario(true);
         }}
-        onEliminar={eliminarCliente}
+        onEliminar={confirmarEliminarCliente}
       />
 
       {mostrarFormulario && (
         <FormularioCliente
-          cliente={clienteSeleccionado}
+          cliente={clienteSeleccionado} // Será Cliente para editar, undefined para crear
           onClose={() => setMostrarFormulario(false)}
           onSubmit={guardarCliente}
         />
@@ -123,6 +145,18 @@ export default function PantallaClientes() {
         <ModalInfoCliente
           cliente={clienteInfo}
           onClose={() => setClienteInfo(undefined)}
+        />
+      )}
+
+      {/* ✅ Modal de Confirmación de Eliminación */}
+      {mostrarConfirmacionEliminar && (
+        <ConfirmacionModal
+          mensaje="¿Estás segura de que deseas eliminar este cliente? Esta acción no se puede deshacer."
+          onConfirm={ejecutarEliminarCliente}
+          onCancel={() => {
+            setMostrarConfirmacionEliminar(false);
+            setClienteAEliminarId(undefined);
+          }}
         />
       )}
     </div>

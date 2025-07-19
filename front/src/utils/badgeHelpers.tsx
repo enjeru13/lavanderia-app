@@ -1,15 +1,24 @@
-export type EstadoOrden = "PENDIENTE" | "ENTREGADO";
-export type EstadoPago = "INCOMPLETO" | "COMPLETO" | "Parcial" | "Pagado";
+import type {
+  EstadoOrden,
+  EstadoPagoRaw,
+  EstadoPagoTexto,
+} from "../types/types";
+
+export type EstadoPagoDisplay = EstadoPagoRaw | EstadoPagoTexto;
 
 const baseBadge = "inline-block px-3 py-1 rounded-full text-sm font-bold";
 
-export function badgeEstado(estado: string) {
+/**
+ * @param
+ * @returns
+ */
+export function badgeEstado(estado: EstadoOrden) {
   const map: Record<EstadoOrden, string> = {
     PENDIENTE: "bg-yellow-100 text-yellow-800",
     ENTREGADO: "bg-blue-100 text-blue-800",
   };
 
-  const clase = map[estado as EstadoOrden] || "bg-red-100 text-red-700";
+  const clase = map[estado] || "bg-red-100 text-red-700";
   return (
     <span className={`${baseBadge} ${clase}`} title={`Estado: ${estado}`}>
       {estado}
@@ -17,15 +26,20 @@ export function badgeEstado(estado: string) {
   );
 }
 
-export function badgePago(estadoPago: string) {
-  const map: Record<EstadoPago, string> = {
+/**
+ * @param
+ * @returns
+ */
+export function badgePago(estadoPago: EstadoPagoDisplay) {
+  const map: Record<EstadoPagoDisplay, string> = {
     INCOMPLETO: "bg-red-100 text-red-700",
     COMPLETO: "bg-green-100 text-green-700",
+    "Sin pagos": "bg-gray-100 text-gray-600",
     Parcial: "bg-yellow-100 text-yellow-800",
-    Pagado: "bg-green-100 text-green-800",
+    Pagado: "bg-green-100 text-green-700",
   };
 
-  const clase = map[estadoPago as EstadoPago] || "bg-gray-100 text-gray-600";
+  const clase = map[estadoPago] || "bg-gray-100 text-gray-600";
   return (
     <span className={`${baseBadge} ${clase}`} title={`Pago: ${estadoPago}`}>
       {estadoPago}

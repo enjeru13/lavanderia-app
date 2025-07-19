@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaCoins, FaStore } from "react-icons/fa";
 import { MdSettings } from "react-icons/md";
+import { toast } from "react-toastify";
 import {
   formatearTasa,
   parsearTasa,
@@ -19,6 +20,7 @@ export default function PantallaConfiguracion() {
   const [telefonoPrincipal, setTelefonoPrincipal] = useState("");
   const [telefonoSecundario, setTelefonoSecundario] = useState("");
   const [mensajePieRecibo, setMensajePieRecibo] = useState("");
+  const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
     async function cargarConfiguracion() {
@@ -27,10 +29,10 @@ export default function PantallaConfiguracion() {
         const config: Configuracion = res.data;
 
         setNombreNegocio(config.nombreNegocio ?? "");
-        setMonedaPrincipal(normalizarMoneda(config.monedaPrincipal));
+        setMonedaPrincipal(normalizarMoneda(config.monedaPrincipal ?? "USD"));
         setTasas({
-          VES: formatearTasa(config.tasaVES),
-          COP: formatearTasa(config.tasaCOP),
+          VES: formatearTasa(config.tasaVES ?? ""),
+          COP: formatearTasa(config.tasaCOP ?? ""),
         });
         setRif(config.rif ?? "");
         setDireccion(config.direccion ?? "");
@@ -39,29 +41,33 @@ export default function PantallaConfiguracion() {
         setMensajePieRecibo(config.mensajePieRecibo ?? "");
       } catch (error) {
         console.error("Error al cargar configuración:", error);
+        toast.error("Error al cargar la configuración.");
       }
     }
     cargarConfiguracion();
   }, []);
 
   const guardarConfiguracion = async () => {
+    setCargando(true);
     try {
       const principalValidada: Moneda = normalizarMoneda(monedaPrincipal);
       await configuracionService.update({
-        nombreNegocio,
+        nombreNegocio: nombreNegocio || null,
         monedaPrincipal: principalValidada,
         tasaVES: parsearTasa(tasas.VES),
         tasaCOP: parsearTasa(tasas.COP),
-        rif,
-        direccion,
-        telefonoPrincipal,
-        telefonoSecundario,
-        mensajePieRecibo,
+        rif: rif || null,
+        direccion: direccion || null,
+        telefonoPrincipal: telefonoPrincipal || null,
+        telefonoSecundario: telefonoSecundario || null,
+        mensajePieRecibo: mensajePieRecibo || null,
       });
-      alert("Configuración guardada correctamente");
+      toast.success("Configuración guardada correctamente");
     } catch (error) {
       console.error("Error al guardar configuración:", error);
-      alert("Error al guardar la configuración");
+      toast.error("Error al guardar la configuración.");
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -220,9 +226,14 @@ export default function PantallaConfiguracion() {
       <div className="flex justify-end">
         <button
           onClick={guardarConfiguracion}
-          className="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-3 rounded-md flex items-center gap-2 transition-all"
+          disabled={cargando}
+          className={`px-5 py-3 rounded-md flex items-center gap-2 transition-all font-semibold ${
+            cargando
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-green-600 hover:bg-green-700 text-white"
+          }`}
         >
-          Guardar configuración
+          {cargando ? "Guardando..." : "Guardar configuración"}{" "}
         </button>
       </div>
     </div>

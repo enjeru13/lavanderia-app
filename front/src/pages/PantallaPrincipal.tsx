@@ -15,15 +15,16 @@ import ConfirmarOrdenPanel from "../components/panel/ConfirmarOrdenPanel";
 import { servicioService } from "../services/serviciosService";
 import { clientesService } from "../services/clientesService";
 import { ordenesService } from "../services/ordenesService";
+import { configuracionService } from "../services/configuracionService";
 
-// Tipos
 import type {
   Cliente,
-  ClienteData,
+  ClienteCreate,
   Servicio,
   ServicioSeleccionado,
   OrdenCreate,
 } from "../types/types";
+import { normalizarMoneda, type Moneda } from "../utils/monedaHelpers";
 
 export default function PantallaPrincipal() {
   const [cliente, setCliente] = useState<Cliente | null>(null);
@@ -36,26 +37,40 @@ export default function PantallaPrincipal() {
   >([]);
   const [observaciones, setObservaciones] = useState("");
   const [fechaEntrega, setFechaEntrega] = useState("");
+  const [monedaPrincipal, setMonedaPrincipal] = useState<Moneda>("USD");
 
   useEffect(() => {
     servicioService
       .getAll()
       .then((res) => setServiciosCatalogo(res.data))
-      .catch((err) => console.error("Error al cargar servicios:", err));
+      .catch((err) => {
+        console.error("Error al cargar servicios:", err);
+        toast.error("Error al cargar servicios");
+      });
+
+    configuracionService
+      .get()
+      .then((res) => {
+        setMonedaPrincipal(normalizarMoneda(res.data.monedaPrincipal ?? "USD"));
+      })
+      .catch((err) => {
+        console.error("Error al cargar configuración:", err);
+        toast.error("Error al cargar configuración");
+      });
   }, []);
 
   const registrarOrden = async () => {
     if (!cliente || serviciosSeleccionados.length === 0) {
       toast.error(
-        "Debes seleccionar al menos un servicio y asignar un cliente"
+        "Debes seleccionar un cliente y al menos un servicio para registrar la orden."
       );
       return;
     }
 
     const nuevaOrden: OrdenCreate = {
-      cliente_id: cliente.id,
+      clienteId: cliente.id,
       estado: "PENDIENTE",
-      observaciones,
+      observaciones: observaciones || null, // ✅ Enviar null si está vacío
       fechaEntrega: fechaEntrega ? new Date(fechaEntrega).toISOString() : null,
       servicios: serviciosSeleccionados,
     };
@@ -115,35 +130,24 @@ export default function PantallaPrincipal() {
       <ConfirmarOrdenPanel
         total={calcularTotal()}
         onRegistrar={registrarOrden}
+        monedaPrincipal={monedaPrincipal}
       />
 
       {mostrarFormularioCliente && (
-        <div className="fixed inset-0 bg-black font-bold flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow w-full max-w-md">
-            <FormularioCliente
-              onClose={() => setMostrarFormularioCliente(false)}
-              onSubmit={async (data: ClienteData) => {
-                try {
-                  const res = await clientesService.create(data);
-                  setCliente(res.data);
-                  toast.success("Cliente registrado correctamente");
-                } catch (error) {
-                  console.error("Error al registrar cliente:", error);
-                  toast.error("Error al registrar cliente");
-                }
-                setMostrarFormularioCliente(false);
-              }}
-            />
-            <div className="text-right font-bold mt-4">
-              <button
-                onClick={() => setMostrarFormularioCliente(false)}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
+        <FormularioCliente
+          onClose={() => setMostrarFormularioCliente(false)}
+          onSubmit={async (data) => {
+            try {
+              const res = await clientesService.create(data as ClienteCreate);
+              setCliente(res.data);
+              toast.success("Cliente registrado correctamente");
+            } catch (error) {
+              console.error("Error al registrar cliente:", error);
+              toast.error("Error al registrar cliente");
+            }
+            setMostrarFormularioCliente(false);
+          }}
+        />
       )}
 
       {mostrarListaClientes && (

@@ -1,12 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import ModalPago from "../components/modal/ModalPago";
 import TablaOrdenes from "../components/tabla/TablaOrdenes";
 import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
+import ConfirmacionModal from "../components/modal/ConfirmacionModal";
 import { FaSearch } from "react-icons/fa";
-import { calcularResumenPago } from "../../../src/utils/pagoFinance";
-import { normalizarMoneda, type Moneda } from "../utils/monedaHelpers";
+import { calcularResumenPago } from "../../../shared/shared/utils/pagoFinance";
+import {
+  normalizarMoneda,
+  type Moneda,
+  type TasasConversion,
+} from "../utils/monedaHelpers";
 import { ordenesService } from "../services/ordenesService";
 import { configuracionService } from "../services/configuracionService";
 import type { Orden } from "../types/types";
@@ -18,8 +22,14 @@ export default function PantallaOrdenes() {
     null
   );
   const [mostrarModalPago, setMostrarModalPago] = useState(false);
-  const [tasas, setTasas] = useState<{ VES?: number; COP?: number }>({});
+  const [tasas, setTasas] = useState<TasasConversion>({});
   const [monedaPrincipal, setMonedaPrincipal] = useState<Moneda>("USD");
+
+  const [mostrarConfirmacionEliminar, setMostrarConfirmacionEliminar] =
+    useState(false);
+  const [ordenAEliminarId, setOrdenAEliminarId] = useState<
+    number | undefined
+  >();
 
   const cargarOrdenes = async () => {
     try {
@@ -37,11 +47,12 @@ export default function PantallaOrdenes() {
       const config = res.data;
       setMonedaPrincipal(normalizarMoneda(config.monedaPrincipal ?? "USD"));
       setTasas({
-        VES: config.tasaVES ?? undefined,
-        COP: config.tasaCOP ? parseFloat(config.tasaCOP) : undefined,
+        VES: config.tasaVES ?? null,
+        COP: config.tasaCOP ?? null,
       });
     } catch (err) {
       console.error("Error al cargar configuración:", err);
+      toast.error("Error al cargar configuración");
     }
   };
 
@@ -59,31 +70,37 @@ export default function PantallaOrdenes() {
     return nombre.includes(termino) || id.includes(termino);
   });
 
-  const eliminarOrden = async (id: number) => {
-    if (!confirm("¿Estás segura de que deseas eliminar esta orden?")) return;
+  const confirmarEliminarOrden = (id: number) => {
+    setOrdenAEliminarId(id);
+    setMostrarConfirmacionEliminar(true);
+  };
+
+  const ejecutarEliminarOrden = async () => {
+    if (ordenAEliminarId === undefined) return;
+
     try {
-      await ordenesService.delete(id);
+      await ordenesService.delete(ordenAEliminarId);
       toast.success("Orden eliminada correctamente");
       cargarOrdenes();
     } catch (err) {
       toast.error("Error al eliminar la orden");
+      console.error(err);
+    } finally {
+      setMostrarConfirmacionEliminar(false);
+      setOrdenAEliminarId(undefined);
     }
   };
 
   const marcarComoEntregada = async (id: number) => {
     try {
       const ordenActual = ordenes.find((o) => o.id === id);
-      const mismaFecha =
-        ordenActual?.fechaEntrega === ordenActual?.fechaIngreso;
+      if (!ordenActual) {
+        toast.error("Orden no encontrada para marcar como entregada.");
+        return;
+      }
 
-      const fechaEntrega =
-        ordenActual?.fechaEntrega && !mismaFecha
-          ? ordenActual.fechaEntrega
-          : new Date().toISOString();
-
-      const payload = {
+      const payload: Partial<Orden> = {
         estado: "ENTREGADO",
-        fechaEntrega,
       };
 
       const res = await ordenesService.update(id, payload);
@@ -131,7 +148,7 @@ export default function PantallaOrdenes() {
           setMostrarModalPago(true);
         }}
         onMarcarEntregada={marcarComoEntregada}
-        onEliminar={eliminarOrden}
+        onEliminar={confirmarEliminarOrden}
       />
 
       {ordenSeleccionada && (
@@ -157,6 +174,17 @@ export default function PantallaOrdenes() {
           onPagoRegistrado={(actualizada) => {
             actualizarOrdenEnLista(actualizada);
             setMostrarModalPago(false);
+          }}
+        />
+      )}
+
+      {mostrarConfirmacionEliminar && (
+        <ConfirmacionModal
+          mensaje={`¿Estás segura de que deseas eliminar la orden #${ordenAEliminarId}? Esta acción no se puede deshacer.`}
+          onConfirm={ejecutarEliminarOrden}
+          onCancel={() => {
+            setMostrarConfirmacionEliminar(false);
+            setOrdenAEliminarId(undefined);
           }}
         />
       )}

@@ -2,7 +2,9 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { toast } from "react-toastify";
+import { configuracionService } from "../services/configuracionService";
+import type { Configuracion } from "../types/types";
 
 export default function DashboardLayout() {
   const [nombreNegocio, setNombreNegocio] = useState("Lavandería");
@@ -10,10 +12,13 @@ export default function DashboardLayout() {
   useEffect(() => {
     async function cargarNombreNegocio() {
       try {
-        const res = await axios.get("/api/configuracion");
-        setNombreNegocio(res.data.nombreNegocio || "Lavandería");
+        const res = await configuracionService.get();
+        const config: Configuracion = res.data;
+
+        setNombreNegocio(config.nombreNegocio || "Lavandería");
       } catch (error) {
         console.error("Error al obtener nombre del negocio:", error);
+        toast.error("Error al cargar el nombre del negocio.");
       }
     }
     cargarNombreNegocio();

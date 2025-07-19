@@ -16,11 +16,11 @@ import type { Orden } from "../../types/types";
 
 interface Props {
   ordenes: Orden[];
-  monedaPrincipal: string;
+  monedaPrincipal: Moneda;
   onVerDetalles: (orden: Orden) => void;
   onRegistrarPago: (orden: Orden) => void;
-  onMarcarEntregada: (id: number) => Promise<void>;
-  onEliminar: (id: number) => Promise<void>;
+  onMarcarEntregada: (id: number) => void;
+  onEliminar: (id: number) => void;
 }
 
 export default function TablaOrdenes({
@@ -100,7 +100,8 @@ export default function TablaOrdenes({
                     {formatearMoneda(o.total ?? 0, principalSeguro)}
                   </td>
                   <td className="px-6 py-4 text-gray-600 max-w-[220px] truncate">
-                    <span title={o.observaciones ?? "—"}>
+                    <span title={o.observaciones ?? undefined}>
+                      {" "}
                       {o.observaciones ?? "—"}
                     </span>
                   </td>
@@ -154,21 +155,23 @@ export default function TablaOrdenes({
         </table>
       </div>
 
-      <ModalContraseña
-        visible={mostrarProteccion}
-        onCancelar={() => {
-          setMostrarProteccion(false);
-          setOrdenAEliminar(null);
-        }}
-        onConfirmado={() => {
-          if (ordenAEliminar) {
-            onEliminar(ordenAEliminar.id);
-          }
-          setMostrarProteccion(false);
-          setOrdenAEliminar(null);
-        }}
-        titulo={`Eliminar orden #${ordenAEliminar?.id}`}
-      />
+      {mostrarProteccion && (
+        <ModalContraseña
+          visible={mostrarProteccion}
+          onCancelar={() => {
+            setMostrarProteccion(false);
+            setOrdenAEliminar(null);
+          }}
+          onConfirmado={() => {
+            if (ordenAEliminar) {
+              onEliminar(ordenAEliminar.id);
+            }
+            setMostrarProteccion(false);
+            setOrdenAEliminar(null);
+          }}
+          titulo={`Eliminar orden #${ordenAEliminar?.id}`}
+        />
+      )}
     </>
   );
 }

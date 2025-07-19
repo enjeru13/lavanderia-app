@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma";
-import { calcularResumenPago } from "../utils/pagoFinance";
+import { calcularResumenPago } from "../../shared/shared/utils/pagoFinance";
 import { PagoSchema } from "../schemas/pago.schema";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 

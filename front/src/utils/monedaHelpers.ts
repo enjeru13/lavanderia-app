@@ -1,8 +1,8 @@
 export type Moneda = "USD" | "VES" | "COP";
 
 export interface TasasConversion {
-  VES?: number;
-  COP?: number;
+  VES?: number | null;
+  COP?: number | null;
 }
 
 /** Convierte desde una moneda a la principal */

@@ -1,5 +1,6 @@
-import { formatearMoneda } from "../../utils/monedaHelpers";
+import { formatearMoneda, type Moneda } from "../../utils/monedaHelpers";
 import type { Servicio, ServicioSeleccionado } from "../../types/types";
+import React from "react";
 
 type Props = {
   serviciosCatalogo: Servicio[];
@@ -7,12 +8,14 @@ type Props = {
   setServiciosSeleccionados: React.Dispatch<
     React.SetStateAction<ServicioSeleccionado[]>
   >;
+  monedaPrincipal: Moneda;
 };
 
 export default function ServiciosPanel({
   serviciosCatalogo,
   serviciosSeleccionados,
   setServiciosSeleccionados,
+  monedaPrincipal,
 }: Props) {
   const actualizarCantidad = (servicioId: number, cantidad: number) => {
     setServiciosSeleccionados((prev) => {
@@ -34,6 +37,10 @@ export default function ServiciosPanel({
           );
           const cantidad = actual?.cantidad ?? 0;
           const subtotal = cantidad * servicio.precioBase;
+          const stepValue =
+            servicio.descripcion && servicio.descripcion.includes("decimal")
+              ? 0.1
+              : 1;
 
           return (
             <div
@@ -42,19 +49,19 @@ export default function ServiciosPanel({
             >
               {/* Nombre del servicio */}
               <div className="text-base font-semibold text-gray-800">
-                {servicio.nombre}
+                {servicio.nombreServicio}
               </div>
 
               {/* Precio base */}
               <div className="text-sm text-indigo-600 font-bold">
-                {formatearMoneda(servicio.precioBase, "USD")}
+                {formatearMoneda(servicio.precioBase, monedaPrincipal)}
               </div>
 
               {/* Campo cantidad */}
               <input
                 type="number"
                 min={0}
-                step={servicio.descripcion?.includes("decimal") ? 0.1 : 1}
+                step={stepValue}
                 value={cantidad === 0 ? "" : String(cantidad)}
                 onChange={(e) =>
                   actualizarCantidad(servicio.id, parseFloat(e.target.value))
@@ -66,7 +73,7 @@ export default function ServiciosPanel({
               {/* Subtotal */}
               {cantidad > 0 && (
                 <div className="text-sm text-green-700 font-medium pt-1">
-                  Subtotal: {formatearMoneda(subtotal, "USD")}
+                  Subtotal: {formatearMoneda(subtotal, monedaPrincipal)}
                 </div>
               )}
             </div>
