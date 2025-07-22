@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Pago, PagoCreate, PagoUpdatePayload } from "../types/types";
+import type { Pago, PagoCreate, PagoUpdatePayload } from "../../../shared/types/types";
 
 const api = axios.create({
   baseURL: "/api",

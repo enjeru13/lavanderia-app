@@ -1,5 +1,5 @@
 import { FaUser } from "react-icons/fa";
-import type { Cliente } from "../../types/types";
+import type { Cliente } from "../../../../shared/types/types";
 
 type Props = {
   cliente: Cliente;

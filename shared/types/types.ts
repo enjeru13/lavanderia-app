@@ -139,7 +139,7 @@ export interface Pago {
   metodoPago: MetodoPago;
   nota: string | null;
   fechaPago: string;
-  orden?: Orden;
+  orden?: Orden & { cliente?: { nombre: string; apellido: string } };
   vueltos?: VueltoEntregado[];
 }
 

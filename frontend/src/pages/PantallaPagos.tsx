@@ -1,9 +1,22 @@
-import { useEffect, useState } from "react";
-import { FaSearch } from "react-icons/fa";
+import { useEffect, useState, useMemo } from "react";
+import { FaSearch, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { formatearMoneda } from "../utils/monedaHelpers";
+import {
+  formatearMoneda,
+  convertirAmonedaPrincipal,
+  normalizarMoneda,
+  type Moneda,
+  type TasasConversion,
+} from "../utils/monedaHelpers";
 import { pagosService } from "../services/pagosService";
-import type { Pago, Moneda, MetodoPago } from "../types/types";
+import type { Pago, MetodoPago, Orden } from "../../../shared/types/types";
+import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
+import { configuracionService } from "../services/configuracionService";
+import { ordenesService } from "../services/ordenesService";
+
+interface PagoConOrden extends Pago {
+  orden?: Orden & { cliente?: { nombre: string; apellido: string } };
+}
 
 const metodoPagoDisplay: Record<MetodoPago, string> = {
   EFECTIVO: "Efectivo",
@@ -11,29 +24,180 @@ const metodoPagoDisplay: Record<MetodoPago, string> = {
   PAGO_MOVIL: "Pago móvil",
 };
 
+type SortKeys = "fechaPago" | "ordenId" | "monto";
+type SortDirection = "asc" | "desc";
+
 export default function PantallaPagos() {
-  const [pagos, setPagos] = useState<Pago[]>([]);
+  const [pagos, setPagos] = useState<PagoConOrden[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filtro, setFiltro] = useState("");
+  const [filtroBusqueda, setFiltroBusqueda] = useState("");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
+  const [sortColumn, setSortColumn] = useState<SortKeys | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [ordenSeleccionada, setOrdenSeleccionada] = useState<Orden | null>(
+    null
+  );
+  const [tasas, setTasas] = useState<TasasConversion>({});
+  const [monedaPrincipal, setMonedaPrincipal] = useState<Moneda>("USD");
+  const [cargandoOrdenDetalle, setCargandoOrdenDetalle] = useState(false);
+
+  const cargarPagos = async () => {
+    try {
+      const res = await pagosService.getAll();
+      setPagos(res.data || []);
+    } catch (err) {
+      console.error("Error al cargar pagos:", err);
+      toast.error("Error al cargar el historial de pagos.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cargarConfiguracion = async () => {
+    try {
+      const res = await configuracionService.get();
+      const config = res.data;
+      setMonedaPrincipal(normalizarMoneda(config.monedaPrincipal ?? "USD"));
+      setTasas({
+        VES: config.tasaVES ?? null,
+        COP: config.tasaCOP ?? null,
+      });
+    } catch (err) {
+      console.error("Error al cargar configuración:", err);
+      toast.error("Error al cargar configuración");
+    }
+  };
 
   useEffect(() => {
-    async function fetchPagos() {
-      try {
-        const res = await pagosService.getAll();
-        setPagos(res.data || []);
-      } catch (err) {
-        console.error("Error al cargar pagos:", err);
-        toast.error("Error al cargar el historial de pagos."); // ✅ Usar toast
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPagos();
+    cargarPagos();
+    cargarConfiguracion();
   }, []);
 
-  const pagosFiltrados = pagos.filter((pago) =>
-    String(pago.ordenId).includes(filtro.trim())
-  );
+  const handleSort = (column: SortKeys) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const getSortIcon = (column: SortKeys) => {
+    if (sortColumn === column) {
+      return sortDirection === "asc" ? <FaSortUp /> : <FaSortDown />;
+    }
+    return <FaSort />;
+  };
+
+  const pagosFiltradosYSorteadas = useMemo(() => {
+    const pagosFiltrados = pagos.filter((pago) => {
+      const terminoBusqueda = filtroBusqueda.trim().toLowerCase();
+
+      const matchOrdenId = String(pago.ordenId).includes(terminoBusqueda);
+
+      const nombreCliente = `${pago.orden?.cliente?.nombre ?? ""} ${
+        pago.orden?.cliente?.apellido ?? ""
+      }`.toLowerCase();
+      const matchCliente = nombreCliente.includes(terminoBusqueda);
+
+      const pagoFecha = new Date(pago.fechaPago);
+      let matchFecha = true;
+      if (fechaInicio) {
+        const inicio = new Date(fechaInicio);
+        inicio.setHours(0, 0, 0, 0);
+        matchFecha = pagoFecha >= inicio;
+      }
+      if (fechaFin && matchFecha) {
+        const fin = new Date(fechaFin);
+        fin.setHours(23, 59, 59, 999);
+        matchFecha = pagoFecha <= fin;
+      }
+
+      return (matchOrdenId || matchCliente) && matchFecha;
+    });
+
+    const totalIngresosFiltrados = pagosFiltrados.reduce((sum, pago) => {
+      return (
+        sum +
+        convertirAmonedaPrincipal(
+          pago.monto,
+          pago.moneda,
+          tasas,
+          monedaPrincipal
+        )
+      );
+    }, 0);
+
+    const pagosProcesados = [...pagosFiltrados];
+
+    if (sortColumn) {
+      pagosProcesados.sort((a, b) => {
+        let valA: number;
+        let valB: number;
+
+        if (sortColumn === "fechaPago") {
+          valA = new Date(a.fechaPago).getTime();
+          valB = new Date(b.fechaPago).getTime();
+        } else if (sortColumn === "ordenId") {
+          valA = a.ordenId;
+          valB = b.ordenId;
+        } else if (sortColumn === "monto") {
+          valA = convertirAmonedaPrincipal(
+            a.monto,
+            a.moneda,
+            tasas,
+            monedaPrincipal
+          );
+          valB = convertirAmonedaPrincipal(
+            b.monto,
+            b.moneda,
+            tasas,
+            monedaPrincipal
+          );
+        } else {
+          valA = 0;
+          valB = 0;
+        }
+
+        if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+        if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return { pagos: pagosProcesados, totalIngresos: totalIngresosFiltrados };
+  }, [
+    pagos,
+    filtroBusqueda,
+    fechaInicio,
+    fechaFin,
+    sortColumn,
+    sortDirection,
+    tasas,
+    monedaPrincipal,
+  ]);
+
+  const { pagos: pagosParaMostrar, totalIngresos } = pagosFiltradosYSorteadas;
+
+  const handleVerDetallesOrden = async (ordenId: number) => {
+    setCargandoOrdenDetalle(true);
+    try {
+      const res = await ordenesService.getById(ordenId);
+      const ordenCompleta = res.data;
+
+      if (ordenCompleta) {
+        setOrdenSeleccionada(ordenCompleta);
+      } else {
+        toast.error("No se pudo cargar la información completa de la orden.");
+      }
+    } catch (error) {
+      console.error("Error al cargar detalles de la orden:", error);
+      toast.error("Error al cargar los detalles de la orden.");
+    } finally {
+      setCargandoOrdenDetalle(false);
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
@@ -41,37 +205,109 @@ export default function PantallaPagos() {
         Historial de pagos
       </h1>
 
-      <div className="mb-5 flex items-center gap-3">
-        <div className="relative w-72">
-          <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
+      {/* Controles de filtro y búsqueda */}
+      <div className="mb-5 flex flex-wrap items-center gap-4">
+        <div className="flex flex-col">
+          <label
+            htmlFor="filtroBusqueda"
+            className="text-xs text-gray-500 mb-1"
+          >
+            Buscar
+          </label>
+          <div className="relative w-72">
+            <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
+            <input
+              type="text"
+              id="filtroBusqueda"
+              value={filtroBusqueda}
+              onChange={(e) => setFiltroBusqueda(e.target.value)}
+              placeholder="Orden o cliente"
+              className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+            />
+          </div>
+        </div>
+
+        {/* Filtro por fecha de inicio */}
+        <div className="flex flex-col">
+          <label htmlFor="fechaInicio" className="text-xs text-gray-500 mb-1">
+            Desde
+          </label>
           <input
-            type="text"
-            value={filtro}
-            onChange={(e) => setFiltro(e.target.value)}
-            placeholder="Buscar por número de orden"
-            className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+            type="date"
+            id="fechaInicio"
+            value={fechaInicio}
+            onChange={(e) => setFechaInicio(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+          />
+        </div>
+
+        {/* Filtro por fecha de fin */}
+        <div className="flex flex-col">
+          <label htmlFor="fechaFin" className="text-xs text-gray-500 mb-1">
+            Hasta
+          </label>
+          <input
+            type="date"
+            id="fechaFin"
+            value={fechaFin}
+            onChange={(e) => setFechaFin(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
           />
         </div>
       </div>
 
-      {loading ? (
+      <div className="bg-blue-50 p-4 rounded-lg shadow-sm border border-blue-200 mb-6 flex justify-between items-center">
+        <span className="text-blue-800 font-semibold text-lg">
+          Total de Ingresos :
+        </span>
+        <span className="text-blue-900 font-bold text-2xl">
+          {formatearMoneda(totalIngresos, monedaPrincipal)}
+        </span>
+      </div>
+
+      {loading || cargandoOrdenDetalle ? (
         <p className="text-gray-500">Cargando pagos...</p>
-      ) : pagosFiltrados.length === 0 ? (
-        <p className="text-gray-500">No se encontraron pagos registrados.</p>
+      ) : pagosParaMostrar.length === 0 ? (
+        <p className="text-gray-500">
+          No se encontraron pagos registrados con los filtros aplicados.
+        </p>
       ) : (
         <div className="overflow-auto rounded-lg shadow-sm border bg-white">
           <table className="min-w-full text-sm text-gray-700">
             <thead className="bg-gray-100 text-gray-600">
               <tr className="text-left">
-                <th className="px-5 py-3 font-medium">Fecha</th>
-                <th className="px-5 py-3 font-medium">Orden</th>
+                <th
+                  className="px-5 py-3 font-medium cursor-pointer"
+                  onClick={() => handleSort("fechaPago")}
+                >
+                  <div className="flex items-center gap-1">
+                    Fecha {getSortIcon("fechaPago")}
+                  </div>
+                </th>
+                <th
+                  className="px-5 py-3 font-medium cursor-pointer"
+                  onClick={() => handleSort("ordenId")}
+                >
+                  <div className="flex items-center gap-1">
+                    Orden {getSortIcon("ordenId")}
+                  </div>
+                </th>
+                <th className="px-5 py-3 font-medium">Cliente</th>
                 <th className="px-5 py-3 font-medium">Método</th>
                 <th className="px-5 py-3 font-medium">Moneda</th>
-                <th className="px-5 py-3 font-medium">Monto abonado</th>
+                <th
+                  className="px-5 py-3 font-medium cursor-pointer"
+                  onClick={() => handleSort("monto")}
+                >
+                  <div className="flex items-center gap-1">
+                    Monto abonado {getSortIcon("monto")}
+                  </div>
+                </th>
+                <th className="px-5 py-3 font-medium text-center">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {pagosFiltrados.map((pago) => {
+              {pagosParaMostrar.map((pago) => {
                 const monedaSegura: Moneda = pago.moneda;
                 return (
                   <tr key={pago.id} className="border-t hover:bg-gray-50">
@@ -85,6 +321,10 @@ export default function PantallaPagos() {
                     <td className="px-5 py-3 font-semibold text-blue-600">
                       #{pago.ordenId}
                     </td>
+                    <td className="px-5 py-3">
+                      {pago.orden?.cliente?.nombre}{" "}
+                      {pago.orden?.cliente?.apellido}
+                    </td>
                     <td className="px-5 py-3 capitalize">
                       {metodoPagoDisplay[pago.metodoPago]}
                     </td>
@@ -92,12 +332,34 @@ export default function PantallaPagos() {
                     <td className="px-5 py-3 text-green-700 font-semibold">
                       {formatearMoneda(pago.monto, monedaSegura)}
                     </td>
+                    <td className="px-5 py-3 text-center">
+                      <button
+                        onClick={() => handleVerDetallesOrden(pago.ordenId)}
+                        className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-xs font-semibold"
+                        title="Ver detalles de la orden"
+                        disabled={cargandoOrdenDetalle}
+                      >
+                        Ver Orden
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Modal de Detalle de Orden */}
+      {ordenSeleccionada && (
+        <ModalDetalleOrden
+          orden={ordenSeleccionada}
+          tasas={tasas}
+          monedaPrincipal={monedaPrincipal}
+          onClose={() => setOrdenSeleccionada(null)}
+          onPagoRegistrado={() => cargarPagos()}
+          onAbrirPagoExtra={() => {}}
+        />
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 import { formatearMoneda, type Moneda } from "../../utils/monedaHelpers";
-import type { Servicio, ServicioSeleccionado } from "../../types/types";
+import type { Servicio, ServicioSeleccionado } from "../../../../shared/types/types";
 import React from "react";
 
 type Props = {

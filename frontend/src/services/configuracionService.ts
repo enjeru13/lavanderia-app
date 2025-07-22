@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Configuracion, ConfiguracionUpdatePayload } from "../types/types";
+import type { Configuracion, ConfiguracionUpdatePayload } from "../../../shared/types/types";
 
 const api = axios.create({
   baseURL: "/api",

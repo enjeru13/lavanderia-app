@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import ModalPago from "../components/modal/ModalPago";
@@ -13,7 +14,7 @@ import {
 } from "../utils/monedaHelpers";
 import { ordenesService } from "../services/ordenesService";
 import { configuracionService } from "../services/configuracionService";
-import type { Orden } from "../types/types";
+import type { Orden } from "../../../shared/types/types";
 
 export default function PantallaOrdenes() {
   const [ordenes, setOrdenes] = useState<Orden[]>([]);
@@ -34,7 +35,11 @@ export default function PantallaOrdenes() {
   const cargarOrdenes = async () => {
     try {
       const res = await ordenesService.getAll();
-      setOrdenes(res.data);
+      const ordenesEnriquecidas = res.data.map((orden: Orden) => {
+        const resumen = calcularResumenPago(orden, tasas, monedaPrincipal);
+        return { ...orden, ...resumen };
+      });
+      setOrdenes(ordenesEnriquecidas);
     } catch (err) {
       console.error("Error al cargar órdenes:", err);
       toast.error("Error al cargar órdenes");
@@ -57,9 +62,15 @@ export default function PantallaOrdenes() {
   };
 
   useEffect(() => {
-    cargarOrdenes();
-    cargarConfiguracion();
+    cargarConfiguracion().then(() => {
+      cargarOrdenes();
+    });
   }, []);
+  useEffect(() => {
+    if (Object.keys(tasas).length > 0 && monedaPrincipal) {
+      cargarOrdenes();
+    }
+  }, [tasas, monedaPrincipal]);
 
   const ordenesFiltradas = ordenes.filter((o) => {
     const nombre = `${o.cliente?.nombre ?? ""} ${
@@ -117,7 +128,7 @@ export default function PantallaOrdenes() {
     const enriquecida: Orden = { ...actualizada, ...resumen };
 
     setOrdenes((prev) =>
-      prev.map((o) => (o.id === actualizada.id ? enriquecida : o))
+      prev.map((o) => (o.id === enriquecida.id ? enriquecida : o))
     );
     setOrdenSeleccionada(enriquecida);
   };
@@ -126,16 +137,26 @@ export default function PantallaOrdenes() {
     <div className="p-6 font-semibold space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Historial de Órdenes</h1>
 
-      <div className="mb-5 flex items-center gap-3">
-        <div className="relative w-72">
-          <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
-          <input
-            type="text"
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por cliente o número de orden"
-            className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
-          />
+      {/* Controles de filtro y búsqueda */}
+      <div className="mb-5 flex items-center gap-3 font-semibold">
+        <div className="flex flex-col">
+          <label
+            htmlFor="filtroBusquedaOrdenes"
+            className="text-xs text-gray-500 mb-1"
+          >
+            Buscar por Nombre o por N° de Orden
+          </label>
+          <div className="relative w-72">
+            <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
+            <input
+              type="text"
+              id="filtroBusquedaOrdenes"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Orden o cliente"
+              className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+            />
+          </div>
         </div>
       </div>
 

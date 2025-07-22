@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Orden, OrdenCreate, OrdenUpdatePayload } from "../types/types";
+import type { Orden, OrdenCreate, OrdenUpdatePayload } from "../../../shared/types/types";
 
 const api = axios.create({
   baseURL: "/api",

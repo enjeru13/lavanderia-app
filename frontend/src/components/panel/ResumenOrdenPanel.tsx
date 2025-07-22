@@ -3,7 +3,7 @@ import type {
   ClienteResumen,
   Servicio,
   ServicioSeleccionado,
-} from "../../types/types";
+} from "../../../../shared/types/types";
 
 type Props = {
   cliente: ClienteResumen | null;

@@ -27,7 +27,7 @@ import type {
   OrdenCreate,
   Moneda,
   TasasConversion,
-} from "../types/types";
+} from "../../../shared/types/types";
 import { normalizarMoneda } from "../utils/monedaHelpers";
 
 export default function PantallaPrincipal() {

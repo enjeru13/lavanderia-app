@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { configuracionService } from "../services/configuracionService";
-import type { Configuracion } from "../types/types";
+import type { Configuracion } from "../../../shared/types/types";
 
 export default function DashboardLayout() {
   const [nombreNegocio, setNombreNegocio] = useState("Lavandería");

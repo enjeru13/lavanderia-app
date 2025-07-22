@@ -1,7 +1,7 @@
 import { useState } from "react";
 import ModalContraseña from "../modal/ModalContraseña";
 import { FaSearch, FaPen, FaTrashAlt } from "react-icons/fa";
-import type { Cliente } from "../../types/types";
+import type { Cliente } from "../../../../shared/types/types";
 
 type Props = {
   clientes: Cliente[];

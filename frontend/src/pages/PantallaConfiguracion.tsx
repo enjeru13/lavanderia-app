@@ -9,7 +9,7 @@ import {
   type Moneda,
 } from "../utils/monedaHelpers";
 import { configuracionService } from "../services/configuracionService";
-import type { Configuracion } from "../types/types";
+import type { Configuracion } from "../../../shared/types/types";
 
 export default function PantallaConfiguracion() {
   const [tasas, setTasas] = useState({ VES: "", COP: "" });

@@ -3,7 +3,7 @@ import type {
   Servicio,
   ServicioCreate,
   ServicioUpdatePayload,
-} from "../types/types";
+} from "../../../shared/types/types";
 
 const api = axios.create({
   baseURL: "/api",

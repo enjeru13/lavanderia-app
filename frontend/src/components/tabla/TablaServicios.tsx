@@ -1,6 +1,6 @@
 import { FaPen, FaTrashAlt } from "react-icons/fa";
 import { formatearMoneda, type Moneda } from "../../utils/monedaHelpers";
-import type { Servicio } from "../../types/types";
+import type { Servicio } from "../../../../shared/types/types";
 
 type Props = {
   servicios: Servicio[];

@@ -14,7 +14,7 @@ import ModalContraseña from "./ModalContraseña";
 import ModalReciboEntrega from "./ModalReciboEntrega";
 import { toast } from "react-toastify";
 import { calcularResumenPago } from "../../../../shared/utils/pagoFinance";
-import type { Orden, Configuracion } from "../../types/types";
+import type { Orden, Configuracion } from "../../../../shared/types/types";
 
 interface Props {
   orden: Orden;

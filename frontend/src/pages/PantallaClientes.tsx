@@ -4,7 +4,7 @@ import type {
   Cliente,
   ClienteCreate,
   ClienteUpdatePayload,
-} from "../types/types";
+} from "../../../shared/types/types";
 import FormularioCliente from "../components/formulario/FormularioCliente";
 import ModalInfoCliente from "../components/modal/ModalInfoCliente";
 import TablaClientes from "../components/tabla/TablaClientes";
@@ -108,16 +108,25 @@ export default function PantallaClientes() {
         </button>
       </div>
 
-      <div className="mb-5 flex items-center gap-3">
-        <div className="relative w-72">
-          <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
-          <input
-            type="text"
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por nombre, apellido o cédula"
-            className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
-          />
+      <div className="mb-5 flex items-center gap-3 font-semibold">
+        <div className="flex flex-col">
+          <label
+            htmlFor="filtroBusquedaCliente"
+            className="text-xs text-gray-500 mb-1"
+          >
+            Buscar por Nombre, Apellido o Cédula
+          </label>
+          <div className="relative w-72">
+            <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
+            <input
+              type="text"
+              id="filtroBusquedaCliente"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Nombre, apellido o cédula"
+              className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+            />
+          </div>
         </div>
       </div>
 

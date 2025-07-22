@@ -2,7 +2,7 @@ import type {
   EstadoOrden,
   EstadoPagoRaw,
   EstadoPagoTexto,
-} from "../types/types";
+} from "../../../shared/types/types";
 
 export type EstadoPagoDisplay = EstadoPagoRaw | EstadoPagoTexto;
 

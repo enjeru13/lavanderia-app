@@ -12,7 +12,7 @@ import {
   type Moneda,
   normalizarMoneda,
 } from "../../utils/monedaHelpers";
-import type { Orden } from "../../types/types";
+import type { Orden } from "../../../../shared/types/types";
 
 interface Props {
   ordenes: Orden[];

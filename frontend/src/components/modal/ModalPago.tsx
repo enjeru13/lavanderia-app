@@ -13,7 +13,7 @@ import {
   type TasasConversion,
 } from "../../utils/monedaHelpers";
 import { calcularResumenPago } from "../../../../shared/utils/pagoFinance";
-import type { Orden, MetodoPago } from "../../types/types";
+import type { Orden, MetodoPago } from "../../../../shared/types/types";
 
 type PagoInput = {
   monto: number;
@@ -52,14 +52,29 @@ export default function ModalPago({
   const principalSegura: Moneda = normalizarMoneda(monedaPrincipal);
   const resumen = calcularResumenPago(orden, tasas, principalSegura);
 
-  const registrarPago = async () => {
-    const totalExtraUSD = pagos.reduce(
-      (sum, p) => sum + convertirAmonedaPrincipal(p.monto, p.moneda, tasas),
-      0
-    );
-    const nuevoRestante = Math.max(resumen.faltante - totalExtraUSD, 0);
-    setProyeccionRestante(nuevoRestante);
+  const totalPagosEnModal = pagos.reduce(
+    (sum, p) =>
+      sum +
+      convertirAmonedaPrincipal(p.monto, p.moneda, tasas, principalSegura),
+    0
+  );
 
+  const faltanteActual = proyeccionRestante ?? resumen.faltante;
+
+  const restanteVES = convertirDesdePrincipal(
+    faltanteActual,
+    "VES",
+    tasas,
+    principalSegura
+  );
+  const restanteCOP = convertirDesdePrincipal(
+    faltanteActual,
+    "COP",
+    tasas,
+    principalSegura
+  );
+
+  const registrarPago = async () => {
     const pagosValidos = pagos.filter(
       (p) => p.monto > 0 && p.moneda && p.metodo
     );
@@ -68,16 +83,14 @@ export default function ModalPago({
       toast.error("Ingresa al menos un pago válido");
       return;
     }
+
     if (resumen.faltante <= 0) {
-      toast.info(
-        "La orden ya ha sido saldada y no se pueden añadir más pagos."
-      );
+      toast.info("La orden ya ha sido saldada");
       onClose();
       return;
     }
 
     try {
-      console.log("DEBUG: Intentando registrar pagos...");
       for (const p of pagosValidos) {
         await pagosService.create({
           ordenId: orden.id,
@@ -94,9 +107,6 @@ export default function ModalPago({
 
       if (actualizada) {
         onPagoRegistrado(actualizada);
-        if (actualizada.estadoPago === "COMPLETO") {
-          toast.info("¡La orden ha sido saldada por completo!");
-        }
       }
       onClose();
     } catch (err) {
@@ -113,7 +123,8 @@ export default function ModalPago({
     const nuevos = [...pagos];
 
     if (campo === "monto") {
-      nuevos[idx].monto = parseFloat(valor) || 0;
+      const valorLimpio = valor.replace(",", ".");
+      nuevos[idx].monto = parseFloat(valorLimpio) || 0;
     } else if (campo === "moneda") {
       nuevos[idx].moneda = valor as Moneda;
     } else if (campo === "metodo") {
@@ -131,7 +142,9 @@ export default function ModalPago({
     setPagos(nuevosPagos);
 
     const totalExtraUSD = nuevosPagos.reduce(
-      (sum, p) => sum + convertirAmonedaPrincipal(p.monto, p.moneda, tasas),
+      (sum, p) =>
+        sum +
+        convertirAmonedaPrincipal(p.monto, p.moneda, tasas, principalSegura),
       0
     );
     const nuevoRestante = Math.max(resumen.faltante - totalExtraUSD, 0);
@@ -144,7 +157,9 @@ export default function ModalPago({
 
     if (nuevaLista.length > 0) {
       const totalExtraUSD = nuevaLista.reduce(
-        (sum, p) => sum + convertirAmonedaPrincipal(p.monto, p.moneda, tasas),
+        (sum, p) =>
+          sum +
+          convertirAmonedaPrincipal(p.monto, p.moneda, tasas, principalSegura),
         0
       );
       const nuevoRestante = Math.max(resumen.faltante - totalExtraUSD, 0);
@@ -153,20 +168,6 @@ export default function ModalPago({
       setProyeccionRestante(null);
     }
   };
-
-  const faltanteActual = proyeccionRestante ?? resumen.faltante;
-  const restanteVES = convertirDesdePrincipal(
-    faltanteActual,
-    "VES",
-    tasas,
-    principalSegura
-  );
-  const restanteCOP = convertirDesdePrincipal(
-    faltanteActual,
-    "COP",
-    tasas,
-    principalSegura
-  );
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -197,14 +198,16 @@ export default function ModalPago({
                 <div>
                   <label className="text-xs text-gray-500">Monto</label>
                   <input
-                    type="number"
-                    step="0.01"
-                    value={p.monto === 0 ? "" : p.monto}
+                    type="text"
+                    inputMode="decimal"
+                    value={
+                      p.monto === 0 ? "" : p.monto.toString().replace(".", ",")
+                    }
                     onChange={(e) =>
                       actualizarPago(idx, "monto", e.target.value)
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
-                    placeholder="Ej. 20"
+                    placeholder="Ej. 20,50"
                   />
                 </div>
                 <div>
@@ -274,17 +277,25 @@ export default function ModalPago({
                 {formatearMoneda(resumen.abonado, principalSegura)}{" "}
               </span>
             </div>
+            {/* Monto de pagos en este modal */}
             <div>
-              <span className="text-gray-500">Faltante actual</span>
-              <span className="block text-red-600 font-semibold">
-                {formatearMoneda(resumen.faltante, principalSegura)}{" "}
+              <span className="text-gray-500">Monto a abonar</span>
+              <span className="block text-purple-700 font-semibold">
+                {formatearMoneda(totalPagosEnModal, principalSegura)}{" "}
+              </span>
+            </div>
+            {/* Faltante proyectado */}
+            <div className="sm:col-span-2">
+              <span className="text-gray-500">Faltante proyectado</span>
+              <span className="block text-red-600 font-semibold text-lg">
+                {formatearMoneda(faltanteActual, principalSegura)}{" "}
               </span>
             </div>
           </div>
 
           <div className="bg-gray-50 border border-gray-300 rounded-md p-4 shadow-sm ring-1 ring-gray-100 space-y-3">
             <p className="font-semibold text-gray-700">
-              Faltante proyectado en moneda local
+              Faltante proyectado en otras monedas
             </p>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -301,7 +312,7 @@ export default function ModalPago({
               </div>
             </div>
             <p className="text-xs text-gray-500 italic">
-              Se actualiza automáticamente según los valores ingresados.
+              Se actualiza al agregar/eliminar pagos.
             </p>
           </div>
         </div>

@@ -5,7 +5,7 @@ import type {
   Servicio,
   ServicioCreate,
   ServicioUpdatePayload,
-} from "../../types/types";
+} from "../../../../shared/types/types";
 
 type FormularioServicioProps = {
   servicio?: Servicio;
