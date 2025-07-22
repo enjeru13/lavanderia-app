@@ -1,25 +1,25 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma";
-import { calcularResumenPago } from "../../../shared/utils/pagoFinance";
 import { PagoSchema } from "../schemas/pago.schema";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import {
-  Moneda,
-  TasasConversion,
-} from "../../../frontend/src/utils/monedaHelpers";
+import { calcularResumenPago } from "../../../shared/utils/pagoFinance";
+import type { Moneda, TasasConversion } from "../../../shared/types/types";
 
 async function recalcularEstadoOrden(ordenId: number) {
-  const orden = await prisma.orden.findUnique({ where: { id: ordenId } });
+  const orden = await prisma.orden.findUnique({
+    where: { id: ordenId },
+    include: { pagos: true },
+  });
+
   if (!orden) {
-    console.error(
-      `Inconsistencia de datos: Orden con ID ${ordenId} no encontrada para recalcular estado.`
+    console.warn(
+      `Orden con ID ${ordenId} no encontrada para recalcular estado.`
     );
     throw new Error(
       `Orden con ID ${ordenId} no encontrada para recalcular estado.`
     );
   }
 
-  const pagos = await prisma.pago.findMany({ where: { ordenId } });
   const config = await prisma.configuracion.findFirst();
 
   const principalMoneda: Moneda = (config?.monedaPrincipal || "USD") as Moneda;
@@ -28,10 +28,21 @@ async function recalcularEstadoOrden(ordenId: number) {
     COP: config?.tasaCOP ?? null,
   };
 
+  console.log("DEBUG BACKEND: Recalculando estado para Orden ID:", ordenId);
+  console.log("DEBUG BACKEND: Moneda Principal:", principalMoneda);
+  console.log("DEBUG BACKEND: Tasas de Conversión:", tasas);
+  console.log("DEBUG BACKEND: Pagos de la orden:", orden.pagos);
+  console.log("DEBUG BACKEND: Total de la orden:", orden.total);
+
   const resumen = calcularResumenPago(
-    { total: orden.total, pagos },
+    { total: orden.total, pagos: orden.pagos },
     tasas,
     principalMoneda
+  );
+
+  console.log(
+    "DEBUG BACKEND: Resumen calculado (abonado, faltante, estadoRaw):",
+    resumen
   );
 
   await prisma.orden.update({
@@ -49,21 +60,14 @@ export async function getAllPagos(req: Request, res: Response) {
     const pagos = await prisma.pago.findMany({
       include: {
         orden: {
-          select: {
-            id: true,
-            clienteId: true,
-            estado: true,
-            total: true,
-            abonado: true,
-            faltante: true,
-            estadoPago: true,
+          include: {
+            cliente: true,
           },
         },
         vueltos: true,
       },
       orderBy: { fechaPago: "desc" },
     });
-
     return res.json(pagos);
   } catch (error) {
     console.error("Error al obtener pagos:", error);
@@ -78,7 +82,11 @@ export async function getPagoById(req: Request, res: Response) {
     const pago = await prisma.pago.findUnique({
       where: { id: Number(id) },
       include: {
-        orden: { include: { cliente: true } },
+        orden: {
+          include: {
+            cliente: true,
+          },
+        },
         vueltos: true,
       },
     });
@@ -89,8 +97,8 @@ export async function getPagoById(req: Request, res: Response) {
 
     return res.json(pago);
   } catch (error) {
-    console.error("Error al obtener pago:", error);
-    return res.status(500).json({ message: "Error al obtener pago" });
+    console.error("Error al obtener pago por ID:", error);
+    return res.status(500).json({ message: "Error al obtener pago por ID" });
   }
 }
 
@@ -127,8 +135,8 @@ export async function createPago(req: Request, res: Response) {
       data: {
         ordenId,
         monto,
-        metodoPago,
         moneda,
+        metodoPago,
         nota: nota ?? null,
       },
     });
@@ -145,10 +153,22 @@ export async function createPago(req: Request, res: Response) {
 
     await recalcularEstadoOrden(ordenId);
 
-    return res.status(201).json(nuevoPago);
+    const pagoConOrden = await prisma.pago.findUnique({
+      where: { id: nuevoPago.id },
+      include: {
+        orden: {
+          include: {
+            cliente: true,
+          },
+        },
+        vueltos: true,
+      },
+    });
+
+    return res.status(201).json(pagoConOrden);
   } catch (error) {
-    console.error("Error al registrar pago:", error);
-    return res.status(500).json({ message: "Error al registrar pago" });
+    console.error("Error al crear pago:", error);
+    return res.status(500).json({ message: "Error al crear pago" });
   }
 }
 
@@ -168,7 +188,9 @@ export async function updatePago(req: Request, res: Response) {
   try {
     const pagoExistente = await prisma.pago.findUnique({
       where: { id: Number(id) },
+      select: { ordenId: true },
     });
+
     if (!pagoExistente) {
       return res
         .status(404)
@@ -179,11 +201,32 @@ export async function updatePago(req: Request, res: Response) {
       where: { id: Number(id) },
       data: rest,
     });
+    if (vueltos !== undefined) {
+      await prisma.vueltoEntregado.deleteMany({
+        where: { pagoId: pagoActualizado.id },
+      });
+      if (vueltos.length > 0) {
+        await prisma.vueltoEntregado.createMany({
+          data: vueltos.map((v) => ({ ...v, pagoId: pagoActualizado.id })),
+        });
+      }
+    }
 
-    // Recalcular y actualizar el estado de la orden
-    await recalcularEstadoOrden(pagoActualizado.ordenId);
+    await recalcularEstadoOrden(pagoExistente.ordenId);
 
-    return res.json(pagoActualizado);
+    const pagoConOrden = await prisma.pago.findUnique({
+      where: { id: pagoActualizado.id },
+      include: {
+        orden: {
+          include: {
+            cliente: true,
+          },
+        },
+        vueltos: true,
+      },
+    });
+
+    return res.json(pagoConOrden);
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError) {
       if (error.code === "P2025") {
@@ -201,17 +244,21 @@ export async function deletePago(req: Request, res: Response) {
   const { id } = req.params;
 
   try {
-    const pago = await prisma.pago.findUnique({ where: { id: Number(id) } });
-    if (!pago) {
+    const pagoExistente = await prisma.pago.findUnique({
+      where: { id: Number(id) },
+      select: { ordenId: true },
+    });
+    if (!pagoExistente) {
       return res
         .status(404)
         .json({ message: "Pago no encontrado para eliminar." });
     }
 
+    await prisma.vueltoEntregado.deleteMany({ where: { pagoId: Number(id) } });
+
     await prisma.pago.delete({ where: { id: Number(id) } });
 
-    // Recalcular y actualizar el estado de la orden
-    await recalcularEstadoOrden(pago.ordenId);
+    await recalcularEstadoOrden(pagoExistente.ordenId);
 
     return res.status(204).send();
   } catch (error) {
