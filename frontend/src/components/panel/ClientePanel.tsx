@@ -18,9 +18,6 @@ export default function ClientePanel({
         <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
           Cliente
         </h2>
-        <p className="text-sm text-gray-500">
-          Asocia un cliente nuevo o existente con esta orden.
-        </p>
       </header>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

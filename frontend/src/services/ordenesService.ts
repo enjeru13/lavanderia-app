@@ -1,27 +1,68 @@
-import apiClient from "../utils/apiClient";
-import type {
-  Orden,
-  OrdenCreate,
-  OrdenUpdatePayload,
-} from "../../../shared/types/types";
+import axios from "axios";
+import type { Orden, Pago } from "../../../shared/types/types";
+
+const API_URL = "/api/ordenes";
+
+interface UpdateObservacionPayload {
+  observaciones: string | null;
+}
 
 export const ordenesService = {
-  getAll: (): Promise<{ data: Orden[] }> => apiClient.get("/ordenes"),
+  /**
+   * @returns
+   */
+  getAll: () => {
+    return axios.get<Orden[]>(API_URL);
+  },
 
-  getById: (id: number): Promise<{ data: Orden }> =>
-    apiClient.get(`/ordenes/${id}`),
+  /**
+   * @param id
+   * @returns
+   */
+  getById: (id: number) => {
+    return axios.get<Orden>(`${API_URL}/${id}`);
+  },
 
-  create: (data: OrdenCreate): Promise<{ data: Orden }> =>
-    apiClient.post("/ordenes", data),
+  /**
+   * @param orden
+   * @returns
+   */
+  create: (orden: Partial<Orden>) => {
+    return axios.post<Orden>(API_URL, orden);
+  },
 
-  update: (id: number, data: OrdenUpdatePayload): Promise<{ data: Orden }> =>
-    apiClient.put(`/ordenes/${id}`, data),
+  /**
+   * @param id
+   * @returns
+   */
+  update: (id: number, orden: Partial<Orden>) => {
+    return axios.put<Orden>(`${API_URL}/${id}`, orden);
+  },
 
-  delete: (id: number): Promise<void> => apiClient.delete(`/ordenes/${id}`),
+  /**
+   * @param id
+   * @returns
+   */
+  delete: (id: number) => {
+    return axios.delete(`${API_URL}/${id}`);
+  },
 
-  updateObservacion: (
-    id: number,
-    observaciones: string | null
-  ): Promise<{ data: Orden }> =>
-    apiClient.put(`/ordenes/${id}/observacion`, { observaciones }),
+  /**
+   * @param id
+   * @param observaciones
+   * @returns
+   */
+  updateObservacion: (id: number, observaciones: string | null) => {
+    const payload: UpdateObservacionPayload = { observaciones };
+    return axios.patch<Orden>(`${API_URL}/${id}/observacion`, payload);
+  },
+
+  /**
+   * @param ordenId
+   * @param pago
+   * @returns
+   */
+  createPago: (ordenId: number, pago: Partial<Pago>) => {
+    return axios.post<Orden>(`${API_URL}/${ordenId}/pagos`, pago);
+  },
 };

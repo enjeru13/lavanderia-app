@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { FaPlus, FaSearch } from "react-icons/fa";
+import { FaPlus } from "react-icons/fa";
 import TablaServicios from "../components/tabla/TablaServicios";
 import FormularioServicio from "../components/formulario/FormularioServicio";
 import ConfirmacionModal from "../components/modal/ConfirmacionModal";
@@ -16,7 +16,6 @@ import type {
 
 export default function PantallaServicios() {
   const [servicios, setServicios] = useState<Servicio[]>([]);
-  const [busqueda, setBusqueda] = useState("");
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [servicioSeleccionado, setServicioSeleccionado] = useState<
     Servicio | undefined
@@ -57,17 +56,8 @@ export default function PantallaServicios() {
     cargarConfiguracion();
   }, []);
 
-  const serviciosFiltrados = servicios.filter((s) => {
-    const nombre = s.nombreServicio.toLowerCase();
-    const descripcion = (s.descripcion || "").toLowerCase();
-    const terminoBusqueda = busqueda.toLowerCase();
-    return (
-      nombre.includes(terminoBusqueda) || descripcion.includes(terminoBusqueda)
-    );
-  });
-
   const abrirNuevoServicio = () => {
-    if (hasRole(["ADMIN", "EMPLOYEE"])) {
+    if (hasRole(["ADMIN"])) {
       setServicioSeleccionado(undefined);
       setMostrarFormulario(true);
     } else {
@@ -75,8 +65,8 @@ export default function PantallaServicios() {
     }
   };
 
-  const handleEditarServicio = (servicio: Servicio) => {
-    if (hasRole(["ADMIN", "EMPLOYEE"])) {
+  const editarServicio = (servicio: Servicio) => {
+    if (hasRole(["ADMIN"])) {
       setServicioSeleccionado(servicio);
       setMostrarFormulario(true);
     } else {
@@ -104,7 +94,7 @@ export default function PantallaServicios() {
     }
   };
 
-  const handleEliminarServicio = (id: number) => {
+  const confirmarEliminarServicio = (id: number) => {
     if (hasRole(["ADMIN"])) {
       setServicioAEliminarId(id);
       setMostrarConfirmacionEliminar(true);
@@ -142,32 +132,10 @@ export default function PantallaServicios() {
         </button>
       </div>
 
-      <div className="mb-5 flex items-center gap-3 font-semibold">
-        <div className="flex flex-col">
-          <label
-            htmlFor="filtroBusquedaServicio"
-            className="text-xs text-gray-500 mb-1"
-          >
-            Buscar por Nombre o Descripción
-          </label>
-          <div className="relative w-72">
-            <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
-            <input
-              type="text"
-              id="filtroBusquedaServicio"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Nombre o descripción del servicio"
-              className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
-            />
-          </div>
-        </div>
-      </div>
-
       <TablaServicios
-        servicios={serviciosFiltrados}
-        onEditar={handleEditarServicio}
-        onEliminar={handleEliminarServicio}
+        servicios={servicios}
+        onEditar={editarServicio}
+        onEliminar={confirmarEliminarServicio}
         monedaPrincipal={monedaPrincipal}
       />
 

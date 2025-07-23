@@ -19,9 +19,9 @@ export default function Header({ nombreNegocio }: HeaderProps) {
       {user ? (
         <div className="flex items-center gap-4 w-1/3 justify-end">
           <span className="text-gray-700 font-medium flex items-center gap-2">
-            <FaUserCircle className="text-indigo-600" size={20} />
+            <FaUserCircle className="text-indigo-600" size={23} />
             {user.name || user.email}
-            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full capitalize">
+            <span className="text-xs text-gray-500 bg-gray-100 p-2 rounded-full capitalize">
               {user.role.toLowerCase()}
             </span>
           </span>

@@ -10,11 +10,11 @@ import {
   type TasasConversion,
 } from "../../utils/monedaHelpers";
 import { badgeEstado } from "../../utils/badgeHelpers";
-import ModalReciboEntrega from "./ModalReciboEntrega";
 import { toast } from "react-toastify";
 import { calcularResumenPago } from "../../../../shared/utils/pagoFinance";
-import { useAuth } from "../../hooks/useAuth";
 import type { Orden, Configuracion } from "../../../../shared/types/types";
+import { useAuth } from "../../hooks/useAuth";
+import ModalReciboEntrega from "./ModalReciboEntrega";
 
 interface Props {
   orden: Orden;
@@ -62,21 +62,21 @@ export default function ModalDetalleOrden({
   );
 
   const guardarObservaciones = useCallback(async () => {
-    if (!hasRole(["ADMIN", "EMPLOYEE"])) {
-      toast.error("No tienes permiso para editar las observaciones.");
-      return;
-    }
-
     if (observacionesEditadas === (orden.observaciones ?? "")) {
       toast.info("No hay cambios en las observaciones");
       return;
     }
+
+    if (!hasRole(["ADMIN"])) {
+      toast.error("No tienes permiso para editar observaciones.");
+      return;
+    }
+
     setGuardandoObservaciones(true);
     try {
       const obsPayload =
-        observacionesEditadas === "" ? null : observacionesEditadas;
+        observacionesEditadas.trim() === "" ? null : observacionesEditadas;
       await ordenesService.updateObservacion(orden.id, obsPayload);
-
       const res = await ordenesService.getById(orden.id);
       toast.success("Observaciones actualizadas correctamente");
       onPagoRegistrado(res.data);
@@ -127,8 +127,7 @@ export default function ModalDetalleOrden({
     monedaPrincipal: principalSeguro,
   });
 
-  const isObservacionesDisabled =
-    guardandoObservaciones || !hasRole(["ADMIN", "EMPLOYEE"]);
+  const isObservacionesDisabled = !hasRole(["ADMIN"]) || guardandoObservaciones;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
@@ -148,6 +147,7 @@ export default function ModalDetalleOrden({
           </button>
         </div>
 
+        {/* Cliente, Estado y Fechas */}
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <p className="text-gray-700 font-semibold text-sm py-1">Cliente</p>
@@ -183,6 +183,7 @@ export default function ModalDetalleOrden({
           </div>
         </div>
 
+        {/* Servicios contratados */}
         <div>
           <h3 className="font-semibold text-gray-700 mb-2">
             Servicios contratados
@@ -195,7 +196,7 @@ export default function ModalDetalleOrden({
               >
                 <span>
                   {d.servicio?.nombreServicio ?? "Servicio no disponible"}
-                </span>{" "}
+                </span>
                 <span className="text-gray-500">x{d.cantidad}</span>
                 <span className="font-semibold">
                   {formatearMoneda(d.subtotal, principalSeguro)}
@@ -205,6 +206,7 @@ export default function ModalDetalleOrden({
           </div>
         </div>
 
+        {/* Pagos realizados */}
         {(orden.pagos?.length ?? 0) > 0 && (
           <div>
             <h3 className="font-semibold text-gray-700 mb-2">
@@ -219,13 +221,13 @@ export default function ModalDetalleOrden({
                   <div className="flex justify-between items-center">
                     <span>
                       {new Date(p.fechaPago).toLocaleDateString("es-VE")}
-                    </span>{" "}
+                    </span>
                     <span className="font-semibold">
                       {formatearMoneda(p.monto, p.moneda)}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 italic mt-1">
-                    Pago en {p.moneda} vía {p.metodoPago}{" "}
+                    Pago en {p.moneda} vía {p.metodoPago}
                   </p>
                 </li>
               ))}
@@ -233,6 +235,7 @@ export default function ModalDetalleOrden({
           </div>
         )}
 
+        {/* Notas de la orden */}
         <div className="pt-4 space-y-3">
           <h3 className="font-semibold text-gray-700 mb-1">
             Notas de la orden
@@ -242,13 +245,7 @@ export default function ModalDetalleOrden({
             onChange={(e) => setObservacionesEditadas(e.target.value)}
             placeholder="Sin notas registradas..."
             disabled={isObservacionesDisabled}
-            className={`w-full min-h-[80px] px-3 py-2 border rounded-md resize-y text-sm
-              ${
-                isObservacionesDisabled
-                  ? "bg-gray-200 border-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-gray-50 border-gray-300 focus:outline-none focus:ring focus:ring-indigo-200"
-              }
-            `}
+            className="w-full min-h-[80px] px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring focus:ring-indigo-200 resize-y text-sm"
           />
           <p className="text-xs text-gray-500 italic">
             Puedes agregar comentarios, aclaraciones o notas internas sobre la
@@ -258,14 +255,12 @@ export default function ModalDetalleOrden({
             <button
               onClick={guardarObservaciones}
               disabled={
-                guardandoObservaciones ||
-                observacionesEditadas === (orden.observaciones ?? "") ||
-                !hasRole(["ADMIN", "EMPLOYEE"])
+                isObservacionesDisabled ||
+                observacionesEditadas === (orden.observaciones ?? "")
               }
               className={`p-3 flex items-center gap-2 text-white font-bold rounded-md ${
                 observacionesEditadas === (orden.observaciones ?? "") ||
-                guardandoObservaciones ||
-                !hasRole(["ADMIN", "EMPLOYEE"])
+                isObservacionesDisabled
                   ? "bg-gray-300 cursor-not-allowed"
                   : "bg-indigo-600 hover:bg-indigo-700"
               }`}
@@ -292,6 +287,7 @@ export default function ModalDetalleOrden({
           )}
         </div>
 
+        {/* Pago adicional */}
         {orden.estado === "ENTREGADO" && resumen.faltante > 0 && (
           <div className="pt-5 border-t mt-6 space-y-2">
             <h4 className="text-sm text-gray-600 font-semibold">
@@ -299,14 +295,7 @@ export default function ModalDetalleOrden({
             </h4>
             <button
               onClick={() => onAbrirPagoExtra(orden)}
-              disabled={!hasRole(["ADMIN", "EMPLOYEE"])}
-              className={`p-3 text-white rounded font-bold text-sm flex items-center gap-2
-                ${
-                  !hasRole(["ADMIN", "EMPLOYEE"])
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-green-600 hover:bg-green-700"
-                }
-              `}
+              className="p-3 bg-green-600 text-white rounded font-bold hover:bg-green-700 text-sm flex items-center gap-2"
             >
               Agregar pago adicional
             </button>

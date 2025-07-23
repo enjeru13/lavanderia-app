@@ -5,7 +5,7 @@ import ModalPago from "../components/modal/ModalPago";
 import TablaOrdenes from "../components/tabla/TablaOrdenes";
 import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
 import ConfirmacionModal from "../components/modal/ConfirmacionModal";
-import { FaSearch, FaPlus } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 import { calcularResumenPago } from "../../../shared/utils/pagoFinance";
 import {
   normalizarMoneda,
@@ -83,16 +83,6 @@ export default function PantallaOrdenes() {
     return nombre.includes(termino) || id.includes(termino);
   });
 
-  const abrirNuevaOrden = () => {
-    if (hasRole(["ADMIN", "EMPLOYEE"])) {
-      toast.info(
-        "Funcionalidad para crear nueva orden (redirigir o abrir formulario)."
-      );
-    } else {
-      toast.error("No tienes permiso para crear nuevas órdenes.");
-    }
-  };
-
   const confirmarEliminarOrden = (id: number) => {
     if (hasRole(["ADMIN"])) {
       setOrdenAEliminarId(id);
@@ -160,13 +150,6 @@ export default function PantallaOrdenes() {
         <h1 className="text-2xl font-bold text-gray-800">
           Historial de Órdenes
         </h1>
-        <button
-          onClick={abrirNuevaOrden}
-          className="bg-green-600 text-white p-3 font-bold rounded hover:bg-green-700 transition flex items-center gap-2"
-        >
-          <FaPlus className="w-4 h-4" />
-          Nueva Orden
-        </button>
       </div>
 
       <div className="mb-5 flex items-center gap-3 font-semibold">
