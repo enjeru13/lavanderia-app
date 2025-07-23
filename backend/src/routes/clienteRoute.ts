@@ -6,13 +6,19 @@ import {
   updateCliente,
   deleteCliente,
 } from "../controllers/clienteController";
+import { protect, authorizeRoles } from "../middleware/authMiddleware";
 
 const router = Router();
 
-router.get("/", getAllClientes);
-router.get("/:id", getClienteById);
-router.post("/", createCliente);
-router.put("/:id", updateCliente);
-router.delete("/:id", deleteCliente);
+router.get("/", protect, getAllClientes);
+router.get("/:id", protect, getClienteById);
+router.post("/", protect, authorizeRoles(["ADMIN", "EMPLOYEE"]), createCliente);
+router.put(
+  "/:id",
+  protect,
+  authorizeRoles(["ADMIN", "EMPLOYEE"]),
+  updateCliente
+);
+router.delete("/:id", protect, authorizeRoles(["ADMIN"]), deleteCliente);
 
 export default router;

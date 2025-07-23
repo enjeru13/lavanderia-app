@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import prisma from "../lib/prisma";
 import { ClienteSchema } from "../schemas/cliente.schema";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 

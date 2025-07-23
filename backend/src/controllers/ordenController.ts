@@ -209,7 +209,6 @@ export async function deleteOrden(req: Request, res: Response) {
 
     await prisma.detalleOrden.deleteMany({ where: { ordenId: Number(id) } });
     await prisma.pago.deleteMany({ where: { ordenId: Number(id) } });
-    // Finalmente, eliminar la orden
     await prisma.orden.delete({ where: { id: Number(id) } });
     return res.status(204).send();
   } catch (error) {
