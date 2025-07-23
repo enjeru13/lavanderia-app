@@ -1,50 +1,43 @@
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 import type {
   Servicio,
   ServicioCreate,
   ServicioUpdatePayload,
 } from "../../../shared/types/types";
 
-const api = axios.create({
-  baseURL: "/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
 export const servicioService = {
   /**
    * @returns
    */
-  getAll: (): Promise<{ data: Servicio[] }> => api.get("/servicios"),
+  getAll: (): Promise<{ data: Servicio[] }> => apiClient.get("/servicios"),
 
   /**
-   * @param
+   * @param id
    * @returns
    */
   getById: (id: number): Promise<{ data: Servicio }> =>
-    api.get(`/servicios/${id}`),
+    apiClient.get(`/servicios/${id}`),
 
   /**
-   * @param
+   * @param data
    * @returns
    */
   create: (data: ServicioCreate): Promise<{ data: Servicio }> =>
-    api.post("/servicios", data),
+    apiClient.post("/servicios", data),
 
   /**
-   * @param
-   * @param
+   * @param id
+   * @param data
    * @returns
    */
   update: (
     id: number,
     data: ServicioUpdatePayload
-  ): Promise<{ data: Servicio }> => api.put(`/servicios/${id}`, data),
+  ): Promise<{ data: Servicio }> => apiClient.put(`/servicios/${id}`, data),
 
   /**
-   * @param
+   * @param id
    * @returns
    */
-  delete: (id: number): Promise<void> => api.delete(`/servicios/${id}`),
+  delete: (id: number): Promise<void> => apiClient.delete(`/servicios/${id}`),
 };

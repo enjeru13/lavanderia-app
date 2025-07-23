@@ -1,43 +1,41 @@
-import axios from "axios";
-import type { Pago, PagoCreate, PagoUpdatePayload } from "../../../shared/types/types";
-
-const api = axios.create({
-  baseURL: "/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+import apiClient from "../utils/apiClient";
+import type {
+  Pago,
+  PagoCreate,
+  PagoUpdatePayload,
+} from "../../../shared/types/types";
 
 export const pagosService = {
   /**
-   * @param
+   * @param data
    * @returns
    */
   create: (data: PagoCreate): Promise<{ data: Pago }> =>
-    api.post("/pagos", data),
+    apiClient.post("/pagos", data),
 
   /**
    * @returns
    */
-  getAll: (): Promise<{ data: Pago[] }> => api.get("/pagos"),
+  getAll: (): Promise<{ data: Pago[] }> => apiClient.get("/pagos"),
 
   /**
-   * @param
+   * @param id
    * @returns
    */
-  getById: (id: number): Promise<{ data: Pago }> => api.get(`/pagos/${id}`),
+  getById: (id: number): Promise<{ data: Pago }> =>
+    apiClient.get(`/pagos/${id}`),
 
   /**
-   * @param
-   * @param
+   * @param id
+   * @param data
    * @returns
    */
   update: (id: number, data: PagoUpdatePayload): Promise<{ data: Pago }> =>
-    api.put(`/pagos/${id}`, data),
+    apiClient.put(`/pagos/${id}`, data),
 
   /**
-   * @param
+   * @param id
    * @returns
    */
-  delete: (id: number): Promise<void> => api.delete(`/pagos/${id}`),
+  delete: (id: number): Promise<void> => apiClient.delete(`/pagos/${id}`),
 };

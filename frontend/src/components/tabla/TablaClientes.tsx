@@ -1,5 +1,3 @@
-import { useState } from "react";
-import ModalContraseña from "../modal/ModalContraseña";
 import { FaSearch, FaPen, FaTrashAlt } from "react-icons/fa";
 import type { Cliente } from "../../../../shared/types/types";
 
@@ -16,14 +14,6 @@ export default function TablaClientes({
   onEditar,
   onEliminar,
 }: Props) {
-  const [mostrarProteccionCliente, setMostrarProteccionCliente] =
-    useState(false);
-  const [clienteAEliminar, setClienteAEliminar] = useState<Cliente | null>(
-    null
-  );
-  const [clienteAEditar, setClienteAEditar] = useState<Cliente | null>(null);
-  const [mostrarProteccionEditar, setMostrarProteccionEditar] = useState(false);
-
   if (clientes.length === 0) {
     return (
       <div className="text-center py-10 text-gray-500 italic">
@@ -62,10 +52,7 @@ export default function TablaClientes({
                 <td className="px-6 py-4 text-center">
                   <div className="inline-flex gap-2">
                     <button
-                      onClick={() => {
-                        setClienteAEditar(c);
-                        setMostrarProteccionEditar(true);
-                      }}
+                      onClick={() => onEditar(c)}
                       title="Editar cliente"
                       className="px-2 py-2 bg-blue-50 border border-blue-400 text-blue-700 rounded-md hover:bg-blue-100 transition"
                     >
@@ -79,10 +66,7 @@ export default function TablaClientes({
                       <FaSearch size={14} />
                     </button>
                     <button
-                      onClick={() => {
-                        setClienteAEliminar(c);
-                        setMostrarProteccionCliente(true);
-                      }}
+                      onClick={() => onEliminar(c.id)}
                       title="Eliminar cliente"
                       className="px-2 py-2 bg-red-50 border border-red-400 text-red-700 rounded-md hover:bg-red-100 transition"
                     >
@@ -95,44 +79,6 @@ export default function TablaClientes({
           </tbody>
         </table>
       </div>
-
-      {/* Modal para eliminar cliente */}
-      <ModalContraseña
-        visible={mostrarProteccionCliente}
-        onCancelar={() => {
-          setMostrarProteccionCliente(false);
-          setClienteAEliminar(null);
-        }}
-        onConfirmado={() => {
-          if (clienteAEliminar) {
-            onEliminar(clienteAEliminar.id);
-          }
-          setMostrarProteccionCliente(false);
-          setClienteAEliminar(null);
-        }}
-        titulo={`Eliminar cliente ${clienteAEliminar?.nombre ?? ""} ${
-          clienteAEliminar?.apellido ?? ""
-        }`}
-      />
-
-      {/* Modal para editar cliente */}
-      <ModalContraseña
-        visible={mostrarProteccionEditar}
-        onCancelar={() => {
-          setMostrarProteccionEditar(false);
-          setClienteAEditar(null);
-        }}
-        onConfirmado={() => {
-          if (clienteAEditar) {
-            onEditar(clienteAEditar);
-          }
-          setMostrarProteccionEditar(false);
-          setClienteAEditar(null);
-        }}
-        titulo={`Editar cliente ${clienteAEditar?.nombre ?? ""} ${
-          clienteAEditar?.apellido ?? ""
-        }`}
-      />
     </>
   );
 }

@@ -1,11 +1,9 @@
-import { useState } from "react";
 import {
   FaSearch,
   FaMoneyBillWave,
   FaCheckCircle,
   FaTrashAlt,
 } from "react-icons/fa";
-import ModalContraseña from "../modal/ModalContraseña";
 import { badgeEstado, badgePago } from "../../utils/badgeHelpers";
 import {
   formatearMoneda,
@@ -31,9 +29,6 @@ export default function TablaOrdenes({
   onMarcarEntregada,
   onEliminar,
 }: Props) {
-  const [mostrarProteccion, setMostrarProteccion] = useState(false);
-  const [ordenAEliminar, setOrdenAEliminar] = useState<Orden | null>(null);
-
   const principalSeguro: Moneda = normalizarMoneda(monedaPrincipal);
 
   return (
@@ -137,10 +132,7 @@ export default function TablaOrdenes({
                       )}
 
                       <button
-                        onClick={() => {
-                          setOrdenAEliminar(o);
-                          setMostrarProteccion(true);
-                        }}
+                        onClick={() => onEliminar(o.id)}
                         title="Eliminar orden"
                         className="px-2 py-2 bg-red-50 border border-red-400 text-red-700 rounded-md hover:bg-red-100 transition"
                       >
@@ -154,24 +146,6 @@ export default function TablaOrdenes({
           </tbody>
         </table>
       </div>
-
-      {mostrarProteccion && (
-        <ModalContraseña
-          visible={mostrarProteccion}
-          onCancelar={() => {
-            setMostrarProteccion(false);
-            setOrdenAEliminar(null);
-          }}
-          onConfirmado={() => {
-            if (ordenAEliminar) {
-              onEliminar(ordenAEliminar.id);
-            }
-            setMostrarProteccion(false);
-            setOrdenAEliminar(null);
-          }}
-          titulo={`Eliminar orden #${ordenAEliminar?.id}`}
-        />
-      )}
     </>
   );
 }

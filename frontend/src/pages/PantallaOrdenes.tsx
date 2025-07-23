@@ -5,7 +5,7 @@ import ModalPago from "../components/modal/ModalPago";
 import TablaOrdenes from "../components/tabla/TablaOrdenes";
 import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
 import ConfirmacionModal from "../components/modal/ConfirmacionModal";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaPlus } from "react-icons/fa";
 import { calcularResumenPago } from "../../../shared/utils/pagoFinance";
 import {
   normalizarMoneda,
@@ -14,6 +14,7 @@ import {
 } from "../utils/monedaHelpers";
 import { ordenesService } from "../services/ordenesService";
 import { configuracionService } from "../services/configuracionService";
+import { useAuth } from "../hooks/useAuth";
 import type { Orden } from "../../../shared/types/types";
 
 export default function PantallaOrdenes() {
@@ -25,12 +26,13 @@ export default function PantallaOrdenes() {
   const [mostrarModalPago, setMostrarModalPago] = useState(false);
   const [tasas, setTasas] = useState<TasasConversion>({});
   const [monedaPrincipal, setMonedaPrincipal] = useState<Moneda>("USD");
-
   const [mostrarConfirmacionEliminar, setMostrarConfirmacionEliminar] =
     useState(false);
   const [ordenAEliminarId, setOrdenAEliminarId] = useState<
     number | undefined
   >();
+
+  const { hasRole } = useAuth();
 
   const cargarOrdenes = async () => {
     try {
@@ -81,9 +83,23 @@ export default function PantallaOrdenes() {
     return nombre.includes(termino) || id.includes(termino);
   });
 
+  const abrirNuevaOrden = () => {
+    if (hasRole(["ADMIN", "EMPLOYEE"])) {
+      toast.info(
+        "Funcionalidad para crear nueva orden (redirigir o abrir formulario)."
+      );
+    } else {
+      toast.error("No tienes permiso para crear nuevas órdenes.");
+    }
+  };
+
   const confirmarEliminarOrden = (id: number) => {
-    setOrdenAEliminarId(id);
-    setMostrarConfirmacionEliminar(true);
+    if (hasRole(["ADMIN"])) {
+      setOrdenAEliminarId(id);
+      setMostrarConfirmacionEliminar(true);
+    } else {
+      toast.error("No tienes permiso para eliminar órdenes.");
+    }
   };
 
   const ejecutarEliminarOrden = async () => {
@@ -103,6 +119,11 @@ export default function PantallaOrdenes() {
   };
 
   const marcarComoEntregada = async (id: number) => {
+    if (!hasRole(["ADMIN", "EMPLOYEE"])) {
+      toast.error("No tienes permiso para marcar órdenes como entregadas.");
+      return;
+    }
+
     try {
       const ordenActual = ordenes.find((o) => o.id === id);
       if (!ordenActual) {
@@ -135,9 +156,19 @@ export default function PantallaOrdenes() {
 
   return (
     <div className="p-6 font-semibold space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Historial de Órdenes</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-800">
+          Historial de Órdenes
+        </h1>
+        <button
+          onClick={abrirNuevaOrden}
+          className="bg-green-600 text-white p-3 font-bold rounded hover:bg-green-700 transition flex items-center gap-2"
+        >
+          <FaPlus className="w-4 h-4" />
+          Nueva Orden
+        </button>
+      </div>
 
-      {/* Controles de filtro y búsqueda */}
       <div className="mb-5 flex items-center gap-3 font-semibold">
         <div className="flex flex-col">
           <label
@@ -165,8 +196,12 @@ export default function PantallaOrdenes() {
         monedaPrincipal={monedaPrincipal}
         onVerDetalles={setOrdenSeleccionada}
         onRegistrarPago={(orden) => {
-          setOrdenSeleccionada(orden);
-          setMostrarModalPago(true);
+          if (hasRole(["ADMIN", "EMPLOYEE"])) {
+            setOrdenSeleccionada(orden);
+            setMostrarModalPago(true);
+          } else {
+            toast.error("No tienes permiso para registrar pagos.");
+          }
         }}
         onMarcarEntregada={marcarComoEntregada}
         onEliminar={confirmarEliminarOrden}
@@ -180,8 +215,14 @@ export default function PantallaOrdenes() {
           onClose={() => setOrdenSeleccionada(null)}
           onPagoRegistrado={actualizarOrdenEnLista}
           onAbrirPagoExtra={(orden) => {
-            setOrdenSeleccionada(orden);
-            setMostrarModalPago(true);
+            if (hasRole(["ADMIN", "EMPLOYEE"])) {
+              setOrdenSeleccionada(orden);
+              setMostrarModalPago(true);
+            } else {
+              toast.error(
+                "No tienes permiso para registrar pagos adicionales."
+              );
+            }
           }}
         />
       )}

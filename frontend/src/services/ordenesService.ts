@@ -1,29 +1,27 @@
-import axios from "axios";
-import type { Orden, OrdenCreate, OrdenUpdatePayload } from "../../../shared/types/types";
-
-const api = axios.create({
-  baseURL: "/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+import apiClient from "../utils/apiClient";
+import type {
+  Orden,
+  OrdenCreate,
+  OrdenUpdatePayload,
+} from "../../../shared/types/types";
 
 export const ordenesService = {
-  getAll: (): Promise<{ data: Orden[] }> => api.get("/ordenes"),
+  getAll: (): Promise<{ data: Orden[] }> => apiClient.get("/ordenes"),
 
-  getById: (id: number): Promise<{ data: Orden }> => api.get(`/ordenes/${id}`),
+  getById: (id: number): Promise<{ data: Orden }> =>
+    apiClient.get(`/ordenes/${id}`),
 
   create: (data: OrdenCreate): Promise<{ data: Orden }> =>
-    api.post("/ordenes", data),
+    apiClient.post("/ordenes", data),
 
   update: (id: number, data: OrdenUpdatePayload): Promise<{ data: Orden }> =>
-    api.put(`/ordenes/${id}`, data),
+    apiClient.put(`/ordenes/${id}`, data),
 
-  delete: (id: number): Promise<void> => api.delete(`/ordenes/${id}`),
+  delete: (id: number): Promise<void> => apiClient.delete(`/ordenes/${id}`),
 
   updateObservacion: (
     id: number,
     observaciones: string | null
   ): Promise<{ data: Orden }> =>
-    api.put(`/ordenes/${id}/observacion`, { observaciones }),
+    apiClient.put(`/ordenes/${id}/observacion`, { observaciones }),
 };

@@ -11,6 +11,7 @@ import TablaClientes from "../components/tabla/TablaClientes";
 import ConfirmacionModal from "../components/modal/ConfirmacionModal";
 import { toast } from "react-toastify";
 import { FaPlus, FaSearch } from "react-icons/fa";
+import { useAuth } from "../hooks/useAuth";
 
 export default function PantallaClientes() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -25,6 +26,8 @@ export default function PantallaClientes() {
   const [clienteAEliminarId, setClienteAEliminarId] = useState<
     number | undefined
   >();
+
+  const { hasRole } = useAuth();
 
   const cargarClientes = async () => {
     try {
@@ -43,15 +46,23 @@ export default function PantallaClientes() {
   const clientesFiltrados = clientes.filter((c) => {
     const nombreCompleto = `${c.nombre} ${c.apellido}`.toLowerCase();
     const cedula = (c.identificacion || "").toLowerCase();
+    const telefono = (c.telefono || "").toLowerCase();
+    const terminoBusqueda = busqueda.toLowerCase();
+
     return (
-      nombreCompleto.includes(busqueda.toLowerCase()) ||
-      cedula.includes(busqueda.toLowerCase())
+      nombreCompleto.includes(terminoBusqueda) ||
+      cedula.includes(terminoBusqueda) ||
+      telefono.includes(terminoBusqueda)
     );
   });
 
   const abrirNuevoCliente = () => {
-    setClienteSeleccionado(undefined);
-    setMostrarFormulario(true);
+    if (hasRole(["ADMIN", "EMPLOYEE"])) {
+      setClienteSeleccionado(undefined);
+      setMostrarFormulario(true);
+    } else {
+      toast.error("No tienes permiso para registrar nuevos clientes.");
+    }
   };
 
   const guardarCliente = async (
@@ -74,9 +85,22 @@ export default function PantallaClientes() {
     }
   };
 
-  const confirmarEliminarCliente = (id: number) => {
-    setClienteAEliminarId(id);
-    setMostrarConfirmacionEliminar(true);
+  const handleEditarCliente = (cliente: Cliente) => {
+    if (hasRole(["ADMIN", "EMPLOYEE"])) {
+      setClienteSeleccionado(cliente);
+      setMostrarFormulario(true);
+    } else {
+      toast.error("No tienes permiso para editar clientes.");
+    }
+  };
+
+  const handleEliminarCliente = (id: number) => {
+    if (hasRole(["ADMIN"])) {
+      setClienteAEliminarId(id);
+      setMostrarConfirmacionEliminar(true);
+    } else {
+      toast.error("No tienes permiso para eliminar clientes.");
+    }
   };
 
   const ejecutarEliminarCliente = async () => {
@@ -114,7 +138,7 @@ export default function PantallaClientes() {
             htmlFor="filtroBusquedaCliente"
             className="text-xs text-gray-500 mb-1"
           >
-            Buscar por Nombre, Apellido o Cédula
+            Buscar por Nombre, Apellido, Cédula o Teléfono
           </label>
           <div className="relative w-72">
             <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
@@ -123,7 +147,7 @@ export default function PantallaClientes() {
               id="filtroBusquedaCliente"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Nombre, apellido o cédula"
+              placeholder="Nombre, apellido, cédula o teléfono"
               className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
             />
           </div>
@@ -133,11 +157,8 @@ export default function PantallaClientes() {
       <TablaClientes
         clientes={clientesFiltrados}
         onVerInfo={(c) => setClienteInfo(c)}
-        onEditar={(c) => {
-          setClienteSeleccionado(c);
-          setMostrarFormulario(true);
-        }}
-        onEliminar={confirmarEliminarCliente}
+        onEditar={handleEditarCliente}
+        onEliminar={handleEliminarCliente}
       />
 
       {mostrarFormulario && (

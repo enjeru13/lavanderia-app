@@ -10,10 +10,10 @@ import {
   type TasasConversion,
 } from "../../utils/monedaHelpers";
 import { badgeEstado } from "../../utils/badgeHelpers";
-import ModalContraseña from "./ModalContraseña";
 import ModalReciboEntrega from "./ModalReciboEntrega";
 import { toast } from "react-toastify";
 import { calcularResumenPago } from "../../../../shared/utils/pagoFinance";
+import { useAuth } from "../../hooks/useAuth";
 import type { Orden, Configuracion } from "../../../../shared/types/types";
 
 interface Props {
@@ -37,12 +37,12 @@ export default function ModalDetalleOrden({
     orden.observaciones ?? ""
   );
   const [guardandoObservaciones, setGuardandoObservaciones] = useState(false);
-  const [mostrarProteccionNotas, setMostrarProteccionNotas] = useState(false);
-  const [autorizadoParaEditar, setAutorizadoParaEditar] = useState(false);
   const [verModalRecibo, setVerModalRecibo] = useState(false);
   const [configuracion, setConfiguracion] = useState<Configuracion | null>(
     null
   );
+
+  const { hasRole } = useAuth();
 
   useEffect(() => {
     configuracionService
@@ -62,6 +62,11 @@ export default function ModalDetalleOrden({
   );
 
   const guardarObservaciones = useCallback(async () => {
+    if (!hasRole(["ADMIN", "EMPLOYEE"])) {
+      toast.error("No tienes permiso para editar las observaciones.");
+      return;
+    }
+
     if (observacionesEditadas === (orden.observaciones ?? "")) {
       toast.info("No hay cambios en las observaciones");
       return;
@@ -81,14 +86,13 @@ export default function ModalDetalleOrden({
     } finally {
       setGuardandoObservaciones(false);
     }
-  }, [orden.id, orden.observaciones, observacionesEditadas, onPagoRegistrado]);
-
-  useEffect(() => {
-    if (autorizadoParaEditar) {
-      guardarObservaciones();
-      setAutorizadoParaEditar(false);
-    }
-  }, [autorizadoParaEditar, guardarObservaciones]);
+  }, [
+    orden.id,
+    orden.observaciones,
+    observacionesEditadas,
+    onPagoRegistrado,
+    hasRole,
+  ]);
 
   const generarDatosRecibo = () => ({
     clienteInfo: {
@@ -123,6 +127,9 @@ export default function ModalDetalleOrden({
     monedaPrincipal: principalSeguro,
   });
 
+  const isObservacionesDisabled =
+    guardandoObservaciones || !hasRole(["ADMIN", "EMPLOYEE"]);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="relative bg-white max-w-2xl w-full p-6 rounded-lg shadow-xl ring-1 ring-gray-200 space-y-6 text-sm text-gray-800 overflow-auto max-h-[90vh]">
@@ -141,7 +148,6 @@ export default function ModalDetalleOrden({
           </button>
         </div>
 
-        {/* Cliente, Estado y Fechas */}
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <p className="text-gray-700 font-semibold text-sm py-1">Cliente</p>
@@ -177,7 +183,6 @@ export default function ModalDetalleOrden({
           </div>
         </div>
 
-        {/* Servicios contratados */}
         <div>
           <h3 className="font-semibold text-gray-700 mb-2">
             Servicios contratados
@@ -200,7 +205,6 @@ export default function ModalDetalleOrden({
           </div>
         </div>
 
-        {/* Pagos realizados */}
         {(orden.pagos?.length ?? 0) > 0 && (
           <div>
             <h3 className="font-semibold text-gray-700 mb-2">
@@ -229,7 +233,6 @@ export default function ModalDetalleOrden({
           </div>
         )}
 
-        {/* Notas de la orden */}
         <div className="pt-4 space-y-3">
           <h3 className="font-semibold text-gray-700 mb-1">
             Notas de la orden
@@ -238,8 +241,14 @@ export default function ModalDetalleOrden({
             value={observacionesEditadas}
             onChange={(e) => setObservacionesEditadas(e.target.value)}
             placeholder="Sin notas registradas..."
-            disabled={guardandoObservaciones}
-            className="w-full min-h-[80px] px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring focus:ring-indigo-200 resize-y text-sm"
+            disabled={isObservacionesDisabled}
+            className={`w-full min-h-[80px] px-3 py-2 border rounded-md resize-y text-sm
+              ${
+                isObservacionesDisabled
+                  ? "bg-gray-200 border-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-gray-50 border-gray-300 focus:outline-none focus:ring focus:ring-indigo-200"
+              }
+            `}
           />
           <p className="text-xs text-gray-500 italic">
             Puedes agregar comentarios, aclaraciones o notas internas sobre la
@@ -247,14 +256,16 @@ export default function ModalDetalleOrden({
           </p>
           <div className="flex justify-end">
             <button
-              onClick={() => setMostrarProteccionNotas(true)}
+              onClick={guardarObservaciones}
               disabled={
                 guardandoObservaciones ||
-                observacionesEditadas === (orden.observaciones ?? "")
+                observacionesEditadas === (orden.observaciones ?? "") ||
+                !hasRole(["ADMIN", "EMPLOYEE"])
               }
               className={`p-3 flex items-center gap-2 text-white font-bold rounded-md ${
                 observacionesEditadas === (orden.observaciones ?? "") ||
-                guardandoObservaciones
+                guardandoObservaciones ||
+                !hasRole(["ADMIN", "EMPLOYEE"])
                   ? "bg-gray-300 cursor-not-allowed"
                   : "bg-indigo-600 hover:bg-indigo-700"
               }`}
@@ -281,7 +292,6 @@ export default function ModalDetalleOrden({
           )}
         </div>
 
-        {/* Pago adicional */}
         {orden.estado === "ENTREGADO" && resumen.faltante > 0 && (
           <div className="pt-5 border-t mt-6 space-y-2">
             <h4 className="text-sm text-gray-600 font-semibold">
@@ -289,7 +299,14 @@ export default function ModalDetalleOrden({
             </h4>
             <button
               onClick={() => onAbrirPagoExtra(orden)}
-              className="p-3 bg-green-600 text-white rounded font-bold hover:bg-green-700 text-sm flex items-center gap-2"
+              disabled={!hasRole(["ADMIN", "EMPLOYEE"])}
+              className={`p-3 text-white rounded font-bold text-sm flex items-center gap-2
+                ${
+                  !hasRole(["ADMIN", "EMPLOYEE"])
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700"
+                }
+              `}
             >
               Agregar pago adicional
             </button>
@@ -299,17 +316,6 @@ export default function ModalDetalleOrden({
           </div>
         )}
       </div>
-
-      {/* Modal de autorización */}
-      <ModalContraseña
-        visible={mostrarProteccionNotas}
-        onCancelar={() => setMostrarProteccionNotas(false)}
-        onConfirmado={() => {
-          setMostrarProteccionNotas(false);
-          setAutorizadoParaEditar(true);
-        }}
-        titulo="Editar observaciones de la orden"
-      />
     </div>
   );
 }

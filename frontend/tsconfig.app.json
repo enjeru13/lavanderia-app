@@ -23,5 +23,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "../shared/shared/utils/monedaHelpers.ts", "../shared/shared/utils/pagoFinance.ts", "../shared/types/types", "../shared/types/types.ts"]
+  "include": ["src", "../shared/shared/utils/monedaHelpers.ts", "../shared/shared/utils/pagoFinance.ts", "../shared/types/types", "../shared/types/types.ts", "../backend/src/middleware"]
 }

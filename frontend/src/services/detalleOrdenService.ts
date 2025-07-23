@@ -1,51 +1,46 @@
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 import type {
   DetalleOrden,
   DetalleOrdenCreate,
   DetalleOrdenUpdatePayload,
 } from "../../../shared/types/types";
 
-const api = axios.create({
-  baseURL: "/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
 export const detalleOrdenService = {
   /**
-   * @param
+   * @param ordenId
    * @returns
    */
   getByOrdenId: (ordenId: number) =>
-    api.get<DetalleOrden[]>(`/detalleOrdenes/by-order?ordenId=${ordenId}`),
+    apiClient.get<DetalleOrden[]>(
+      `/detalleOrdenes/by-order?ordenId=${ordenId}`
+    ),
 
   /**
-   * @param
+   * @param detalleId
    * @returns
    */
   getById: (detalleId: number) =>
-    api.get<DetalleOrden>(`/detalleOrdenes/${detalleId}`),
+    apiClient.get<DetalleOrden>(`/detalleOrdenes/${detalleId}`),
 
   /**
-   * @param
+   * @param data
    * @returns
    */
   create: (data: DetalleOrdenCreate) =>
-    api.post<DetalleOrden>("/detalleOrdenes", data),
+    apiClient.post<DetalleOrden>("/detalleOrdenes", data),
 
   /**
-   * @param
-   * @param
+   * @param detalleId
+   * @param data
    * @returns
    */
   update: (detalleId: number, data: DetalleOrdenUpdatePayload) =>
-    api.put<DetalleOrden>(`/detalleOrdenes/${detalleId}`, data),
+    apiClient.put<DetalleOrden>(`/detalleOrdenes/${detalleId}`, data),
 
   /**
-   * @param
+   * @param detalleId
    * @returns
    */
   delete: (detalleId: number) =>
-    api.delete<void>(`/detalleOrdenes/${detalleId}`),
+    apiClient.delete<void>(`/detalleOrdenes/${detalleId}`),
 };

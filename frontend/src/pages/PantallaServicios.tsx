@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaSearch } from "react-icons/fa";
 import TablaServicios from "../components/tabla/TablaServicios";
 import FormularioServicio from "../components/formulario/FormularioServicio";
 import ConfirmacionModal from "../components/modal/ConfirmacionModal";
 import { servicioService } from "../services/serviciosService";
 import { configuracionService } from "../services/configuracionService";
+import { useAuth } from "../hooks/useAuth";
 import type {
   Servicio,
   ServicioCreate,
@@ -15,16 +16,21 @@ import type {
 
 export default function PantallaServicios() {
   const [servicios, setServicios] = useState<Servicio[]>([]);
+  const [busqueda, setBusqueda] = useState("");
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [servicioSeleccionado, setServicioSeleccionado] = useState<
     Servicio | undefined
   >();
+
   const [mostrarConfirmacionEliminar, setMostrarConfirmacionEliminar] =
     useState(false);
   const [servicioAEliminarId, setServicioAEliminarId] = useState<
     number | undefined
   >();
+
   const [monedaPrincipal, setMonedaPrincipal] = useState<Moneda>("USD");
+
+  const { hasRole } = useAuth();
 
   const cargarServicios = async () => {
     try {
@@ -51,14 +57,31 @@ export default function PantallaServicios() {
     cargarConfiguracion();
   }, []);
 
+  const serviciosFiltrados = servicios.filter((s) => {
+    const nombre = s.nombreServicio.toLowerCase();
+    const descripcion = (s.descripcion || "").toLowerCase();
+    const terminoBusqueda = busqueda.toLowerCase();
+    return (
+      nombre.includes(terminoBusqueda) || descripcion.includes(terminoBusqueda)
+    );
+  });
+
   const abrirNuevoServicio = () => {
-    setServicioSeleccionado(undefined);
-    setMostrarFormulario(true);
+    if (hasRole(["ADMIN", "EMPLOYEE"])) {
+      setServicioSeleccionado(undefined);
+      setMostrarFormulario(true);
+    } else {
+      toast.error("No tienes permiso para registrar nuevos servicios.");
+    }
   };
 
-  const editarServicio = (servicio: Servicio) => {
-    setServicioSeleccionado(servicio);
-    setMostrarFormulario(true);
+  const handleEditarServicio = (servicio: Servicio) => {
+    if (hasRole(["ADMIN", "EMPLOYEE"])) {
+      setServicioSeleccionado(servicio);
+      setMostrarFormulario(true);
+    } else {
+      toast.error("No tienes permiso para editar servicios.");
+    }
   };
 
   const guardarServicio = async (
@@ -81,9 +104,13 @@ export default function PantallaServicios() {
     }
   };
 
-  const confirmarEliminarServicio = (id: number) => {
-    setServicioAEliminarId(id);
-    setMostrarConfirmacionEliminar(true);
+  const handleEliminarServicio = (id: number) => {
+    if (hasRole(["ADMIN"])) {
+      setServicioAEliminarId(id);
+      setMostrarConfirmacionEliminar(true);
+    } else {
+      toast.error("No tienes permiso para eliminar servicios.");
+    }
   };
 
   const ejecutarEliminarServicio = async () => {
@@ -115,10 +142,32 @@ export default function PantallaServicios() {
         </button>
       </div>
 
+      <div className="mb-5 flex items-center gap-3 font-semibold">
+        <div className="flex flex-col">
+          <label
+            htmlFor="filtroBusquedaServicio"
+            className="text-xs text-gray-500 mb-1"
+          >
+            Buscar por Nombre o Descripción
+          </label>
+          <div className="relative w-72">
+            <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
+            <input
+              type="text"
+              id="filtroBusquedaServicio"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Nombre o descripción del servicio"
+              className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+            />
+          </div>
+        </div>
+      </div>
+
       <TablaServicios
-        servicios={servicios}
-        onEditar={editarServicio}
-        onEliminar={confirmarEliminarServicio}
+        servicios={serviciosFiltrados}
+        onEditar={handleEditarServicio}
+        onEliminar={handleEliminarServicio}
         monedaPrincipal={monedaPrincipal}
       />
 
