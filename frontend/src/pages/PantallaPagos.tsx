@@ -205,8 +205,7 @@ export default function PantallaPagos() {
         Historial de pagos
       </h1>
 
-      {/* Controles de filtro y búsqueda */}
-      <div className="mb-5 flex flex-wrap items-center gap-4">
+      <div className="mb-5 flex flex-wrap items-center gap-4 font-semibold">
         <div className="flex flex-col">
           <label
             htmlFor="filtroBusqueda"
@@ -227,7 +226,6 @@ export default function PantallaPagos() {
           </div>
         </div>
 
-        {/* Filtro por fecha de inicio */}
         <div className="flex flex-col">
           <label htmlFor="fechaInicio" className="text-xs text-gray-500 mb-1">
             Desde
@@ -241,7 +239,6 @@ export default function PantallaPagos() {
           />
         </div>
 
-        {/* Filtro por fecha de fin */}
         <div className="flex flex-col">
           <label htmlFor="fechaFin" className="text-xs text-gray-500 mb-1">
             Hasta
@@ -272,12 +269,12 @@ export default function PantallaPagos() {
           No se encontraron pagos registrados con los filtros aplicados.
         </p>
       ) : (
-        <div className="overflow-auto rounded-lg shadow-sm border bg-white">
-          <table className="min-w-full text-sm text-gray-700">
-            <thead className="bg-gray-100 text-gray-600">
+        <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-200">
+          <table className="min-w-full bg-white text-sm">
+            <thead className="bg-gray-100 text-gray-600 font-semibold border-b border-gray-200">
               <tr className="text-left">
                 <th
-                  className="px-5 py-3 font-medium cursor-pointer"
+                  className="px-4 py-2 font-semibold cursor-pointer whitespace-nowrap"
                   onClick={() => handleSort("fechaPago")}
                 >
                   <div className="flex items-center gap-1">
@@ -285,61 +282,74 @@ export default function PantallaPagos() {
                   </div>
                 </th>
                 <th
-                  className="px-5 py-3 font-medium cursor-pointer"
+                  className="px-4 py-2 font-semibold cursor-pointer whitespace-nowrap"
                   onClick={() => handleSort("ordenId")}
                 >
                   <div className="flex items-center gap-1">
                     Orden {getSortIcon("ordenId")}
                   </div>
                 </th>
-                <th className="px-5 py-3 font-medium">Cliente</th>
-                <th className="px-5 py-3 font-medium">Método</th>
-                <th className="px-5 py-3 font-medium">Moneda</th>
+                <th className="px-4 py-2 font-semibold">Cliente</th>
+                <th className="px-4 py-2 font-semibold whitespace-nowrap">
+                  Método
+                </th>
+                <th className="px-4 py-2 font-semibold whitespace-nowrap">
+                  Moneda
+                </th>
                 <th
-                  className="px-5 py-3 font-medium cursor-pointer"
+                  className="px-4 py-2 font-semibold cursor-pointer whitespace-nowrap"
                   onClick={() => handleSort("monto")}
                 >
                   <div className="flex items-center gap-1">
                     Monto abonado {getSortIcon("monto")}
                   </div>
                 </th>
-                <th className="px-5 py-3 font-medium text-center">Acciones</th>
+                <th className="px-4 py-2 font-semibold text-center whitespace-nowrap">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody>
               {pagosParaMostrar.map((pago) => {
                 const monedaSegura: Moneda = pago.moneda;
                 return (
-                  <tr key={pago.id} className="border-t hover:bg-gray-50">
-                    <td className="px-5 py-3">
+                  <tr
+                    key={pago.id}
+                    className="border-t border-gray-100 hover:bg-blue-50 transition-colors duration-150 text-gray-700 font-semibold"
+                  >
+                    {" "}
+                    {/* Ajustado para coincidir con TablaOrdenes */}
+                    <td className="px-4 py-3 whitespace-nowrap">
                       {new Date(pago.fechaPago).toLocaleDateString("es-VE", {
                         day: "2-digit",
                         month: "short",
                         year: "numeric",
                       })}
                     </td>
-                    <td className="px-5 py-3 font-semibold text-blue-600">
+                    <td className="px-4 py-3 font-bold text-blue-700 whitespace-nowrap">
                       #{pago.ordenId}
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-4 py-3">
                       {pago.orden?.cliente?.nombre}{" "}
                       {pago.orden?.cliente?.apellido}
                     </td>
-                    <td className="px-5 py-3 capitalize">
+                    <td className="px-4 py-3 capitalize whitespace-nowrap">
                       {metodoPagoDisplay[pago.metodoPago]}
                     </td>
-                    <td className="px-5 py-3 font-medium">{monedaSegura}</td>
-                    <td className="px-5 py-3 text-green-700 font-semibold">
+                    <td className="px-4 py-3 font-medium whitespace-nowrap">
+                      {monedaSegura}
+                    </td>
+                    <td className="px-4 py-3 text-green-700 font-semibold whitespace-nowrap">
                       {formatearMoneda(pago.monto, monedaSegura)}
                     </td>
-                    <td className="px-5 py-3 text-center">
+                    <td className="px-4 py-3 text-center whitespace-nowrap">
                       <button
                         onClick={() => handleVerDetallesOrden(pago.ordenId)}
-                        className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-xs font-semibold"
                         title="Ver detalles de la orden"
+                        className="p-2 bg-blue-100 border border-blue-300 text-blue-700 rounded-md hover:bg-blue-200 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm"
                         disabled={cargandoOrdenDetalle}
                       >
-                        Ver Orden
+                        <FaSearch size={14} />
                       </button>
                     </td>
                   </tr>
@@ -350,7 +360,6 @@ export default function PantallaPagos() {
         </div>
       )}
 
-      {/* Modal de Detalle de Orden */}
       {ordenSeleccionada && (
         <ModalDetalleOrden
           orden={ordenSeleccionada}

@@ -1,4 +1,4 @@
-import { FaUserPlus, FaUserCheck } from "react-icons/fa";
+import { FaUserPlus, FaUserCheck, FaUser } from "react-icons/fa";
 import type { ClienteResumen } from "../../../../shared/types/types";
 
 type Props = {
@@ -13,38 +13,39 @@ export default function ClientePanel({
   onAbrirLista,
 }: Props) {
   return (
-    <section className="bg-white p-6 rounded-xl shadow-lg space-y-5">
-      <header>
-        <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+    <section className="bg-white p-8 rounded-2xl shadow-xl border border-gray-200 space-y-6">
+      <header className="pb-4 border-b border-gray-200 mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+          <FaUser size={28} className="text-indigo-500" />
           Cliente
         </h2>
       </header>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        {/* Estado del cliente */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
         <div>
           {cliente ? (
-            <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded font-semibold inline-flex items-center gap-2">
-              <FaUserCheck className="text-green-600" />
+            <div className="bg-green-100 border border-green-400 text-green-800 px-5 py-2.5 rounded-lg font-bold inline-flex items-center gap-3 shadow-sm">
+              <FaUserCheck className="text-green-600 text-xl" />
               {cliente.nombre} {cliente.apellido}
             </div>
           ) : (
-            <div className="text-gray-500 italic">No hay cliente asignado</div>
+            <div className="text-gray-600 italic px-5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg inline-flex items-center gap-2">
+              No hay cliente asignado
+            </div>
           )}
         </div>
 
-        {/* Acciones */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-4">
           <button
             onClick={onAbrirFormulario}
-            className="px-4 py-2 text-sm font-bold rounded-md flex items-center gap-2 border border-blue-600 text-blue-600 hover:bg-blue-50 transition"
+            className="px-5 py-2.5 rounded-lg flex items-center gap-2 font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out"
           >
             <FaUserPlus />
             Registrar nuevo
           </button>
           <button
             onClick={onAbrirLista}
-            className="px-4 py-2 text-sm font-bold rounded-md flex items-center gap-2 border border-gray-600 text-gray-600 hover:bg-gray-100 transition"
+            className="px-5 py-2.5 rounded-lg flex items-center gap-2 font-semibold text-gray-800 bg-gray-200 hover:bg-gray-300 border border-gray-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out"
           >
             <FaUserCheck />
             Seleccionar existente

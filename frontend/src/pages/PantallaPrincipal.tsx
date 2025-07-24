@@ -44,6 +44,8 @@ export default function PantallaPrincipal() {
   const [monedaPrincipal, setMonedaPrincipal] = useState<Moneda>("USD");
   const [tasas, setTasas] = useState<TasasConversion>({});
   const [loading, setLoading] = useState(true);
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     async function cargarDatosIniciales() {
@@ -68,6 +70,11 @@ export default function PantallaPrincipal() {
     cargarDatosIniciales();
   }, []);
 
+  useEffect(() => {
+    const isValid = cliente !== null && serviciosSeleccionados.length > 0;
+    setIsFormValid(isValid);
+  }, [cliente, serviciosSeleccionados]);
+
   const crearOrden = async () => {
     if (!cliente) {
       toast.error("Debes seleccionar un cliente para crear la orden.");
@@ -78,6 +85,8 @@ export default function PantallaPrincipal() {
       toast.error("Debes seleccionar al menos un servicio.");
       return;
     }
+
+    setIsSaving(true);
 
     const nuevaOrden: OrdenCreate = {
       clienteId: cliente.id,
@@ -98,6 +107,8 @@ export default function PantallaPrincipal() {
     } catch (error) {
       console.error("Error al crear la orden:", error);
       toast.error("Error al crear la orden.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -166,6 +177,8 @@ export default function PantallaPrincipal() {
         onCancelar={cancelarOrden}
         tasas={tasas}
         monedaPrincipal={monedaPrincipal}
+        isFormValid={isFormValid}
+        isSaving={isSaving}
       />
 
       {mostrarFormularioCliente && (

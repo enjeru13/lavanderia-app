@@ -77,8 +77,10 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 bg-blue-700 text-white font-bold h-screen p-6 flex flex-col gap-6">
-      <div className="text-2xl font-bold mb-2">Menú</div>
+    <aside className="w-64 bg-gradient-to-br from-blue-800 to-blue-600 text-white min-h-screen p-7 flex flex-col gap-8 shadow-2xl rounded-r-2xl sticky top-0">
+      <div className="text-2xl font-extrabold text-white mb-6 border-blue-400 pb-4">
+        Menú
+      </div>
       <nav className="flex flex-col gap-6">
         {links.map((grupo) => {
           const visibleItems = grupo.items.filter((link) =>
@@ -91,7 +93,7 @@ export default function Sidebar() {
 
           return (
             <div key={grupo.section}>
-              <p className="text-xs uppercase font-semibold text-blue-300 mb-2 tracking-wide">
+              <p className="text-xs uppercase font-bold text-blue-200 mb-3 tracking-wider">
                 {grupo.section}
               </p>
               <ul className="flex flex-col gap-2">
@@ -101,13 +103,16 @@ export default function Sidebar() {
                     <Link
                       key={link.to}
                       to={link.to}
-                      className={`flex items-center gap-3 py-2 px-4 rounded transition ${
-                        isActive
-                          ? "bg-blue-600 font-semibold"
-                          : "hover:bg-blue-600"
-                      }`}
+                      className={`
+                        flex items-center gap-4 py-3 px-5 rounded-lg transition-all duration-200 ease-in-out
+                        ${
+                          isActive
+                            ? "bg-blue-500 text-white shadow-lg transform scale-105 font-bold"
+                            : "hover:bg-blue-500 hover:text-white hover:shadow-md hover:transform hover:scale-105"
+                        }
+                      `}
                     >
-                      <span className="text-lg">{link.icon}</span>
+                      <span className="text-xl">{link.icon}</span>
                       <span>{link.label}</span>
                     </Link>
                   );

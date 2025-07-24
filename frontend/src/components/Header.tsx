@@ -1,4 +1,4 @@
-import { FaUserCircle, FaSignOutAlt } from "react-icons/fa";
+import { FaUserCircle} from "react-icons/fa";
 import { useAuth } from "../hooks/useAuth";
 
 interface HeaderProps {
@@ -9,32 +9,33 @@ export default function Header({ nombreNegocio }: HeaderProps) {
   const { user, logout } = useAuth();
 
   return (
-    <header className="bg-white shadow p-4 flex justify-between items-center border-b border-gray-200">
-      <div className="w-1/3"></div>
+    <header className="bg-white shadow-lg py-5 px-6 flex justify-between items-center border-b border-gray-200 sticky top-0 z-50 rounded-b-xl">
+      <div className="flex-1"></div>
 
-      <h1 className="text-2xl font-bold text-blue-600 text-center flex-1">
+      <h1 className="text-2xl font-extrabold text-blue-700 text-center flex-grow">
         {nombreNegocio}
       </h1>
 
       {user ? (
-        <div className="flex items-center gap-4 w-1/3 justify-end">
-          <span className="text-gray-700 font-medium flex items-center gap-2">
-            <FaUserCircle className="text-indigo-600" size={23} />
+        <div className="flex items-center gap-5 flex-1 justify-end">
+          <span className="text-gray-700 font-semibold flex items-center gap-2">
+            <FaUserCircle className="text-indigo-700" size={26} />
             {user.name || user.email}
-            <span className="text-xs text-gray-500 bg-gray-100 p-2 rounded-full capitalize">
+            <span className="text-xs text-blue-700 bg-blue-100 px-3 py-1 rounded-full capitalize font-semibold shadow-sm">
               {user.role.toLowerCase()}
             </span>
           </span>
           <button
             onClick={logout}
-            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition flex items-center gap-2 font-semibold text-sm"
+            title="Cerrar sesión"
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 ease-in-out transform hover:scale-105 flex items-center gap-2 font-bold text-sm shadow-md"
+            aria-label="Cerrar sesión"
           >
-            <FaSignOutAlt />
             Cerrar Sesión
           </button>
         </div>
       ) : (
-        <span className="text-gray-500 italic text-sm w-1/3 text-right">
+        <span className="text-gray-400 italic text-sm flex-1 text-right">
           No autenticado
         </span>
       )}

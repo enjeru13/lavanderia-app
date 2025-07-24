@@ -127,8 +127,8 @@ const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
 
         {/* Totales */}
         <div className="totales">
-          <p>Subtotal: {formatearMoneda(total, monedaPrincipal)}</p>{" "}
-          <p>Abono: {formatearMoneda(abono, monedaPrincipal)}</p>{" "}
+          <p>Total: {formatearMoneda(total, monedaPrincipal)}</p>{" "}
+          <p>Total Abono: {formatearMoneda(abono, monedaPrincipal)}</p>{" "}
           <p>
             <strong>Por pagar:</strong>{" "}
             {formatearMoneda(restante, monedaPrincipal)}{" "}

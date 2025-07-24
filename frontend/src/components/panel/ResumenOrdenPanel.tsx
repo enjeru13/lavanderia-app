@@ -4,6 +4,7 @@ import type {
   Servicio,
   ServicioSeleccionado,
 } from "../../../../shared/types/types";
+import { FaClipboardList } from "react-icons/fa";
 
 type Props = {
   cliente: ClienteResumen | null;
@@ -46,36 +47,47 @@ export default function ResumenOrdenPanel({
   };
 
   return (
-    <section className="bg-white p-6 rounded-xl shadow-lg space-y-6">
-      <header>
-        <h2 className="text-xl font-bold text-gray-800">Resumen de la orden</h2>
-        <p className="text-sm text-gray-500">
-          Detalle general antes de confirmar
+    <section className="bg-white p-8 rounded-2xl shadow-xl border border-gray-200 space-y-6">
+      {" "}
+      <header className="pb-4 border-b border-gray-200 mb-6">
+        {" "}
+        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+          {" "}
+          <FaClipboardList size={28} className="text-teal-600" /> Resumen de la
+          orden
+        </h2>
+        <p className="text-base text-gray-600 mt-2">
+          {" "}
+          Detalle general antes de confirmar.
         </p>
       </header>
-
-      <div className="space-y-4 text-sm text-gray-700 font-medium">
-        {/* Cliente */}
-        <div className="bg-gray-50 p-3 rounded border">
-          <span className="text-gray-600">Cliente:</span>{" "}
+      <div className="space-y-5 text-base text-gray-800">
+        {" "}
+        <div className="bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
+          {" "}
+          <span className="font-semibold text-gray-700 block mb-1">
+            Cliente:
+          </span>{" "}
           {cliente ? (
-            <span>
+            <span className="text-gray-900">
               {cliente.nombre} {cliente.apellido}
             </span>
           ) : (
             <span className="italic text-gray-500">No asignado</span>
           )}
         </div>
-
-        {/* Servicios seleccionados */}
         <div>
-          <span className="text-gray-600 block mb-2 font-semibold">
+          <span className="text-gray-700 block mb-3 font-semibold">
+            {" "}
             Servicios seleccionados:
           </span>
           {serviciosSeleccionados.length === 0 ? (
-            <p className="text-gray-500 italic">Ningún servicio seleccionado</p>
+            <p className="text-gray-500 italic bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
+              Ningún servicio seleccionado
+            </p>
           ) : (
-            <ul className="divide-y border rounded overflow-hidden bg-white text-sm">
+            <ul className="divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+              {" "}
               {serviciosSeleccionados.map((s) => {
                 const servicio = serviciosCatalogo.find(
                   (x) => x.id === s.servicioId
@@ -83,9 +95,9 @@ export default function ResumenOrdenPanel({
                 return (
                   <li
                     key={s.servicioId}
-                    className="p-3 flex justify-between items-center"
+                    className="p-4 flex justify-between items-center hover:bg-gray-50 transition duration-200 ease-in-out"
                   >
-                    <span>
+                    <span className="font-medium text-gray-900">
                       {servicio?.nombreServicio ?? "Servicio desconocido"} ×{" "}
                       {s.cantidad}
                     </span>
@@ -101,22 +113,24 @@ export default function ResumenOrdenPanel({
             </ul>
           )}
         </div>
-
-        {/* Observaciones */}
         {observaciones && (
-          <div className="bg-gray-50 p-3 rounded border">
-            <span className="text-gray-600 block mb-1 font-semibold">
+          <div className="bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
+            {" "}
+            <span className="font-semibold text-gray-700 block mb-1">
               Observaciones:
             </span>
-            <p className="text-gray-700 italic">{observaciones}</p>
+            <p className="text-gray-900">{observaciones}</p>{" "}
           </div>
         )}
-
-        {/* Fecha de entrega */}
         {fechaEntrega && (
-          <div className="bg-gray-50 p-3 rounded border">
-            <span className="text-gray-600">Fecha de entrega:</span>{" "}
-            <span>{formatFechaEntrega(fechaEntrega)}</span>
+          <div className="bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
+            {" "}
+            <span className="font-semibold text-gray-700 block mb-1">
+              Fecha de entrega:
+            </span>{" "}
+            <span className="text-gray-900">
+              {formatFechaEntrega(fechaEntrega)}
+            </span>
           </div>
         )}
       </div>

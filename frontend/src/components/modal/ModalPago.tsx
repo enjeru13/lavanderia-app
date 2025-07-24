@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FiX, FiPlus } from "react-icons/fi";
 import { MdOutlinePayments } from "react-icons/md";
 import { toast } from "react-toastify";
@@ -42,36 +42,62 @@ export default function ModalPago({
   tasas,
   monedaPrincipal,
 }: ModalPagoProps) {
+  const principalSegura: Moneda = useMemo(
+    () => normalizarMoneda(monedaPrincipal),
+    [monedaPrincipal]
+  );
+  const resumen = useMemo(
+    () => calcularResumenPago(orden, tasas, principalSegura),
+    [orden, tasas, principalSegura]
+  );
+
   const [pagos, setPagos] = useState<PagoInput[]>([
-    { monto: 0, moneda: "USD", metodo: "Efectivo" } as PagoInput,
+    {
+      monto: 0,
+      moneda: "USD" as Moneda,
+      metodo: "Efectivo" as PagoInput["metodo"],
+    },
   ]);
-  const [proyeccionRestante, setProyeccionRestante] = useState<number | null>(
-    null
+
+  const totalPagosEnModalPrincipal = useMemo(() => {
+    return pagos.reduce(
+      (sum, p) =>
+        sum +
+        convertirAmonedaPrincipal(p.monto, p.moneda, tasas, principalSegura),
+      0
+    );
+  }, [pagos, tasas, principalSegura]);
+
+  const faltanteProyectado = useMemo(() => {
+    return Math.max(resumen.faltante - totalPagosEnModalPrincipal, 0);
+  }, [resumen.faltante, totalPagosEnModalPrincipal]);
+
+  const [faltanteParaOtrasMonedas, setFaltanteParaOtrasMonedas] =
+    useState<number>(resumen.faltante);
+
+  useEffect(() => {
+    setFaltanteParaOtrasMonedas(resumen.faltante);
+  }, [resumen.faltante]);
+
+  const restanteVES = useMemo(
+    () =>
+      convertirDesdePrincipal(
+        faltanteParaOtrasMonedas,
+        "VES",
+        tasas,
+        principalSegura
+      ),
+    [faltanteParaOtrasMonedas, tasas, principalSegura]
   );
-
-  const principalSegura: Moneda = normalizarMoneda(monedaPrincipal);
-  const resumen = calcularResumenPago(orden, tasas, principalSegura);
-
-  const totalPagosEnModal = pagos.reduce(
-    (sum, p) =>
-      sum +
-      convertirAmonedaPrincipal(p.monto, p.moneda, tasas, principalSegura),
-    0
-  );
-
-  const faltanteActual = proyeccionRestante ?? resumen.faltante;
-
-  const restanteVES = convertirDesdePrincipal(
-    faltanteActual,
-    "VES",
-    tasas,
-    principalSegura
-  );
-  const restanteCOP = convertirDesdePrincipal(
-    faltanteActual,
-    "COP",
-    tasas,
-    principalSegura
+  const restanteCOP = useMemo(
+    () =>
+      convertirDesdePrincipal(
+        faltanteParaOtrasMonedas,
+        "COP",
+        tasas,
+        principalSegura
+      ),
+    [faltanteParaOtrasMonedas, tasas, principalSegura]
   );
 
   const registrarPago = async () => {
@@ -80,14 +106,18 @@ export default function ModalPago({
     );
 
     if (pagosValidos.length === 0) {
-      toast.error("Ingresa al menos un pago válido");
+      toast.error("Ingresa al menos un pago válido.");
       return;
     }
 
     if (resumen.faltante <= 0) {
-      toast.info("La orden ya ha sido saldada");
+      toast.info("La orden ya ha sido saldada.");
       onClose();
       return;
+    }
+
+    if (totalPagosEnModalPrincipal > resumen.faltante + 0.01) {
+      toast.warn("El monto total de los pagos excede el faltante de la orden.");
     }
 
     try {
@@ -100,7 +130,7 @@ export default function ModalPago({
         });
       }
 
-      toast.success("Pagos registrados exitosamente");
+      toast.success("Pagos registrados exitosamente.");
 
       const res = await ordenesService.getById(orden.id);
       const actualizada = res.data;
@@ -110,7 +140,7 @@ export default function ModalPago({
       }
       onClose();
     } catch (err) {
-      toast.error("Error al registrar el pago");
+      toast.error("Error al registrar el pago.");
       console.error("Error pago:", err);
     }
   };
@@ -121,66 +151,69 @@ export default function ModalPago({
     valor: string
   ) => {
     const nuevos = [...pagos];
+    const pagoToUpdate: PagoInput = { ...nuevos[idx] };
 
     if (campo === "monto") {
       const valorLimpio = valor.replace(",", ".");
-      nuevos[idx].monto = parseFloat(valorLimpio) || 0;
+      pagoToUpdate.monto = parseFloat(valorLimpio) || 0;
     } else if (campo === "moneda") {
-      nuevos[idx].moneda = valor as Moneda;
+      pagoToUpdate.moneda = valor as Moneda;
     } else if (campo === "metodo") {
-      nuevos[idx].metodo = valor as PagoInput["metodo"];
+      pagoToUpdate.metodo = valor as PagoInput["metodo"];
     }
 
+    nuevos[idx] = pagoToUpdate;
     setPagos(nuevos);
   };
 
   const agregarPago = () => {
-    const nuevosPagos = [
+    const newPagos = [
       ...pagos,
-      { monto: 0, moneda: "USD", metodo: "Efectivo" } as PagoInput,
+      {
+        monto: 0,
+        moneda: "USD" as Moneda,
+        metodo: "Efectivo" as PagoInput["metodo"],
+      },
     ];
-    setPagos(nuevosPagos);
+    setPagos(newPagos);
 
-    const totalExtraUSD = nuevosPagos.reduce(
+    const newTotalInPrincipal = newPagos.reduce(
       (sum, p) =>
         sum +
         convertirAmonedaPrincipal(p.monto, p.moneda, tasas, principalSegura),
       0
     );
-    const nuevoRestante = Math.max(resumen.faltante - totalExtraUSD, 0);
-    setProyeccionRestante(nuevoRestante);
+    setFaltanteParaOtrasMonedas(
+      Math.max(resumen.faltante - newTotalInPrincipal, 0)
+    );
   };
 
   const eliminarPago = (idx: number) => {
     const nuevaLista = pagos.filter((_, i) => i !== idx);
     setPagos(nuevaLista);
 
-    if (nuevaLista.length > 0) {
-      const totalExtraUSD = nuevaLista.reduce(
-        (sum, p) =>
-          sum +
-          convertirAmonedaPrincipal(p.monto, p.moneda, tasas, principalSegura),
-        0
-      );
-      const nuevoRestante = Math.max(resumen.faltante - totalExtraUSD, 0);
-      setProyeccionRestante(nuevoRestante);
-    } else {
-      setProyeccionRestante(null);
-    }
+    const newTotalInPrincipal = nuevaLista.reduce(
+      (sum, p) =>
+        sum +
+        convertirAmonedaPrincipal(p.monto, p.moneda, tasas, principalSegura),
+      0
+    );
+    setFaltanteParaOtrasMonedas(
+      Math.max(resumen.faltante - newTotalInPrincipal, 0)
+    );
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-50 flex items-center justify-center">
-      <div className="bg-white w-full max-w-xl h-[90vh] rounded-xl shadow-xl overflow-hidden flex flex-col">
-        {/* Encabezado */}
-        <div className="flex justify-between items-center px-6 py-4">
-          <h2 className="text-lg font-bold text-green-700 flex items-center gap-2">
-            <MdOutlinePayments />
+    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
+      <div className="bg-white w-full max-w-xl md:max-w-2xl h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col ring-1 ring-gray-200 transform transition-all duration-300 scale-100 opacity-100">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-green-700 flex items-center gap-3">
+            <MdOutlinePayments className="text-2xl sm:text-3xl" />
             Registrar pago
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+            className="text-gray-400 hover:text-gray-600 text-3xl font-bold transition-transform transform hover:rotate-90"
             title="Cerrar"
           >
             <FiX />
@@ -188,16 +221,22 @@ export default function ModalPago({
         </div>
 
         {/* Formulario */}
-        <div className="px-6 py-4 overflow-y-auto flex-1 space-y-6 text-sm text-gray-800">
+        <div className="px-6 py-4 overflow-y-auto flex-1 space-y-6 text-base text-gray-800">
           {pagos.map((p, idx) => (
             <div
               key={idx}
-              className="border border-gray-300 rounded-md p-4 bg-gray-50 shadow-sm relative space-y-4"
+              className="border border-gray-300 rounded-xl p-5 bg-gray-50 shadow-md relative space-y-4 transition-all duration-200 hover:shadow-lg"
             >
               <div className="grid sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-xs text-gray-500">Monto</label>
+                  <label
+                    htmlFor={`monto-${idx}`}
+                    className="block text-sm text-gray-600 font-semibold mb-1"
+                  >
+                    Monto
+                  </label>
                   <input
+                    id={`monto-${idx}`}
                     type="text"
                     inputMode="decimal"
                     value={
@@ -206,18 +245,24 @@ export default function ModalPago({
                     onChange={(e) =>
                       actualizarPago(idx, "monto", e.target.value)
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base shadow-sm"
                     placeholder="Ej. 20,50"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500">Moneda</label>
+                  <label
+                    htmlFor={`moneda-${idx}`}
+                    className="block text-sm text-gray-600 font-semibold mb-1"
+                  >
+                    Moneda
+                  </label>
                   <select
+                    id={`moneda-${idx}`}
                     value={p.moneda}
                     onChange={(e) =>
-                      actualizarPago(idx, "moneda", e.target.value)
+                      actualizarPago(idx, "moneda", e.target.value as Moneda)
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base shadow-sm"
                   >
                     <option value="USD">USD</option>
                     <option value="VES">VES</option>
@@ -225,13 +270,23 @@ export default function ModalPago({
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500">Método</label>
+                  <label
+                    htmlFor={`metodo-${idx}`}
+                    className="block text-sm text-gray-600 font-semibold mb-1"
+                  >
+                    Método
+                  </label>
                   <select
+                    id={`metodo-${idx}`}
                     value={p.metodo}
                     onChange={(e) =>
-                      actualizarPago(idx, "metodo", e.target.value)
+                      actualizarPago(
+                        idx,
+                        "metodo",
+                        e.target.value as PagoInput["metodo"]
+                      )
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200 text-sm"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base shadow-sm"
                   >
                     <option value="Efectivo">Efectivo</option>
                     <option value="Transferencia">Transferencia</option>
@@ -243,8 +298,8 @@ export default function ModalPago({
               {pagos.length > 1 && (
                 <button
                   onClick={() => eliminarPago(idx)}
-                  className="absolute top-3 right-3 text-red-500 hover:text-red-700"
-                  title="Eliminar"
+                  className="absolute top-3 right-3 text-red-500 hover:text-red-700 text-xl transition-transform transform hover:scale-110"
+                  title="Eliminar pago"
                 >
                   <FiX />
                 </button>
@@ -253,10 +308,10 @@ export default function ModalPago({
           ))}
 
           {/* Botón agregar */}
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-2">
             <button
               onClick={agregarPago}
-              className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 text-sm font-semibold"
+              className="px-5 py-2 flex items-center gap-2 text-indigo-600 hover:text-indigo-800 text-sm font-semibold rounded-lg border border-indigo-300 bg-indigo-50 hover:bg-indigo-100 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md"
             >
               <FiPlus className="text-base" />
               Agregar otro pago
@@ -264,72 +319,82 @@ export default function ModalPago({
           </div>
 
           {/* Resumen */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 text-sm font-medium">
-            <div>
-              <span className="text-gray-500">Total</span>
-              <span className="block text-green-700 font-semibold">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+            <div className="p-4 bg-blue-50 rounded-lg shadow-sm flex flex-col justify-between">
+              <span className="text-sm text-blue-800 font-semibold mb-1">
+                Total Orden:
+              </span>
+              <span className="block text-blue-900 font-bold text-xl">
                 {formatearMoneda(orden.total, principalSegura)}{" "}
               </span>
             </div>
-            <div>
-              <span className="text-gray-500">Abonado</span>
-              <span className="block text-blue-700 font-semibold">
+            <div className="p-4 bg-green-50 rounded-lg shadow-sm flex flex-col justify-between">
+              <span className="text-sm text-green-800 font-semibold mb-1">
+                Total Abonado:
+              </span>
+              <span className="block text-green-900 font-bold text-xl">
                 {formatearMoneda(resumen.abonado, principalSegura)}{" "}
               </span>
             </div>
             {/* Monto de pagos en este modal */}
-            <div>
-              <span className="text-gray-500">Monto a abonar</span>
-              <span className="block text-purple-700 font-semibold">
-                {formatearMoneda(totalPagosEnModal, principalSegura)}{" "}
+            <div className="p-4 bg-purple-50 rounded-lg shadow-sm flex flex-col justify-between">
+              <span className="text-sm text-purple-800 font-semibold mb-1">
+                Monto a abonar (este modal):
+              </span>
+              <span className="block text-purple-900 font-bold text-xl">
+                {formatearMoneda(totalPagosEnModalPrincipal, principalSegura)}{" "}
               </span>
             </div>
             {/* Faltante proyectado */}
-            <div className="sm:col-span-2">
-              <span className="text-gray-500">Faltante proyectado</span>
-              <span className="block text-red-600 font-semibold text-lg">
-                {formatearMoneda(faltanteActual, principalSegura)}{" "}
+            <div className="sm:col-span-2 lg:col-span-3 p-4 bg-red-50 rounded-lg shadow-sm flex flex-col justify-between">
+              <span className="text-sm text-red-800 font-semibold mb-1">
+                Faltante proyectado:
+              </span>
+              <span className="block text-red-900 font-bold text-2xl">
+                {formatearMoneda(faltanteProyectado, principalSegura)}{" "}
               </span>
             </div>
           </div>
 
-          <div className="bg-gray-50 border border-gray-300 rounded-md p-4 shadow-sm ring-1 ring-gray-100 space-y-3">
-            <p className="font-semibold text-gray-700">
-              Faltante proyectado en otras monedas
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-inner ring-1 ring-gray-100 space-y-3 mt-6">
+            <p className="font-bold text-gray-800 text-lg">
+              Faltante proyectado en otras monedas:
             </p>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-gray-500">Bolívares (VES):</span>
-                <span className="block text-red-700 font-semibold">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 shadow-sm">
+                <span className="text-sm text-gray-700">Bolívares (VES):</span>
+                <span className="block text-red-700 font-bold text-lg">
                   {formatearMoneda(restanteVES, "VES")}
                 </span>
               </div>
-              <div>
-                <span className="text-gray-500">Pesos (COP):</span>
-                <span className="block text-red-700 font-semibold">
+              <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 shadow-sm">
+                <span className="text-sm text-gray-700">Pesos (COP):</span>
+                <span className="block text-red-700 font-bold text-lg">
                   {formatearMoneda(restanteCOP, "COP")}
                 </span>
               </div>
             </div>
-            <p className="text-xs text-gray-500 italic">
-              Se actualiza al agregar/eliminar pagos.
+            <p className="text-xs text-gray-600 italic">
+              Estos valores se actualizan al agregar/eliminar pagos.
             </p>
           </div>
         </div>
 
         {/* Acciones */}
-        <div className="px-6 py-4 flex justify-end gap-3 font-medium">
+        <div className="px-6 py-4 flex justify-end gap-4 font-medium border-t border-gray-200">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition"
+            className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
             Salir
           </button>
           <button
             onClick={registrarPago}
-            disabled={faltanteActual <= 0}
-            className={`px-4 py-2 text-white rounded-md font-semibold transition ${
-              faltanteActual <= 0
+            disabled={
+              faltanteProyectado === resumen.faltante || faltanteProyectado < 0
+            }
+            className={`px-6 py-3 text-white rounded-lg font-semibold transition-all duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5 ${
+              faltanteProyectado === resumen.faltante || faltanteProyectado < 0
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-green-600 hover:bg-green-700"
             }`}
