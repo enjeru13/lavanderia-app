@@ -75,22 +75,11 @@ export const protect = async (
  */
 export const authorizeRoles = (roles: Role[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    console.log("--- authorizeRoles Debug ---");
-    console.log("Ruta solicitada:", req.originalUrl);
-    console.log("Roles permitidos para esta ruta:", roles);
-    console.log("Usuario autenticado (req.user):", req.user);
-    console.log(
-      "Rol del usuario autenticado (req.user?.role):",
-      req.user?.role
-    );
-    console.log("--------------------------");
-
     if (!req.user) {
       return res
         .status(403)
         .json({ message: "Acceso denegado, usuario no autenticado." });
     }
-
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         message: `Acceso denegado, rol ${req.user.role} no autorizado para esta acción.`,
