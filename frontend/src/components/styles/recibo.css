@@ -1,80 +1,118 @@
 .recibo {
   width: 100%;
+  max-width: 80mm;
   margin: 0 auto;
-  padding: 8px;
-  font-family: "Courier New", monospace;
-  font-size: 12px;
-  color: black;
-  line-height: 1.4;
+  padding: 12px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #333;
+  line-height: 1.5;
   background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
 }
 
-/* Encabezado */
 .recibo h2 {
-  text-align: center; /* Mantener el título centrado */
-  font-size: 14px;
-  margin-bottom: 4px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: #222;
 }
 
-/* Alineación de texto para los párrafos dentro del encabezado */
 .encabezado p {
   text-align: left;
+  margin: 4px 0;
+  font-size: 12px;
+  color: #555;
 }
 
-/* Separadores */
 hr {
   border: none;
-  border-top: 1px dashed gray;
-  margin: 6px 0;
+  border-top: 1px dashed #bbb;
+  margin: 10px 0;
 }
 
-/* Ítems */
+.items-list {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
 .item-linea {
   display: flex;
   justify-content: space-between;
-  margin: 2px 0;
-  font-size: 12px;
+  align-items: flex-start;
+  padding: 4px 0;
+  font-size: 13px;
+  color: #444;
 }
 
 .item-linea span:first-child {
   flex: 1;
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-right: 8px;
 }
 
-/* Datos, totales y observaciones */
+.item-linea .cantidad,
+.item-linea .precio-unitario {
+  white-space: nowrap;
+}
+
 .datos-cliente p,
 .observaciones p {
-  margin: 2px 0;
+  margin: 4px 0;
   text-align: left;
+  font-size: 13px;
+  color: #444;
+}
+
+.datos-cliente strong,
+.observaciones strong {
+  color: #222;
+}
+
+.totales {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed #bbb;
 }
 
 .totales p {
-  margin: 2px 0;
-  text-align: right;
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+  font-size: 14px;
+  color: #333;
 }
 
 .totales p strong {
-  font-size: 13px;
-  letter-spacing: 0.5px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: #000;
 }
 
-/* Pie */
+.footer {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px dashed #bbb;
+}
+
 .footer p {
   text-align: center;
   font-size: 11px;
-  margin-top: 6px;
+  margin-top: 4px;
+  color: #666;
 }
 
-/* Espacio de corte térmico */
 .recibo::after {
   content: "";
   display: block;
-  height: 40px;
+  height: 30px;
 }
 
-/* Estilos al imprimir */
 @media print {
   body {
     margin: 0;
@@ -82,15 +120,46 @@ hr {
     width: 58mm;
     background: white;
     color: black;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .recibo {
     width: 58mm !important;
-    font-size: 11px;
+    font-size: 10px;
+    padding: 6px;
     box-shadow: none;
+    border-radius: 0;
+  }
+
+  .recibo h2 {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  .encabezado p {
+    font-size: 10px;
+  }
+  .item-linea,
+  .datos-cliente p,
+  .observaciones p {
+    font-size: 10px;
+  }
+  .totales p {
+    font-size: 11px;
+  }
+  .totales p strong {
+    font-size: 12px;
+  }
+  .footer p {
+    font-size: 9px;
   }
 
   hr {
     border-top: 1px dashed black;
+    margin: 8px 0;
+  }
+
+  .recibo::after {
+    height: 25px;
   }
 }

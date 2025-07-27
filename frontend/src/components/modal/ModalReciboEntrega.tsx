@@ -1,7 +1,9 @@
 import { FiX } from "react-icons/fi";
+import { FaPrint } from "react-icons/fa";
 import ReciboEntrega from "../ReciboEntrega";
 import { useRef } from "react";
 import { useReactToPrint } from "react-to-print";
+import { createPortal } from "react-dom";
 import { type Moneda } from "../../utils/monedaHelpers";
 
 interface ReciboItem {
@@ -48,38 +50,48 @@ export default function ModalReciboEntrega({
   datosRecibo,
 }: Props) {
   const reciboRef = useRef<HTMLDivElement>(null);
+
   const imprimir = useReactToPrint({
     contentRef: reciboRef,
     pageStyle: `
-    @media print {
-      body {
-        width: 58mm;
-        margin: 0;
-        padding: 0;
+      @media print {
+        body {
+          width: 58mm;
+          margin: 0;
+          padding: 0;
+        }
+        .recibo {
+          font-size: 11px;
+        }
+        .no-print {
+          display: none !important;
+        }
       }
-      .recibo {
-        font-size: 11px;
-      }
-    }
     `,
+    onAfterPrint: () => console.log("Recibo impreso exitosamente!"),
+    documentTitle: `Recibo_Orden_${datosRecibo.numeroOrden || ""}`,
   });
 
   if (!visible) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl text-xs max-w-sm w-full relative print:hidden">
-        {/* Botón de cierre */}
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-3 text-gray-500 hover:text-gray-700"
-          aria-label="Cerrar modal"
-        >
-          <FiX size={18} />
-        </button>
+  return createPortal(
+    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-[999] p-4 sm:p-6 print:hidden">
+      <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full relative text-base transform transition-all duration-300 scale-100 opacity-100 ring-1 ring-gray-200 flex flex-col h-[90vh]">
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200 mb-6 **flex-shrink-0**">
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+            <FaPrint size={28} className="text-blue-600" /> Vista previa de
+            recibo
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-3xl font-bold transition-transform transform hover:rotate-90"
+            title="Cerrar"
+          >
+            <FiX />
+          </button>
+        </div>
 
-        {/* Recibo */}
-        <div>
+        <div className="overflow-y-auto flex-grow pr-2">
           <ReciboEntrega
             ref={reciboRef}
             clienteInfo={datosRecibo.clienteInfo}
@@ -94,16 +106,16 @@ export default function ModalReciboEntrega({
           />
         </div>
 
-        {/* Botón de impresión */}
-        <div className="pt-4 flex justify-end">
+        <div className="pt-6 flex justify-end border-t border-gray-200 mt-6 **flex-shrink-0**">
           <button
             onClick={imprimir}
-            className="bg-green-600 text-white px-4 py-2 rounded-md font-semibold text-sm hover:bg-green-700 transition"
+            className="px-6 py-3.5 bg-green-600 text-white rounded-lg font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out flex items-center gap-2"
           >
-            Imprimir
+            <FaPrint size={18} /> Imprimir
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
