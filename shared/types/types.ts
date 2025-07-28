@@ -4,6 +4,7 @@ export type EstadoOrden = "PENDIENTE" | "ENTREGADO";
 export type MetodoPago = "EFECTIVO" | "TRANSFERENCIA" | "PAGO_MOVIL";
 export type EstadoPagoRaw = "COMPLETO" | "INCOMPLETO";
 export type EstadoPagoTexto = "Sin pagos" | "Parcial" | "Pagado";
+export type SortDirection = "asc" | "desc";
 
 export interface Cliente {
   id: number;
@@ -200,8 +201,8 @@ export interface User {
   id: number;
   email: string;
   name: string | null;
-  role: Role;
   createdAt: string;
+  role: Role;
 }
 
 export interface UserRegisterPayload {
