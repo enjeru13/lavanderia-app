@@ -84,19 +84,19 @@ const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
         {/* Datos del cliente */}
         <div className="datos-cliente">
           <p>
-            <strong>Cliente:</strong> {clienteInfo.nombre}{" "}
+            <strong>Cliente:</strong> {clienteInfo.nombre}
             {clienteInfo.apellido}
           </p>
           <p>
             <strong>CI/RIF:</strong> {clienteInfo.identificacion}
           </p>
           <p>
-            <strong>Fecha ingreso:</strong>{" "}
+            <strong>Fecha ingreso:</strong>
             {formatDate(clienteInfo.fechaIngreso)}
           </p>
           {clienteInfo.fechaEntrega && (
             <p>
-              <strong>Fecha entrega:</strong>{" "}
+              <strong>Fecha entrega:</strong>
               {formatDate(clienteInfo.fechaEntrega)}
             </p>
           )}
@@ -109,15 +109,15 @@ const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
             <div key={idx} className="item-linea">
               <span>{item.descripcion}</span>
               <span>
-                {item.cantidad} x{" "}
-                {formatearMoneda(item.precioUnitario, monedaPrincipal)}{" "}
+                {item.cantidad} x
+                {formatearMoneda(item.precioUnitario, monedaPrincipal)}
               </span>
               <span>
-                ={" "}
+                =
                 {formatearMoneda(
                   item.cantidad * item.precioUnitario,
                   monedaPrincipal
-                )}{" "}
+                )}
               </span>
             </div>
           ))}
@@ -127,11 +127,11 @@ const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
 
         {/* Totales */}
         <div className="totales">
-          <p>Total: {formatearMoneda(total, monedaPrincipal)}</p>{" "}
-          <p>Total Abono: {formatearMoneda(abono, monedaPrincipal)}</p>{" "}
+          <p>Total: {formatearMoneda(total, monedaPrincipal)}</p>
+          <p>Total Abono: {formatearMoneda(abono, monedaPrincipal)}</p>
           <p>
-            <strong>Por pagar:</strong>{" "}
-            {formatearMoneda(restante, monedaPrincipal)}{" "}
+            <strong>Por pagar:</strong>
+            {formatearMoneda(restante, monedaPrincipal)}
           </p>
         </div>
 

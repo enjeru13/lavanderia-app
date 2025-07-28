@@ -48,10 +48,8 @@ export default function TablaServicios({
   return (
     <>
       <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-200">
-        {" "}
         <table className="min-w-full bg-white text-sm">
           <thead className="bg-gray-100 text-gray-600 font-semibold border-b border-gray-200">
-            {" "}
             <tr>
               <th className="px-6 py-3 text-left">Servicio</th>
               <th className="px-6 py-3 text-left">Precio</th>
@@ -69,7 +67,6 @@ export default function TablaServicios({
                   {s.nombreServicio}
                 </td>
                 <td className="px-6 py-4 text-indigo-700 font-extrabold">
-                  {" "}
                   {formatearMoneda(s.precioBase, monedaPrincipal)}
                 </td>
                 <td
@@ -80,7 +77,7 @@ export default function TablaServicios({
                     <span className="text-gray-400 italic font-semibold">
                       Sin descripción
                     </span>
-                  )}{" "}
+                  )}
                 </td>
                 <td className="px-6 py-4 text-center">
                   <div className="inline-flex gap-2">

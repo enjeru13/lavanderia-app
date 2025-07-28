@@ -68,7 +68,6 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
           />
 
           <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-            {" "}
             {cargando ? (
               <p className="text-center text-indigo-600 font-semibold py-8">
                 Cargando clientes...
@@ -93,7 +92,6 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
                       {c.nombre} {c.apellido}
                     </p>
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium">ID:</span>{" "}
                       {c.identificacion}
                     </p>
                     <p className="text-sm text-gray-600">

@@ -1,4 +1,4 @@
-import { FaUserCircle} from "react-icons/fa";
+import { FaUserCircle } from "react-icons/fa";
 import { useAuth } from "../hooks/useAuth";
 
 interface HeaderProps {

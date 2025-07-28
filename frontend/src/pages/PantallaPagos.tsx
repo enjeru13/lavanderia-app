@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
-import { FaSearch, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { FaPrint, FaSearch } from "react-icons/fa";
 import { toast } from "react-toastify";
 import {
   formatearMoneda,
@@ -9,20 +9,18 @@ import {
   type TasasConversion,
 } from "../utils/monedaHelpers";
 import { pagosService } from "../services/pagosService";
-import type { Pago, MetodoPago, Orden } from "../../../shared/types/types";
-import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
 import { configuracionService } from "../services/configuracionService";
 import { ordenesService } from "../services/ordenesService";
+import ControlesPaginacion from "../components/ControlesPaginacion";
+import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
+import TablaPagos from "../components/tabla/TablaPagos";
+import ModalImprimirPagos from "../components/modal/ModalImprimirPagos";
+
+import type { Pago, Orden } from "../../../shared/types/types";
 
 interface PagoConOrden extends Pago {
   orden?: Orden & { cliente?: { nombre: string; apellido: string } };
 }
-
-const metodoPagoDisplay: Record<MetodoPago, string> = {
-  EFECTIVO: "Efectivo",
-  TRANSFERENCIA: "Transferencia",
-  PAGO_MOVIL: "Pago móvil",
-};
 
 type SortKeys = "fechaPago" | "ordenId" | "monto";
 type SortDirection = "asc" | "desc";
@@ -41,9 +39,13 @@ export default function PantallaPagos() {
   const [tasas, setTasas] = useState<TasasConversion>({});
   const [monedaPrincipal, setMonedaPrincipal] = useState<Moneda>("USD");
   const [cargandoOrdenDetalle, setCargandoOrdenDetalle] = useState(false);
+  const [mostrarModalImprimir, setMostrarModalImprimir] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
-  const cargarPagos = async () => {
+  const cargarPagos = useCallback(async () => {
     try {
+      setLoading(true);
       const res = await pagosService.getAll();
       setPagos(res.data || []);
     } catch (err) {
@@ -52,9 +54,9 @@ export default function PantallaPagos() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const cargarConfiguracion = async () => {
+  const cargarConfiguracion = useCallback(async () => {
     try {
       const res = await configuracionService.get();
       const config = res.data;
@@ -67,12 +69,15 @@ export default function PantallaPagos() {
       console.error("Error al cargar configuración:", err);
       toast.error("Error al cargar configuración");
     }
-  };
+  }, []);
 
   useEffect(() => {
-    cargarPagos();
-    cargarConfiguracion();
-  }, []);
+    cargarConfiguracion().then(cargarPagos);
+  }, [cargarConfiguracion, cargarPagos]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filtroBusqueda, fechaInicio, fechaFin]);
 
   const handleSort = (column: SortKeys) => {
     if (sortColumn === column) {
@@ -83,23 +88,14 @@ export default function PantallaPagos() {
     }
   };
 
-  const getSortIcon = (column: SortKeys) => {
-    if (sortColumn === column) {
-      return sortDirection === "asc" ? <FaSortUp /> : <FaSortDown />;
-    }
-    return <FaSort />;
-  };
-
   const pagosFiltradosYSorteadas = useMemo(() => {
     const pagosFiltrados = pagos.filter((pago) => {
-      const terminoBusqueda = filtroBusqueda.trim().toLowerCase();
-
-      const matchOrdenId = String(pago.ordenId).includes(terminoBusqueda);
-
+      const termino = filtroBusqueda.trim().toLowerCase();
+      const matchOrdenId = String(pago.ordenId).includes(termino);
       const nombreCliente = `${pago.orden?.cliente?.nombre ?? ""} ${
         pago.orden?.cliente?.apellido ?? ""
       }`.toLowerCase();
-      const matchCliente = nombreCliente.includes(terminoBusqueda);
+      const matchCliente = nombreCliente.includes(termino);
 
       const pagoFecha = new Date(pago.fechaPago);
       let matchFecha = true;
@@ -117,18 +113,6 @@ export default function PantallaPagos() {
       return (matchOrdenId || matchCliente) && matchFecha;
     });
 
-    const totalIngresosFiltrados = pagosFiltrados.reduce((sum, pago) => {
-      return (
-        sum +
-        convertirAmonedaPrincipal(
-          pago.monto,
-          pago.moneda,
-          tasas,
-          monedaPrincipal
-        )
-      );
-    }, 0);
-
     const pagosProcesados = [...pagosFiltrados];
 
     if (sortColumn) {
@@ -142,7 +126,7 @@ export default function PantallaPagos() {
         } else if (sortColumn === "ordenId") {
           valA = a.ordenId;
           valB = b.ordenId;
-        } else if (sortColumn === "monto") {
+        } else {
           valA = convertirAmonedaPrincipal(
             a.monto,
             a.moneda,
@@ -155,18 +139,36 @@ export default function PantallaPagos() {
             tasas,
             monedaPrincipal
           );
-        } else {
-          valA = 0;
-          valB = 0;
         }
 
-        if (valA < valB) return sortDirection === "asc" ? -1 : 1;
-        if (valA > valB) return sortDirection === "asc" ? 1 : -1;
-        return 0;
+        return sortDirection === "asc" ? valA - valB : valB - valA;
       });
     }
 
-    return { pagos: pagosProcesados, totalIngresos: totalIngresosFiltrados };
+    const totalIngresos = pagosFiltrados.reduce((sum, pago) => {
+      return (
+        sum +
+        convertirAmonedaPrincipal(
+          pago.monto,
+          pago.moneda,
+          tasas,
+          monedaPrincipal
+        )
+      );
+    }, 0);
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginated = pagosProcesados.slice(
+      startIndex,
+      startIndex + itemsPerPage
+    );
+
+    return {
+      pagos: paginated,
+      pagosCompletos: pagosProcesados,
+      totalIngresos,
+      totalFilteredItems: pagosProcesados.length,
+    };
   }, [
     pagos,
     filtroBusqueda,
@@ -176,21 +178,26 @@ export default function PantallaPagos() {
     sortDirection,
     tasas,
     monedaPrincipal,
+    currentPage,
+    itemsPerPage,
   ]);
 
-  const { pagos: pagosParaMostrar, totalIngresos } = pagosFiltradosYSorteadas;
+  const {
+    pagos: pagosParaMostrar,
+    pagosCompletos,
+    totalIngresos,
+    totalFilteredItems,
+  } = pagosFiltradosYSorteadas;
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(totalFilteredItems / itemsPerPage);
+  }, [totalFilteredItems, itemsPerPage]);
 
   const handleVerDetallesOrden = async (ordenId: number) => {
     setCargandoOrdenDetalle(true);
     try {
       const res = await ordenesService.getById(ordenId);
-      const ordenCompleta = res.data;
-
-      if (ordenCompleta) {
-        setOrdenSeleccionada(ordenCompleta);
-      } else {
-        toast.error("No se pudo cargar la información completa de la orden.");
-      }
+      setOrdenSeleccionada(res.data ?? null);
     } catch (error) {
       console.error("Error al cargar detalles de la orden:", error);
       toast.error("Error al cargar los detalles de la orden.");
@@ -198,6 +205,10 @@ export default function PantallaPagos() {
       setCargandoOrdenDetalle(false);
     }
   };
+
+  const handlePagoRegistrado = useCallback(() => {
+    cargarPagos();
+  }, [cargarPagos]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
@@ -251,11 +262,19 @@ export default function PantallaPagos() {
             className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
           />
         </div>
+        <div className="flex flex-col mt-5">
+          <button
+            onClick={() => setMostrarModalImprimir(true)}
+            className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-600 transition duration-200 ease-in-out transform hover:scale-105 flex items-center gap-2 font-bold text-sm shadow-md"
+          >
+            <FaPrint size={16} /> Imprimir historial
+          </button>
+        </div>
       </div>
 
       <div className="bg-blue-50 p-4 rounded-lg shadow-sm border border-blue-200 mb-6 flex justify-between items-center">
         <span className="text-blue-800 font-semibold text-lg">
-          Total de Ingresos :
+          Total de Ingresos:
         </span>
         <span className="text-blue-900 font-bold text-2xl">
           {formatearMoneda(totalIngresos, monedaPrincipal)}
@@ -264,100 +283,30 @@ export default function PantallaPagos() {
 
       {loading || cargandoOrdenDetalle ? (
         <p className="text-gray-500">Cargando pagos...</p>
-      ) : pagosParaMostrar.length === 0 ? (
+      ) : pagosParaMostrar.length === 0 && totalFilteredItems === 0 ? (
         <p className="text-gray-500">
           No se encontraron pagos registrados con los filtros aplicados.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-200">
-          <table className="min-w-full bg-white text-sm">
-            <thead className="bg-gray-100 text-gray-600 font-semibold border-b border-gray-200">
-              <tr className="text-left">
-                <th
-                  className="px-4 py-2 font-semibold cursor-pointer whitespace-nowrap"
-                  onClick={() => handleSort("fechaPago")}
-                >
-                  <div className="flex items-center gap-1">
-                    Fecha {getSortIcon("fechaPago")}
-                  </div>
-                </th>
-                <th
-                  className="px-4 py-2 font-semibold cursor-pointer whitespace-nowrap"
-                  onClick={() => handleSort("ordenId")}
-                >
-                  <div className="flex items-center gap-1">
-                    Orden {getSortIcon("ordenId")}
-                  </div>
-                </th>
-                <th className="px-4 py-2 font-semibold">Cliente</th>
-                <th className="px-4 py-2 font-semibold whitespace-nowrap">
-                  Método
-                </th>
-                <th className="px-4 py-2 font-semibold whitespace-nowrap">
-                  Moneda
-                </th>
-                <th
-                  className="px-4 py-2 font-semibold cursor-pointer whitespace-nowrap"
-                  onClick={() => handleSort("monto")}
-                >
-                  <div className="flex items-center gap-1">
-                    Monto abonado {getSortIcon("monto")}
-                  </div>
-                </th>
-                <th className="px-4 py-2 font-semibold text-center whitespace-nowrap">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {pagosParaMostrar.map((pago) => {
-                const monedaSegura: Moneda = pago.moneda;
-                return (
-                  <tr
-                    key={pago.id}
-                    className="border-t border-gray-100 hover:bg-blue-50 transition-colors duration-150 text-gray-700 font-semibold"
-                  >
-                    {" "}
-                    {/* Ajustado para coincidir con TablaOrdenes */}
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {new Date(pago.fechaPago).toLocaleDateString("es-VE", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </td>
-                    <td className="px-4 py-3 font-bold text-blue-700 whitespace-nowrap">
-                      #{pago.ordenId}
-                    </td>
-                    <td className="px-4 py-3">
-                      {pago.orden?.cliente?.nombre}{" "}
-                      {pago.orden?.cliente?.apellido}
-                    </td>
-                    <td className="px-4 py-3 capitalize whitespace-nowrap">
-                      {metodoPagoDisplay[pago.metodoPago]}
-                    </td>
-                    <td className="px-4 py-3 font-medium whitespace-nowrap">
-                      {monedaSegura}
-                    </td>
-                    <td className="px-4 py-3 text-green-700 font-semibold whitespace-nowrap">
-                      {formatearMoneda(pago.monto, monedaSegura)}
-                    </td>
-                    <td className="px-4 py-3 text-center whitespace-nowrap">
-                      <button
-                        onClick={() => handleVerDetallesOrden(pago.ordenId)}
-                        title="Ver detalles de la orden"
-                        className="p-2 bg-blue-100 border border-blue-300 text-blue-700 rounded-md hover:bg-blue-200 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm"
-                        disabled={cargandoOrdenDetalle}
-                      >
-                        <FaSearch size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <TablaPagos
+            pagos={pagosParaMostrar}
+            monedaPrincipal={monedaPrincipal}
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            cargandoOrdenDetalle={cargandoOrdenDetalle}
+            onSort={handleSort}
+            onVerDetallesOrden={handleVerDetallesOrden}
+          />
+
+          {totalPages > 1 && (
+            <ControlesPaginacion
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
+        </>
       )}
 
       {ordenSeleccionada && (
@@ -366,10 +315,17 @@ export default function PantallaPagos() {
           tasas={tasas}
           monedaPrincipal={monedaPrincipal}
           onClose={() => setOrdenSeleccionada(null)}
-          onPagoRegistrado={() => cargarPagos()}
+          onPagoRegistrado={handlePagoRegistrado}
           onAbrirPagoExtra={() => {}}
         />
       )}
+      <ModalImprimirPagos
+        visible={mostrarModalImprimir}
+        onClose={() => setMostrarModalImprimir(false)}
+        pagos={pagosCompletos}
+        monedaPrincipal={monedaPrincipal}
+        totalIngresos={totalIngresos}
+      />
     </div>
   );
 }

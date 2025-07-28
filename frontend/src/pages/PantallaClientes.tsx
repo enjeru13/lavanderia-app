@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { clientesService } from "../services/clientesService";
 import type {
   Cliente,
@@ -12,6 +12,7 @@ import ConfirmacionModal from "../components/modal/ConfirmacionModal";
 import { toast } from "react-toastify";
 import { FaPlus, FaSearch } from "react-icons/fa";
 import { useAuth } from "../hooks/useAuth";
+import ControlesPaginacion from "../components/ControlesPaginacion";
 
 export default function PantallaClientes() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -27,9 +28,13 @@ export default function PantallaClientes() {
     number | undefined
   >();
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalFilteredItems, setTotalFilteredItems] = useState(0);
+
   const { hasRole } = useAuth();
 
-  const cargarClientes = async () => {
+  const cargarClientes = useCallback(async () => {
     try {
       const res = await clientesService.getAll();
       setClientes(res.data);
@@ -37,73 +42,96 @@ export default function PantallaClientes() {
       console.error("Error al cargar clientes:", err);
       toast.error("Error al cargar clientes");
     }
-  };
+  }, []);
 
   useEffect(() => {
     cargarClientes();
-  }, []);
+  }, [cargarClientes]);
 
-  const clientesFiltrados = clientes.filter((c) => {
-    const nombreCompleto = `${c.nombre} ${c.apellido}`.toLowerCase();
-    const cedula = (c.identificacion || "").toLowerCase();
-    const telefono = (c.telefono || "").toLowerCase();
-    const terminoBusqueda = busqueda.toLowerCase();
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [busqueda]);
 
-    return (
-      nombreCompleto.includes(terminoBusqueda) ||
-      cedula.includes(terminoBusqueda) ||
-      telefono.includes(terminoBusqueda)
-    );
-  });
+  const clientesFiltradosYPaginados = useMemo(() => {
+    const clientesProcesados = clientes.filter((c) => {
+      const nombreCompleto = `${c.nombre} ${c.apellido}`.toLowerCase();
+      const cedula = (c.identificacion || "").toLowerCase();
+      const telefono = (c.telefono || "").toLowerCase();
+      const terminoBusqueda = busqueda.toLowerCase();
 
-  const abrirNuevoCliente = () => {
+      return (
+        nombreCompleto.includes(terminoBusqueda) ||
+        cedula.includes(terminoBusqueda) ||
+        telefono.includes(terminoBusqueda)
+      );
+    });
+
+    setTotalFilteredItems(clientesProcesados.length);
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return clientesProcesados.slice(startIndex, endIndex);
+  }, [clientes, busqueda, currentPage, itemsPerPage]);
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(totalFilteredItems / itemsPerPage);
+  }, [totalFilteredItems, itemsPerPage]);
+
+  const abrirNuevoCliente = useCallback(() => {
     if (hasRole(["ADMIN", "EMPLOYEE"])) {
       setClienteSeleccionado(undefined);
       setMostrarFormulario(true);
     } else {
       toast.error("No tienes permiso para registrar nuevos clientes.");
     }
-  };
+  }, [hasRole]);
 
-  const guardarCliente = async (
-    data: ClienteCreate | (ClienteUpdatePayload & { id: number })
-  ) => {
-    try {
-      if ("id" in data && data.id) {
-        await clientesService.update(data.id, data as ClienteUpdatePayload);
-        toast.success("Cliente actualizado correctamente");
-      } else {
-        await clientesService.create(data as ClienteCreate);
-        toast.success("Cliente registrado correctamente");
+  const guardarCliente = useCallback(
+    async (data: ClienteCreate | (ClienteUpdatePayload & { id: number })) => {
+      try {
+        if ("id" in data && data.id) {
+          await clientesService.update(data.id, data as ClienteUpdatePayload);
+          toast.success("Cliente actualizado correctamente");
+        } else {
+          await clientesService.create(data as ClienteCreate);
+          toast.success("Cliente registrado correctamente");
+        }
+        setMostrarFormulario(false);
+        setClienteSeleccionado(undefined);
+        cargarClientes();
+      } catch (error) {
+        console.error("Error al guardar cliente:", error);
+        toast.error("Error al guardar cliente");
       }
-      setMostrarFormulario(false);
-      setClienteSeleccionado(undefined);
-      cargarClientes();
-    } catch (error) {
-      console.error("Error al guardar cliente:", error);
-      toast.error("Error al guardar cliente");
-    }
-  };
+    },
+    [cargarClientes]
+  );
 
-  const handleEditarCliente = (cliente: Cliente) => {
-    if (hasRole(["ADMIN", "EMPLOYEE"])) {
-      setClienteSeleccionado(cliente);
-      setMostrarFormulario(true);
-    } else {
-      toast.error("No tienes permiso para editar clientes.");
-    }
-  };
+  const handleEditarCliente = useCallback(
+    (cliente: Cliente) => {
+      if (hasRole(["ADMIN", "EMPLOYEE"])) {
+        setClienteSeleccionado(cliente);
+        setMostrarFormulario(true);
+      } else {
+        toast.error("No tienes permiso para editar clientes.");
+      }
+    },
+    [hasRole]
+  );
 
-  const handleEliminarCliente = (id: number) => {
-    if (hasRole(["ADMIN"])) {
-      setClienteAEliminarId(id);
-      setMostrarConfirmacionEliminar(true);
-    } else {
-      toast.error("No tienes permiso para eliminar clientes.");
-    }
-  };
+  const handleEliminarCliente = useCallback(
+    (id: number) => {
+      if (hasRole(["ADMIN"])) {
+        setClienteAEliminarId(id);
+        setMostrarConfirmacionEliminar(true);
+      } else {
+        toast.error("No tienes permiso para eliminar clientes.");
+      }
+    },
+    [hasRole]
+  );
 
-  const ejecutarEliminarCliente = async () => {
+  const ejecutarEliminarCliente = useCallback(async () => {
     if (clienteAEliminarId === undefined) return;
 
     try {
@@ -117,7 +145,7 @@ export default function PantallaClientes() {
       setMostrarConfirmacionEliminar(false);
       setClienteAEliminarId(undefined);
     }
-  };
+  }, [clienteAEliminarId, cargarClientes]);
 
   return (
     <div className="p-6 space-y-6">
@@ -154,12 +182,32 @@ export default function PantallaClientes() {
         </div>
       </div>
 
-      <TablaClientes
-        clientes={clientesFiltrados}
-        onVerInfo={(c) => setClienteInfo(c)}
-        onEditar={handleEditarCliente}
-        onEliminar={handleEliminarCliente}
-      />
+      {clientesFiltradosYPaginados.length === 0 && totalFilteredItems > 0 ? (
+        <p className="text-gray-500">
+          No se encontraron clientes en esta página con los filtros aplicados.
+        </p>
+      ) : clientesFiltradosYPaginados.length === 0 &&
+        totalFilteredItems === 0 ? (
+        <p className="text-gray-500">
+          No se encontraron clientes con los filtros aplicados.
+        </p>
+      ) : (
+        <>
+          <TablaClientes
+            clientes={clientesFiltradosYPaginados}
+            onVerInfo={(c) => setClienteInfo(c)}
+            onEditar={handleEditarCliente}
+            onEliminar={handleEliminarCliente}
+          />
+          {totalPages > 1 && (
+            <ControlesPaginacion
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
+        </>
+      )}
 
       {mostrarFormulario && (
         <FormularioCliente

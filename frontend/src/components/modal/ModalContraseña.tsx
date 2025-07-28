@@ -91,7 +91,7 @@ export default function ModalContraseña({
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs rounded-md"
             disabled={cargando}
           >
-            {cargando ? "Validando..." : "Confirmar"}{" "}
+            {cargando ? "Validando..." : "Confirmar"}
           </button>
         </div>
       </div>

@@ -91,7 +91,7 @@ export default function FormularioServicio({
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all duration-300 scale-100 opacity-100">
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4 flex justify-between items-center shadow-md">
           <h2 className="text-xl font-extrabold flex items-center gap-3">
-            <MdOutlineLocalLaundryService className="text-2xl" />{" "}
+            <MdOutlineLocalLaundryService className="text-2xl" />
             {servicio ? "Editar Servicio" : "Registrar Servicio"}
           </h2>
           <button

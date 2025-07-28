@@ -146,7 +146,7 @@ export default function ModalDetalleOrden({
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <h2 className="text-2xl font-extrabold text-green-700 flex items-center gap-3">
             <BiMessageSquareDetail className="text-3xl" />
-            Detalle de la orden{" "}
+            Detalle de la orden
             <span className="text-gray-500 font-semibold">#{orden.id}</span>
           </h2>
           <button
@@ -215,7 +215,6 @@ export default function ModalDetalleOrden({
           </div>
         </div>
 
-        {/* Pagos realizados */}
         {(orden.pagos?.length ?? 0) > 0 && (
           <div>
             <h3 className="font-bold text-gray-800 text-lg mb-3">
@@ -331,7 +330,7 @@ export default function ModalDetalleOrden({
           </div>
         </div>
 
-        <div className="flex justify-end pt-4 border-t border-gray-200">
+        <div className="flex justify-between items-center pt-4 border-t border-gray-200">
           <button
             onClick={() => setVerModalRecibo(true)}
             disabled={cargandoConfiguracion}
@@ -341,6 +340,15 @@ export default function ModalDetalleOrden({
           >
             Ver recibo de entrega
           </button>
+
+          {resumen.faltante > 0 && (
+            <button
+              onClick={() => onAbrirPagoExtra(orden)}
+              className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 text-base flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out"
+            >
+              Registrar pago
+            </button>
+          )}
         </div>
 
         {verModalRecibo && configuracion && (
@@ -349,30 +357,6 @@ export default function ModalDetalleOrden({
             onClose={() => setVerModalRecibo(false)}
             datosRecibo={generarDatosRecibo()}
           />
-        )}
-
-        {orden.estado === "ENTREGADO" && resumen.faltante > 0 && (
-          <div className="pt-6 border-t border-gray-200 mt-6 space-y-3 bg-yellow-50 p-5 rounded-lg shadow-inner">
-            <h4 className="text-lg text-yellow-800 font-bold flex items-center gap-2">
-              <span role="img" aria-label="warning">
-                ⚠️
-              </span>{" "}
-              Saldo Pendiente
-            </h4>
-            <p className="text-sm text-yellow-700">
-              La orden fue entregada, pero aún queda un saldo pendiente de{" "}
-              <span className="font-bold">
-                {formatearMoneda(resumen.faltante, principalSeguro)}
-              </span>
-              . Puedes registrar un pago adicional para saldarlo.
-            </p>
-            <button
-              onClick={() => onAbrirPagoExtra(orden)}
-              className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 text-base flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out"
-            >
-              Registrar pago adicional
-            </button>
-          </div>
         )}
       </div>
     </div>

@@ -6,6 +6,7 @@ import {
   FaTshirt,
   FaMoneyBillWave,
   FaCog,
+  FaChartBar,
 } from "react-icons/fa";
 import { useAuth } from "../hooks/useAuth";
 import type { Role } from "../../../shared/types/types";
@@ -55,7 +56,13 @@ export default function Sidebar() {
           to: "/pagos",
           label: "Pagos",
           icon: <FaMoneyBillWave />,
-          roles: ["ADMIN", "EMPLOYEE"],
+          roles: ["ADMIN"],
+        },
+        {
+          to: "/estado-ordenes",
+          label: "Estado de Órdenes",
+          icon: <FaChartBar />,
+          roles: ["ADMIN"],
         },
       ],
     },

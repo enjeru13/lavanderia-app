@@ -48,26 +48,20 @@ export default function ResumenOrdenPanel({
 
   return (
     <section className="bg-white p-8 rounded-2xl shadow-xl border border-gray-200 space-y-6">
-      {" "}
       <header className="pb-4 border-b border-gray-200 mb-6">
-        {" "}
         <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-          {" "}
           <FaClipboardList size={28} className="text-teal-600" /> Resumen de la
           orden
         </h2>
         <p className="text-base text-gray-600 mt-2">
-          {" "}
           Detalle general antes de confirmar.
         </p>
       </header>
       <div className="space-y-5 text-base text-gray-800">
-        {" "}
         <div className="bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
-          {" "}
           <span className="font-semibold text-gray-700 block mb-1">
             Cliente:
-          </span>{" "}
+          </span>
           {cliente ? (
             <span className="text-gray-900">
               {cliente.nombre} {cliente.apellido}
@@ -78,7 +72,6 @@ export default function ResumenOrdenPanel({
         </div>
         <div>
           <span className="text-gray-700 block mb-3 font-semibold">
-            {" "}
             Servicios seleccionados:
           </span>
           {serviciosSeleccionados.length === 0 ? (
@@ -87,7 +80,6 @@ export default function ResumenOrdenPanel({
             </p>
           ) : (
             <ul className="divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
-              {" "}
               {serviciosSeleccionados.map((s) => {
                 const servicio = serviciosCatalogo.find(
                   (x) => x.id === s.servicioId
@@ -98,7 +90,7 @@ export default function ResumenOrdenPanel({
                     className="p-4 flex justify-between items-center hover:bg-gray-50 transition duration-200 ease-in-out"
                   >
                     <span className="font-medium text-gray-900">
-                      {servicio?.nombreServicio ?? "Servicio desconocido"} ×{" "}
+                      {servicio?.nombreServicio ?? "Servicio desconocido"} ×
                       {s.cantidad}
                     </span>
                     <span className="font-bold text-green-700">
@@ -115,19 +107,17 @@ export default function ResumenOrdenPanel({
         </div>
         {observaciones && (
           <div className="bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
-            {" "}
             <span className="font-semibold text-gray-700 block mb-1">
               Observaciones:
             </span>
-            <p className="text-gray-900">{observaciones}</p>{" "}
+            <p className="text-gray-900">{observaciones}</p>
           </div>
         )}
         {fechaEntrega && (
           <div className="bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
-            {" "}
             <span className="font-semibold text-gray-700 block mb-1">
               Fecha de entrega:
-            </span>{" "}
+            </span>
             <span className="text-gray-900">
               {formatFechaEntrega(fechaEntrega)}
             </span>

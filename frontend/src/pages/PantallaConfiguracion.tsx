@@ -266,7 +266,7 @@ export default function PantallaConfiguracion() {
             </>
           ) : (
             "Guardar configuración"
-          )}{" "}
+          )}
         </button>
       </div>
     </div>

@@ -7,9 +7,7 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import React from "react";
-
 import DashboardLayout from "./layout/DashboardLayout";
-
 import PantallaPrincipal from "./pages/PantallaPrincipal";
 import PantallaClientes from "./pages/PantallaClientes";
 import PantallaServicios from "./pages/PantallaServicios";
@@ -18,6 +16,7 @@ import PantallaPagos from "./pages/PantallaPagos";
 import PantallaConfiguracion from "./pages/PantallaConfiguracion";
 import PantallaLogin from "./pages/PantallaLogin";
 import PantallaRegister from "./pages/PantallaRegister";
+import PantallaEstadoOrdenes from "./pages/PantallaEstadoOrdenes";
 
 import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./hooks/useAuth";
@@ -55,10 +54,9 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        {" "}
         <Routes>
           <Route path="/login" element={<PantallaLogin />} />
-          <Route path="/register" element={<PantallaRegister />} />{" "}
+          <Route path="/register" element={<PantallaRegister />} />
           <Route
             path="/"
             element={
@@ -76,8 +74,15 @@ function App() {
               path="configuracion"
               element={
                 <ProtectedRoute roles={["ADMIN"]}>
-                  {" "}
                   <PantallaConfiguracion />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="estado-ordenes"
+              element={
+                <ProtectedRoute roles={["ADMIN"]}>
+                  <PantallaEstadoOrdenes />
                 </ProtectedRoute>
               }
             />

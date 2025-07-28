@@ -210,7 +210,7 @@ export default function RegisterPage() {
           </form>
 
           <div className="mt-6 text-center text-sm text-gray-600">
-            ¿Ya tienes una cuenta?{" "}
+            ¿Ya tienes una cuenta?
             <Link
               to="/login"
               className="text-green-600 hover:underline font-medium"

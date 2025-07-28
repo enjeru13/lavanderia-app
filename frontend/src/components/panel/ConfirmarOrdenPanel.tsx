@@ -52,7 +52,7 @@ export default function ConfirmarOrdenPanel({
           Monto final a cobrar por los servicios.
         </p>
         <p className="text-4xl font-extrabold text-green-700 tracking-tight"> {/* Monto más grande y negrita */}
-          {formatearMoneda(total, monedaPrincipal)}{" "}
+          {formatearMoneda(total, monedaPrincipal)}
         </p>
       </div>
 

@@ -46,8 +46,12 @@ export default function TablaOrdenes({
               <th className="px-4 py-2 text-left whitespace-nowrap">Ingreso</th>
               <th className="px-4 py-2 text-left whitespace-nowrap">Entrega</th>
               <th className="px-4 py-2 text-left whitespace-nowrap">Total</th>
-              <th className="px-4 py-2 text-left whitespace-nowrap">Observaciones</th>
-              <th className="px-4 py-2 text-right whitespace-nowrap">Acciones</th>
+              <th className="px-4 py-2 text-left whitespace-nowrap">
+                Observaciones
+              </th>
+              <th className="px-4 py-2 text-right whitespace-nowrap">
+                Acciones
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -66,7 +70,9 @@ export default function TablaOrdenes({
                   key={o.id}
                   className="border-t border-gray-100 hover:bg-blue-50 transition-colors duration-150 text-gray-700"
                 >
-                  <td className="px-4 py-3 font-bold text-blue-700 whitespace-nowrap">#{o.id}</td>
+                  <td className="px-4 py-3 font-bold text-blue-700 whitespace-nowrap">
+                    #{o.id}
+                  </td>
                   <td className="px-4 py-3">
                     {o.cliente?.nombre} {o.cliente?.apellido}
                   </td>
@@ -78,13 +84,13 @@ export default function TablaOrdenes({
                   </td>
                   <td className="px-4 py-3 text-xs space-y-0.5 whitespace-nowrap">
                     <div className="text-gray-600">
-                      Abonado:{" "}
+                      Abonado:
                       <span className="font-semibold">
                         {formatearMoneda(o.abonado ?? 0, principalSeguro)}
                       </span>
                     </div>
                     <div className="text-red-600">
-                      Falta:{" "}
+                      Falta:
                       <span className="font-semibold">
                         {formatearMoneda(o.faltante ?? 0, principalSeguro)}
                       </span>

@@ -1,0 +1,79 @@
+@media print {
+  body {
+    font-family: "Open Sans", "Segoe UI", Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.5;
+    color: #333;
+    margin: 20mm 25mm;
+    background: #fff;
+  }
+
+  .reporte-header {
+    margin-bottom: 25px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 12px;
+  }
+
+  .reporte-header h1 {
+    font-size: 24pt;
+    font-weight: 700;
+    margin: 0 0 5px 0;
+    color: #2c3e50;
+  }
+
+  .reporte-header p {
+    margin: 3px 0;
+    font-size: 10pt;
+    color: #666;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    page-break-inside: auto;
+  }
+
+  th,
+  td {
+    border: 1px solid #ddd;
+    padding: 10px 12px;
+    vertical-align: middle;
+  }
+
+  th {
+    background-color: #f8f8f8;
+    font-weight: 600;
+    text-align: left;
+    color: #444;
+    text-transform: uppercase;
+    font-size: 10pt;
+  }
+
+  td.text-right {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  tr:nth-child(even) td {
+    background-color: #fcfcfc;
+  }
+
+  .total {
+    margin-top: 30px;
+    font-size: 14pt;
+    font-weight: 700;
+    text-align: right;
+    color: #1a1a1a;
+    padding-top: 10px;
+    border-top: 2px solid #eee;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}

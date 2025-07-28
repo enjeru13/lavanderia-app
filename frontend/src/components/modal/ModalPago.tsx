@@ -325,7 +325,7 @@ export default function ModalPago({
                 Total Orden:
               </span>
               <span className="block text-blue-900 font-bold text-xl">
-                {formatearMoneda(orden.total, principalSegura)}{" "}
+                {formatearMoneda(orden.total, principalSegura)}
               </span>
             </div>
             <div className="p-4 bg-green-50 rounded-lg shadow-sm flex flex-col justify-between">
@@ -333,7 +333,7 @@ export default function ModalPago({
                 Total Abonado:
               </span>
               <span className="block text-green-900 font-bold text-xl">
-                {formatearMoneda(resumen.abonado, principalSegura)}{" "}
+                {formatearMoneda(resumen.abonado, principalSegura)}
               </span>
             </div>
             {/* Monto de pagos en este modal */}
@@ -342,7 +342,7 @@ export default function ModalPago({
                 Monto a abonar (este modal):
               </span>
               <span className="block text-purple-900 font-bold text-xl">
-                {formatearMoneda(totalPagosEnModalPrincipal, principalSegura)}{" "}
+                {formatearMoneda(totalPagosEnModalPrincipal, principalSegura)}
               </span>
             </div>
             {/* Faltante proyectado */}
@@ -351,7 +351,7 @@ export default function ModalPago({
                 Faltante proyectado:
               </span>
               <span className="block text-red-900 font-bold text-2xl">
-                {formatearMoneda(faltanteProyectado, principalSegura)}{" "}
+                {formatearMoneda(faltanteProyectado, principalSegura)}
               </span>
             </div>
           </div>
