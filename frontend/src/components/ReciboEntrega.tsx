@@ -53,7 +53,6 @@ const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
   ) => {
     const restante = Math.max(total - abono, 0);
 
-    // Función para formatear fechas de manera consistente
     const formatDate = (date: string | Date | undefined | null) => {
       if (!date) return "";
       return new Date(date).toLocaleDateString();
