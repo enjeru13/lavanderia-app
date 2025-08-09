@@ -68,10 +68,9 @@ const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
           {lavanderiaInfo.telefonoPrincipal && (
             <p>Whatsapp: {lavanderiaInfo.telefonoPrincipal}</p>
           )}
-          {!lavanderiaInfo.telefonoPrincipal &&
-            lavanderiaInfo.telefonoSecundario && (
-              <p>CANTV: {lavanderiaInfo.telefonoSecundario}</p>
-            )}
+          {lavanderiaInfo.telefonoSecundario && (
+            <p>CANTV: {lavanderiaInfo.telefonoSecundario}</p>
+          )}
           {numeroOrden && (
             <p>
               <strong>N° Orden:</strong> #{numeroOrden}

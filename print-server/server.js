@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
 const app = express();
+require("dotenv").config();
 const PORT = 3001;
 
 app.use(cors());
@@ -11,12 +12,10 @@ let Iconv;
 try {
   Iconv = require("iconv-lite");
 } catch (e) {
-  console.error("Error: La librería 'iconv-lite' no está instalada.");
-  console.error("Por favor, ejecuta 'npm install iconv-lite' para continuar.");
   process.exit(1);
 }
 
-const PRINTNODE_API_KEY = "doaCKbkV4DGpgkKdWBj8jiPlduIKn8zWcJStBA-6LOs";
+const PRINTNODE_API_KEY = process.env.PRINTNODE_API_KEY;
 const PRINTER_ID = 74615502;
 
 // --- Comandos ESC/POS ---
@@ -56,7 +55,7 @@ const generateReceiptText = (datosRecibo) => {
   // Encabezado
   reciboTexto += CENTRAR;
   reciboTexto += TAMAÑO_2X;
-  reciboTexto += `${lavanderiaInfo.nombre}\n`;
+  reciboTexto += `${NEGRITA}${lavanderiaInfo.nombre}${NORMAL}\n\n`;
   reciboTexto += TAMAÑO_NORMAL;
   if (lavanderiaInfo.rif) reciboTexto += `RIF: ${lavanderiaInfo.rif}\n`;
   if (lavanderiaInfo.direccion) reciboTexto += `${lavanderiaInfo.direccion}\n`;
@@ -114,19 +113,22 @@ const generateReceiptText = (datosRecibo) => {
 
   // Observaciones
   if (observaciones) {
-    reciboTexto += `\n${NEGRITA}Observaciones:${NORMAL}\n`;
+    reciboTexto += `${NEGRITA}Observaciones:${NORMAL}\n`;
     reciboTexto += `${observaciones}\n`;
     reciboTexto += `--------------------------------\n`;
   }
 
   // Pie de página
   reciboTexto += CENTRAR;
+  reciboTexto += `¡Gracias por preferirnos!\n`;
+  reciboTexto += ALINEAR_IZQUIERDA;
   if (mensajePieRecibo) {
-    reciboTexto += `${mensajePieRecibo}\n`;
+    reciboTexto += `${mensajePieRecibo}\n\n`;
   } else {
     reciboTexto += `* Este comprobante no da derecho a reclamo sin ticket\n`;
   }
-  reciboTexto += ALINEAR_IZQUIERDA;
+  reciboTexto += CENTRAR;
+  reciboTexto += `(NO DA DERECHO A CREDITO FISCAL)\n`;
   reciboTexto += "\n\n\n\n\n";
 
   return reciboTexto;
