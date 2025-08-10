@@ -7,6 +7,9 @@
     "print-server",
     "shared"
   ],
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  },
   "scripts": {
     "install:all": "pnpm install",
     "build:shared": "pnpm --filter @lavanderia/shared build",
