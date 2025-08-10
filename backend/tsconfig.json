@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "commonjs",
-    "outDir": "../build",
+    "outDir": "build",
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -13,10 +13,8 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
-    "paths": {
-      "@shared/*": ["../shared/*"]
-    }
+    "rootDir": "src"
   },
-  "include": ["./src/**/*.ts", "../shared/**/*.ts"],
+  "include": ["./src/**/*.ts"],
   "exclude": ["node_modules", "build"]
 }
