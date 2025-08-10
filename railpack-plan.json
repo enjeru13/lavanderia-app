@@ -1,0 +1,16 @@
+{
+  "install": {
+    "cmd": "pnpm --filter backend install --prefer-offline --include=dev",
+    "shell": "sh"
+  },
+  "build": {
+    "cmd": "pnpm --filter backend build",
+    "shell": "sh"
+  },
+  "start": {
+    "cmd": "node build/index.js",
+    "shell": "sh",
+    "workingDir": "backend"
+  },
+  "packageManager": "pnpm"
+}
