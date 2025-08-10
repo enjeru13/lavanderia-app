@@ -8,7 +8,7 @@
     "start": "node build/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
-    "deploy": "cd .. && npm ci && cd backend && npm run build"
+    "deploy": "cd .. && npm install && cd backend && npm run build"
   },
   "dependencies": {
     "@prisma/client": "^6.12.0",
