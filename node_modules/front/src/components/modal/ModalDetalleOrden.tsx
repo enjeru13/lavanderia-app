@@ -11,8 +11,8 @@ import {
 } from "../../utils/monedaHelpers";
 import { badgeEstado } from "../../utils/badgeHelpers";
 import { toast } from "react-toastify";
-import { calcularResumenPago } from "../../../../shared/utils/pagoFinance";
-import type { Orden, Configuracion } from "../../../../shared/types/types";
+import { calcularResumenPago } from "@lavanderia/shared/utils/pagoFinance";
+import type { Orden, Configuracion } from "@lavanderia/shared/types/types";
 import { useAuth } from "../../hooks/useAuth";
 import ModalReciboEntrega from "./ModalReciboEntrega";
 

@@ -9,7 +9,7 @@ import {
   FaChartBar,
 } from "react-icons/fa";
 import { useAuth } from "../hooks/useAuth";
-import type { Role } from "../../../shared/types/types";
+import type { Role } from "@lavanderia/shared/types/types";
 import type { JSX } from "react";
 
 export default function Sidebar() {

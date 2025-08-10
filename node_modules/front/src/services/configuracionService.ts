@@ -2,7 +2,7 @@ import apiClient from "../utils/apiClient";
 import type {
   Configuracion,
   ConfiguracionUpdatePayload,
-} from "../../../shared/types/types";
+} from "@lavanderia/shared/types/types";
 
 export const configuracionService = {
   /**

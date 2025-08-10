@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { useReactToPrint } from "react-to-print";
 import { createPortal } from "react-dom";
 import { PagosPrintable } from "../PagosPrintable";
-import type { Moneda, Pago, Orden } from "../../../../shared/types/types";
+import type { Moneda, Pago, Orden } from "@lavanderia/shared/types/types";
 
 interface PagoConOrden extends Pago {
   orden?: Orden & { cliente?: { nombre: string; apellido: string } };

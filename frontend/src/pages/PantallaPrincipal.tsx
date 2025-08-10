@@ -27,7 +27,7 @@ import type {
   OrdenCreate,
   Moneda,
   TasasConversion,
-} from "../../../shared/types/types";
+} from "@lavanderia/shared/types/types";
 import { normalizarMoneda } from "../utils/monedaHelpers";
 
 export default function PantallaPrincipal() {

@@ -12,7 +12,7 @@ import type {
   ServicioCreate,
   ServicioUpdatePayload,
   Moneda,
-} from "../../../shared/types/types";
+} from "@lavanderia/shared/types/types";
 
 export default function PantallaServicios() {
   const [servicios, setServicios] = useState<Servicio[]>([]);

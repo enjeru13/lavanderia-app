@@ -8,7 +8,7 @@ import {
 } from "../utils/monedaHelpers";
 import { ordenesService } from "../services/ordenesService";
 import { configuracionService } from "../services/configuracionService";
-import { calcularResumenPago } from "../../../shared/utils/pagoFinance";
+import { calcularResumenPago } from "@lavanderia/shared/utils/pagoFinance";
 import { badgeEstado, badgePago } from "../utils/badgeHelpers";
 import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
 import ModalPago from "../components/modal/ModalPago";
@@ -18,7 +18,7 @@ import type {
   SortDirection,
   EstadoOrden,
   EstadoPagoRaw,
-} from "../../../shared/types/types";
+} from "@lavanderia/shared/types/types";
 import { useAuth } from "../hooks/useAuth";
 
 type SortKeys = "id" | "cliente" | "estado" | "estadoPago";

@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import prisma from "../lib/prisma";
 import { PagoSchema } from "../schemas/pago.schema";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { calcularResumenPago } from "lavanderia-shared/utils/pagoFinance";
-import type { Moneda, TasasConversion } from "lavanderia-shared/types/types";
+import { calcularResumenPago } from "@lavanderia/shared/dist/utils/pagoFinance";
+import type { Moneda, TasasConversion } from "@lavanderia/shared/dist/types/types";
+
 
 async function recalcularEstadoOrden(ordenId: number) {
   const orden = await prisma.orden.findUnique({

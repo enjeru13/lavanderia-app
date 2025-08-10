@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { clientesService } from "../../services/clientesService";
 import { FaUser } from "react-icons/fa";
-import type { Cliente } from "../../../../shared/types/types";
+import type { Cliente } from "@lavanderia/shared/types/types";
 import { toast } from "react-toastify";
 
 type Props = {

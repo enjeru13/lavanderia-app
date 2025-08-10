@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Orden, Pago } from "../../../shared/types/types";
+import type { Orden, Pago } from "@lavanderia/shared/types/types";
 
 const API_URL = "/api/ordenes";
 

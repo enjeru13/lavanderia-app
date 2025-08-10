@@ -20,7 +20,7 @@ import PantallaEstadoOrdenes from "./pages/PantallaEstadoOrdenes";
 
 import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./hooks/useAuth";
-import type { Role } from "../../shared/types/types";
+import type { Role } from "@lavanderia/shared/types/types";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

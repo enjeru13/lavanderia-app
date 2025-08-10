@@ -1,11 +1,16 @@
 {
-  "name": "lavanderia-monorepo",
-  "version": "1.0.0",
+  "name": "lavanderia-app",
   "private": true,
   "workspaces": [
     "backend",
     "frontend",
     "print-server",
     "shared"
-  ]
+  ],
+  "scripts": {
+    "install:all": "pnpm install",
+    "build:shared": "pnpm --filter @lavanderia/shared build",
+    "build": "pnpm run build:shared && pnpm -r build",
+    "dev": "pnpm -r dev"
+  }
 }

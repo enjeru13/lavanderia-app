@@ -3,7 +3,7 @@ import type {
   User,
   UserLoginPayload,
   UserRegisterPayload,
-} from "../../../shared/types/types";
+} from "@lavanderia/shared/types/types";
 interface AuthResponse {
   message: string;
   user: User;

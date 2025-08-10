@@ -1,5 +1,5 @@
 import { FaSearch, FaPen, FaTrashAlt } from "react-icons/fa";
-import type { Cliente } from "../../../../shared/types/types";
+import type { Cliente } from "@lavanderia/shared/types/types";
 import { useAuth } from "../../hooks/useAuth";
 
 type Props = {

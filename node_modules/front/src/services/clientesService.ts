@@ -3,7 +3,7 @@ import type {
   Cliente,
   ClienteCreate,
   ClienteUpdatePayload,
-} from "../../../shared/types/types";
+} from "@lavanderia/shared/types/types";
 
 export const clientesService = {
   getAll: () => apiClient.get<Cliente[]>("/clientes"),

@@ -12,8 +12,8 @@ import {
   type Moneda,
   type TasasConversion,
 } from "../../utils/monedaHelpers";
-import { calcularResumenPago } from "../../../../shared/utils/pagoFinance";
-import type { Orden, MetodoPago } from "../../../../shared/types/types";
+import { calcularResumenPago } from "@lavanderia/shared/utils/pagoFinance";
+import type { Orden, MetodoPago } from "@lavanderia/shared/types/types";
 
 type PagoInput = {
   monto: number;

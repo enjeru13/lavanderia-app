@@ -5,7 +5,7 @@ import type {
   Pago,
   Orden,
   MetodoPago,
-} from "../../../../shared/types/types";
+} from "@lavanderia/shared/types/types";
 
 interface PagoConOrden extends Pago {
   orden?: Orden & { cliente?: { nombre: string; apellido: string } };

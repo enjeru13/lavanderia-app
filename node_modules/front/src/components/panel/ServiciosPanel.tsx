@@ -2,7 +2,7 @@ import { formatearMoneda, type Moneda } from "../../utils/monedaHelpers";
 import type {
   Servicio,
   ServicioSeleccionado,
-} from "../../../../shared/types/types";
+} from "@lavanderia/shared/types/types";
 import React from "react";
 import { MdOutlineLocalLaundryService } from "react-icons/md";
 

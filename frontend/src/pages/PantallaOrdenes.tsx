@@ -6,7 +6,7 @@ import TablaOrdenes from "../components/tabla/TablaOrdenes";
 import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
 import ConfirmacionModal from "../components/modal/ConfirmacionModal";
 import { FaSearch } from "react-icons/fa";
-import { calcularResumenPago } from "../../../shared/utils/pagoFinance";
+import { calcularResumenPago } from "@lavanderia/shared/utils/pagoFinance";
 import {
   normalizarMoneda,
   type Moneda,
@@ -15,7 +15,7 @@ import {
 import { ordenesService } from "../services/ordenesService";
 import { configuracionService } from "../services/configuracionService";
 import { useAuth } from "../hooks/useAuth";
-import type { Orden } from "../../../shared/types/types";
+import type { Orden } from "@lavanderia/shared/types/types";
 import ControlesPaginacion from "../components/ControlesPaginacion";
 
 export default function PantallaOrdenes() {

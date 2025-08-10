@@ -1,5 +1,5 @@
 import { FaUserPlus, FaUserCheck, FaUser } from "react-icons/fa";
-import type { ClienteResumen } from "../../../../shared/types/types";
+import type { ClienteResumen } from "@lavanderia/shared/types/types";
 
 type Props = {
   cliente: ClienteResumen | null;

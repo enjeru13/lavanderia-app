@@ -1,6 +1,6 @@
 import { FaUser } from "react-icons/fa";
 import { FiX } from "react-icons/fi";
-import type { Cliente } from "../../../../shared/types/types";
+import type { Cliente } from "@lavanderia/shared/types/types";
 
 type Props = {
   cliente: Cliente;

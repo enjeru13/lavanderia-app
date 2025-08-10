@@ -3,7 +3,7 @@ import type {
   ClienteResumen,
   Servicio,
   ServicioSeleccionado,
-} from "../../../../shared/types/types";
+} from "@lavanderia/shared/types/types";
 import { FaClipboardList } from "react-icons/fa";
 
 type Props = {

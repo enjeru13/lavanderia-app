@@ -3,7 +3,7 @@ import type {
   Servicio,
   ServicioCreate,
   ServicioUpdatePayload,
-} from "../../../shared/types/types";
+} from "@lavanderia/shared/types/types";
 
 export const servicioService = {
   /**

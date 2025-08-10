@@ -5,7 +5,7 @@ import type {
   Pago,
   Orden,
   MetodoPago,
-} from "../../../shared/types/types";
+} from "@lavanderia/shared/types/types";
 import "./styles/pagos.css";
 
 interface PagoConOrden extends Pago {

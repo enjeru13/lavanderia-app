@@ -1,0 +1,12 @@
+packages:
+  - backend
+  - frontend
+  - print-server
+  - shared
+
+onlyBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - '@tailwindcss/oxide'
+  - esbuild
+  - prisma

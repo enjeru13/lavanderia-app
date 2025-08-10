@@ -5,7 +5,7 @@ import type {
   ClienteCreate,
   ClienteUpdatePayload,
   TipoCliente,
-} from "../../../../shared/types/types";
+} from "@lavanderia/shared/types/types";
 import { isAxiosError } from "axios";
 import { toast } from "react-toastify";
 

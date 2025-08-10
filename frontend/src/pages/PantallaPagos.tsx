@@ -16,7 +16,7 @@ import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
 import TablaPagos from "../components/tabla/TablaPagos";
 import ModalImprimirPagos from "../components/modal/ModalImprimirPagos";
 
-import type { Pago, Orden } from "../../../shared/types/types";
+import type { Pago, Orden } from "@lavanderia/shared/types/types";
 
 interface PagoConOrden extends Pago {
   orden?: Orden & { cliente?: { nombre: string; apellido: string } };

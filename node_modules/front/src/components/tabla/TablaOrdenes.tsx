@@ -10,7 +10,7 @@ import {
   type Moneda,
   normalizarMoneda,
 } from "../../utils/monedaHelpers";
-import type { Orden } from "../../../../shared/types/types";
+import type { Orden } from "@lavanderia/shared/types/types";
 import { useAuth } from "../../hooks/useAuth";
 
 interface Props {

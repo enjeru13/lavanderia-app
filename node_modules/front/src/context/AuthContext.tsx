@@ -11,7 +11,7 @@ import type {
   UserLoginPayload,
   Role,
   AuthContextType,
-} from "../../../shared/types/types";
+} from "@lavanderia/shared/types/types";
 import { toast } from "react-toastify";
 import axios from "axios";
 

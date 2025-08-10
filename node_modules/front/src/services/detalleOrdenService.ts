@@ -3,7 +3,7 @@ import type {
   DetalleOrden,
   DetalleOrdenCreate,
   DetalleOrdenUpdatePayload,
-} from "../../../shared/types/types";
+} from "@lavanderia/shared/types/types";
 
 export const detalleOrdenService = {
   /**
