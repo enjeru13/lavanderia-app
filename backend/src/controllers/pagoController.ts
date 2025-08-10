@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import prisma from "../lib/prisma";
 import { PagoSchema } from "../schemas/pago.schema";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { calcularResumenPago } from "../../../shared/utils/pagoFinance";
-import type { Moneda, TasasConversion } from "../../../shared/types/types";
+import { calcularResumenPago } from "@shared/utils/pagoFinance";
+import type { Moneda, TasasConversion } from "@shared/types/types";
 
 async function recalcularEstadoOrden(ordenId: number) {
   const orden = await prisma.orden.findUnique({

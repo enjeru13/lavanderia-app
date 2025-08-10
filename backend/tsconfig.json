@@ -14,11 +14,9 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../../shared/*"]
-    },
-    "rootDir": "../"
+      "@shared/*": ["../shared/*"]
+    }
   },
-  "include": ["./src/**/*.ts", "../../shared/**/*.ts"],
-
+  "include": ["./src/**/*.ts", "../shared/**/*.ts"],
   "exclude": ["node_modules", "build"]
 }
