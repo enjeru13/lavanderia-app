@@ -1,6 +1,6 @@
 {
   "install": {
-    "cmd": "pnpm --filter backend install --prefer-offline --include=dev",
+    "cmd": "pnpm install --prefer-offline --filter backend --include=dev",
     "shell": "sh"
   },
   "build": {
