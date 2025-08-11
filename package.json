@@ -15,5 +15,19 @@
     "build:shared": "npm run --workspace=shared build",
     "build": "npm run build:shared && npm run --workspaces --if-present build",
     "dev": "npm run --workspaces --if-present dev"
-  }
+  },
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/enjeru13/lavanderia-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/enjeru13/lavanderia-app/issues"
+  },
+  "homepage": "https://github.com/enjeru13/lavanderia-app#readme"
 }
