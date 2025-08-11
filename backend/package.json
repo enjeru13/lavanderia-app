@@ -7,8 +7,7 @@
     "build": "npx prisma generate && npx tsc -p tsconfig.json",
     "start": "node build/index.js",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev --name init",
-    "deploy": "cd .. && npm install && cd backend && npm run build"
+    "prisma:migrate": "prisma migrate dev --name init"
   },
   "dependencies": {
     "@lavanderia/shared": "workspace:*",
@@ -26,7 +25,6 @@
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
-    "@types/node": "^24.0.10",
     "node-gyp": "^9.4.1",
     "prisma": "^6.13.0",
     "ts-node-dev": "^2.0.0",

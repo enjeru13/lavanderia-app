@@ -11,9 +11,9 @@
     "typescript": "^5.8.3"
   },
   "scripts": {
-    "install:all": "pnpm install",
-    "build:shared": "pnpm --filter @lavanderia/shared build",
-    "build": "pnpm run build:shared && pnpm -r build",
-    "dev": "pnpm -r dev"
+    "install:all": "npm install",
+    "build:shared": "npm run --workspace=shared build",
+    "build": "npm run build:shared && npm run --workspaces --if-present build",
+    "dev": "npm run --workspaces --if-present dev"
   }
 }
