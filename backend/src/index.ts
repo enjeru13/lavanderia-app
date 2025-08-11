@@ -1,3 +1,4 @@
+// src/index.ts
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -18,7 +19,6 @@ import authRoute from "./routes/authRoute";
 
 const app = express();
 
-// Middlewares globales
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
@@ -32,16 +32,17 @@ app.use("/api/detalleOrdenes", detalleRouter);
 app.use("/api/pagos", pagoRouter);
 app.use("/api/configuracion", configuracionRouter);
 
-// Manejador de errores
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error("Error global:", err);
   res.status(500).json({ message: "Ocurrió un error interno en el servidor." });
 });
 
-// Define el puerto de la aplicación.
-const PORT = process.env.PORT || 4000;
+// Solo escucha en puerto si NO estás en producción Vercel
+if (process.env.VERCEL === undefined) {
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () =>
+    console.log(`Server running at http://localhost:${PORT}`)
+  );
+}
 
-// Inicia el servidor
-app.listen(PORT, () =>
-  console.log(`Server running at http://localhost:${PORT}`)
-);
+export default app;
