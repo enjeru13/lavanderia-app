@@ -1,4 +1,3 @@
-// src/index.ts
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -37,12 +36,9 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({ message: "Ocurrió un error interno en el servidor." });
 });
 
-// Solo escucha en puerto si NO estás en producción Vercel
-if (process.env.VERCEL === undefined) {
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () =>
     console.log(`Server running at http://localhost:${PORT}`)
   );
-}
 
 export default app;
