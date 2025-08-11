@@ -23,7 +23,7 @@
     "react-router-dom": "^7.6.3",
     "react-to-print": "^3.1.1",
     "react-toastify": "^11.0.5",
-    "zod": "^4.0.5",
+    "zod": "^3.25.76",
     "@lavanderia/shared": "workspace:*"
   },
   "devDependencies": {
