@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
 import ReciboEntrega from "../ReciboEntrega";
 import type { Moneda } from "../../utils/monedaHelpers";
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_PRINT_SERVER_URL;
 
 interface ReciboItem {
   descripcion: string;
