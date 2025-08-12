@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
 import ReciboEntrega from "../ReciboEntrega";
 import type { Moneda } from "../../utils/monedaHelpers";
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface ReciboItem {
   descripcion: string;
@@ -47,7 +48,7 @@ export default function ModalReciboEntrega({
 }: Props) {
   const imprimirConServidor = async () => {
     try {
-      const response = await fetch("http://localhost:3001/imprimir-recibo", {
+      const response = await fetch(`${API_URL}/imprimir-recibo`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
