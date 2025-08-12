@@ -16,7 +16,7 @@ try {
 }
 
 const PRINTNODE_API_KEY = process.env.PRINTNODE_API_KEY;
-const PRINTER_ID = 74615502;
+const PRINTER_ID = 74626370;
 
 // --- Comandos ESC/POS ---
 const ESC = "\x1B";
