@@ -13,13 +13,15 @@ let Iconv;
 try {
   Iconv = require("iconv-lite");
 } catch (e) {
+  console.error(
+    "Error: iconv-lite no está instalado. Por favor, ejecuta 'npm install iconv-lite'."
+  );
   process.exit(1);
 }
 
 const PRINTNODE_API_KEY = process.env.PRINTNODE_API_KEY;
 const PRINTER_ID = 74626370;
 
-// --- Comandos ESC/POS ---
 const ESC = "\x1B";
 const GS = "\x1D";
 const CENTRAR = `${ESC}\x61\x01`;
@@ -30,16 +32,17 @@ const TAMAÑO_NORMAL = `${GS}\x21\x00`;
 const TAMAÑO_2X = `${GS}\x21\x01`;
 const PAGINA_DE_CODIGOS = `${ESC}\x74\x13`;
 
+const LINE_WIDTH = 32;
+
 const formatDate = (date) => {
   if (!date) return "";
   return dayjs(date).format("DD/MM/YYYY");
 };
 
 const formatearMoneda = (monto) => {
-  return `$${monto.toFixed(2)}`;
+  return `$${Number(monto).toFixed(2)}`;
 };
 
-// --- Lógica de generación del recibo ---
 const generateReceiptText = (datosRecibo) => {
   let reciboTexto = "";
   const {
@@ -53,7 +56,6 @@ const generateReceiptText = (datosRecibo) => {
     mensajePieRecibo,
   } = datosRecibo;
 
-  // Encabezado
   reciboTexto += CENTRAR;
   reciboTexto += TAMAÑO_2X;
   reciboTexto += `${NEGRITA}${lavanderiaInfo.nombre}${NORMAL}\n\n`;
@@ -71,7 +73,6 @@ const generateReceiptText = (datosRecibo) => {
     reciboTexto += `${NEGRITA}N° Orden: ${NORMAL}#${numeroOrden}\n`;
   reciboTexto += `${ALINEAR_IZQUIERDA}--------------------------------\n`;
 
-  // Datos del cliente
   reciboTexto += `${NEGRITA}Cliente: ${NORMAL}${clienteInfo.nombre} ${clienteInfo.apellido}\n`;
   reciboTexto += `${NEGRITA}CI/RIF: ${NORMAL}${clienteInfo.identificacion}\n`;
   reciboTexto += `${NEGRITA}Fecha de Ingreso:${NORMAL} ${formatDate(
@@ -84,7 +85,6 @@ const generateReceiptText = (datosRecibo) => {
   }
   reciboTexto += `--------------------------------\n`;
 
-  // Ítems con formato de tabla
   reciboTexto += `${"ITEM".padEnd(16)}${"CANT".padStart(6)}${"TOTAL".padStart(
     10
   )}\n`;
@@ -100,31 +100,32 @@ const generateReceiptText = (datosRecibo) => {
   });
   reciboTexto += `--------------------------------\n`;
 
-  // Totales
   const totalCantidad = items.reduce((sum, item) => sum + item.cantidad, 0);
+  const porPagar = Math.max(total - abono, 0);
 
-  reciboTexto += `${NEGRITA}Total Cantidad:${NORMAL} ${String(
-    totalCantidad
-  ).padStart(22)}\n`;
-  reciboTexto += `${NEGRITA}Total:${NORMAL} ${formatearMoneda(total).padStart(
-    25
-  )}\n`;
-  reciboTexto += `${NEGRITA}Total Abono:${NORMAL} ${formatearMoneda(
-    abono
-  ).padStart(19)}\n`;
-  reciboTexto += `${NEGRITA}Por pagar:${NORMAL} ${formatearMoneda(
-    Math.max(total - abono, 0)
-  ).padStart(21)}\n`;
+  const formatAlignedLine = (labelText, valueText) => {
+    const spacesToPad = LINE_WIDTH - labelText.length - valueText.length;
+    return `${NEGRITA}${labelText}${NORMAL}${Array(spacesToPad + 1).join(
+      " "
+    )}${valueText}\n`;
+  };
+
+  reciboTexto += formatAlignedLine(
+    "Total Cantidad Piezas:",
+    String(totalCantidad)
+  );
+  reciboTexto += formatAlignedLine("Total:", formatearMoneda(total));
+  reciboTexto += formatAlignedLine("Total Abono:", formatearMoneda(abono));
+  reciboTexto += formatAlignedLine("Por pagar:", formatearMoneda(porPagar));
+
   reciboTexto += `--------------------------------\n`;
 
-  // Observaciones
   if (observaciones) {
     reciboTexto += `${NEGRITA}Observaciones:${NORMAL}\n`;
     reciboTexto += `${observaciones}\n`;
     reciboTexto += `--------------------------------\n`;
   }
 
-  // Pie de página
   reciboTexto += CENTRAR;
   reciboTexto += `¡Gracias por preferirnos!\n`;
   reciboTexto += ALINEAR_IZQUIERDA;
@@ -140,7 +141,6 @@ const generateReceiptText = (datosRecibo) => {
   return reciboTexto;
 };
 
-// --- API endpoint ---
 app.post("/imprimir-recibo", async (req, res) => {
   const datosRecibo = req.body;
   let reciboTexto = PAGINA_DE_CODIGOS;
@@ -193,3 +193,5 @@ app.post("/imprimir-recibo", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor de impresión activo en http://localhost:${PORT}`);
 });
+
+module.exports = app;
