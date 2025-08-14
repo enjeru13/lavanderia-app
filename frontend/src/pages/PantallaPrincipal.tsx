@@ -29,6 +29,8 @@ import type {
   TasasConversion,
 } from "@lavanderia/shared/types/types";
 import { normalizarMoneda } from "../utils/monedaHelpers";
+import dayjs from "dayjs";
+
 
 export default function PantallaPrincipal() {
   const [cliente, setCliente] = useState<Cliente | null>(null);
@@ -92,7 +94,7 @@ export default function PantallaPrincipal() {
       clienteId: cliente.id,
       estado: "PENDIENTE",
       observaciones: observaciones.trim() || null,
-      fechaEntrega: fechaEntrega ? new Date(fechaEntrega).toISOString() : null,
+      fechaEntrega: fechaEntrega ? dayjs(fechaEntrega).toISOString() : null,
       servicios: serviciosSeleccionados,
     };
 

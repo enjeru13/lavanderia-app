@@ -4,12 +4,12 @@ import dayjs from "dayjs";
 const fechaTransformada = z
   .union([z.string(), z.null(), z.undefined()])
   .optional()
-  .transform((val) => {
+  .transform((val): Date | null => {
     if (val === null || val === undefined || val === "") return null;
     const fecha = dayjs(val);
     return fecha.isValid() ? fecha.toDate() : null;
   })
-  .refine((val) => val === null || val instanceof Date, {
+  .refine((val): val is Date | null => val === null || val instanceof Date, {
     message: "Fecha inválida",
   });
 
@@ -44,6 +44,7 @@ export const ordenSchema = z.object({
 });
 
 export const ordenUpdateSchema = ordenSchema.partial();
+
 export const ObservacionUpdateSchema = z.object({
   observaciones: z.string().nullable().optional(),
 });
