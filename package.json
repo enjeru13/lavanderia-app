@@ -2,6 +2,7 @@
   "name": "lavanderia-app",
   "private": true,
   "devDependencies": {
+    "rimraf": "^6.0.1",
     "typescript": "^5.8.3"
   },
   "scripts": {
@@ -10,7 +11,12 @@
     "dev:frontend": "pnpm --filter frontend dev",
     "build": "pnpm --filter @lavanderia/shared build && pnpm --filter backend build && pnpm --filter frontend build",
     "build:backend": "pnpm --filter backend build",
-    "build:frontend": "pnpm --filter frontend build"
+    "build:frontend": "pnpm --filter frontend build",
+    "backend:prisma": "prisma generate",
+    "backend:tsc": "tsc -p tsconfig.json",
+    "clean:prisma": "node scripts/clean-prisma.mjs",
+    "build:check": "node build-check.mjs",
+    "build:all": "pnpm run build:check"
   },
   "dependencies": {
     "dayjs": "^1.11.13"
