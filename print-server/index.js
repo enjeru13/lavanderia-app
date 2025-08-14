@@ -13,9 +13,6 @@ let Iconv;
 try {
   Iconv = require("iconv-lite");
 } catch (e) {
-  console.error(
-    "Error: iconv-lite no está instalado. Por favor, ejecuta 'npm install iconv-lite'."
-  );
   process.exit(1);
 }
 
@@ -42,8 +39,7 @@ const formatDate = (date) => {
 const formatearMoneda = (monto) => {
   return `$${Number(monto).toFixed(2)}`;
 };
-
-const generateReceiptText = (datosRecibo) => {
+const generateReceiptText = (datosRecibo, receiptType) => {
   let reciboTexto = "";
   const {
     clienteInfo,
@@ -69,10 +65,15 @@ const generateReceiptText = (datosRecibo) => {
     reciboTexto += `CANTV: ${lavanderiaInfo.telefonoSecundario}\n`;
   }
 
+  reciboTexto += TAMAÑO_2X;
+  reciboTexto += `${NEGRITA}--- COPIA ${receiptType.toUpperCase()} ---\n\n${NORMAL}`;
+  reciboTexto += TAMAÑO_NORMAL;
+
   if (numeroOrden)
     reciboTexto += `${NEGRITA}N° Orden: ${NORMAL}#${numeroOrden}\n`;
   reciboTexto += `${ALINEAR_IZQUIERDA}--------------------------------\n`;
 
+  // --- Datos del cliente ---
   reciboTexto += `${NEGRITA}Cliente: ${NORMAL}${clienteInfo.nombre} ${clienteInfo.apellido}\n`;
   reciboTexto += `${NEGRITA}CI/RIF: ${NORMAL}${clienteInfo.identificacion}\n`;
   reciboTexto += `${NEGRITA}Fecha de Ingreso:${NORMAL} ${formatDate(
@@ -102,7 +103,6 @@ const generateReceiptText = (datosRecibo) => {
 
   const totalCantidad = items.reduce((sum, item) => sum + item.cantidad, 0);
   const porPagar = Math.max(total - abono, 0);
-
   const formatAlignedLine = (labelText, valueText) => {
     const spacesToPad = LINE_WIDTH - labelText.length - valueText.length;
     return `${NEGRITA}${labelText}${NORMAL}${Array(spacesToPad + 1).join(
@@ -136,7 +136,8 @@ const generateReceiptText = (datosRecibo) => {
   }
   reciboTexto += CENTRAR;
   reciboTexto += `(NO DA DERECHO A CREDITO FISCAL)\n`;
-  reciboTexto += "\n\n\n\n\n";
+
+  reciboTexto += "\n\n\n\n";
 
   return reciboTexto;
 };
@@ -144,14 +145,17 @@ const generateReceiptText = (datosRecibo) => {
 app.post("/imprimir-recibo", async (req, res) => {
   const datosRecibo = req.body;
   let reciboTexto = PAGINA_DE_CODIGOS;
-  reciboTexto += generateReceiptText(datosRecibo);
+
+  reciboTexto += generateReceiptText(datosRecibo, "cliente");
+
+  reciboTexto += generateReceiptText(datosRecibo, "interno");
 
   const encodedText = Iconv.encode(reciboTexto, "CP858");
   const contentBase64 = encodedText.toString("base64");
 
   const requestData = {
     printer: PRINTER_ID,
-    title: "Recibo de Lavandería",
+    title: "Recibo de Lavandería (Cliente e Interno)",
     contentType: "raw_base64",
     content: contentBase64,
   };
