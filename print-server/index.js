@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
+const dayjs = require("dayjs");
 const app = express();
 require("dotenv").config();
 const PORT = process.env.PORT || 3001;
@@ -31,7 +32,7 @@ const PAGINA_DE_CODIGOS = `${ESC}\x74\x13`;
 
 const formatDate = (date) => {
   if (!date) return "";
-  return new Date(date).toLocaleDateString();
+  return dayjs(date).format("DD/MM/YYYY");
 };
 
 const formatearMoneda = (monto) => {
@@ -100,6 +101,11 @@ const generateReceiptText = (datosRecibo) => {
   reciboTexto += `--------------------------------\n`;
 
   // Totales
+  const totalCantidad = items.reduce((sum, item) => sum + item.cantidad, 0);
+
+  reciboTexto += `${NEGRITA}Total Cantidad:${NORMAL} ${String(
+    totalCantidad
+  ).padStart(22)}\n`;
   reciboTexto += `${NEGRITA}Total:${NORMAL} ${formatearMoneda(total).padStart(
     25
   )}\n`;

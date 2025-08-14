@@ -1,6 +1,13 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { FaPrint, FaSearch } from "react-icons/fa";
 import { toast } from "react-toastify";
+import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
+
 import {
   formatearMoneda,
   convertirAmonedaPrincipal,
@@ -97,17 +104,16 @@ export default function PantallaPagos() {
       }`.toLowerCase();
       const matchCliente = nombreCliente.includes(termino);
 
-      const pagoFecha = new Date(pago.fechaPago);
+      const pagoFecha = dayjs(pago.fechaPago);
       let matchFecha = true;
+
       if (fechaInicio) {
-        const inicio = new Date(fechaInicio);
-        inicio.setHours(0, 0, 0, 0);
-        matchFecha = pagoFecha >= inicio;
+        const inicio = dayjs(fechaInicio).startOf("day");
+        matchFecha = pagoFecha.isSameOrAfter(inicio);
       }
       if (fechaFin && matchFecha) {
-        const fin = new Date(fechaFin);
-        fin.setHours(23, 59, 59, 999);
-        matchFecha = pagoFecha <= fin;
+        const fin = dayjs(fechaFin).endOf("day");
+        matchFecha = pagoFecha.isSameOrBefore(fin);
       }
 
       return (matchOrdenId || matchCliente) && matchFecha;
@@ -121,8 +127,8 @@ export default function PantallaPagos() {
         let valB: number;
 
         if (sortColumn === "fechaPago") {
-          valA = new Date(a.fechaPago).getTime();
-          valB = new Date(b.fechaPago).getTime();
+          valA = dayjs(a.fechaPago).valueOf();
+          valB = dayjs(b.fechaPago).valueOf();
         } else if (sortColumn === "ordenId") {
           valA = a.ordenId;
           valB = b.ordenId;
@@ -262,6 +268,7 @@ export default function PantallaPagos() {
             className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
           />
         </div>
+
         <div className="flex flex-col mt-5">
           <button
             onClick={() => setMostrarModalImprimir(true)}
@@ -319,6 +326,7 @@ export default function PantallaPagos() {
           onAbrirPagoExtra={() => {}}
         />
       )}
+
       <ModalImprimirPagos
         visible={mostrarModalImprimir}
         onClose={() => setMostrarModalImprimir(false)}

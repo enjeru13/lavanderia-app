@@ -18,12 +18,23 @@ import authRoute from "./routes/authRoute";
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://lavanderia-app-frontend.netlify.app/'
+];
+
+const corsOptions = {
+  origin: allowedOrigins,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(morgan("dev"));
 app.use(express.json());
-
 app.use("/api/auth", authRoute);
 app.use("/api", protect);
+
+// Rutas protegidas
 app.use("/api/clientes", clienteRouter);
 app.use("/api/servicios", servicioRouter);
 app.use("/api/ordenes", ordenRouter);
@@ -36,9 +47,9 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({ message: "Ocurrió un error interno en el servidor." });
 });
 
-  const PORT = process.env.PORT || 4000;
-  app.listen(PORT, () =>
-    console.log(`Server running at http://localhost:${PORT}`)
-  );
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () =>
+  console.log(`Server running at http://localhost:${PORT}`)
+);
 
 export default app;

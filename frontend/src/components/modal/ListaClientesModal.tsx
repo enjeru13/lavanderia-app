@@ -43,8 +43,9 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg h-[80vh] flex flex-col transform transition-all duration-300 scale-100 opacity-100">
-        <div className="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white px-6 py-4 flex justify-between items-center shadow-md rounded-t-2xl">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg h-[80vh] flex flex-col">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white px-6 py-4 flex justify-between items-center rounded-t-2xl shadow-md">
           <h2 className="text-xl font-extrabold flex items-center gap-3">
             <FaUser className="text-2xl" />
             Seleccionar Cliente
@@ -58,7 +59,8 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
           </button>
         </div>
 
-        <div className="px-6 py-6 flex-1 flex flex-col space-y-5 text-base text-gray-800">
+        {/* Body */}
+        <div className="px-6 py-6 flex-1 flex flex-col space-y-5 text-base text-gray-800 overflow-hidden">
           <input
             type="text"
             value={busqueda}
@@ -67,6 +69,7 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
           />
 
+          {/* Scrollable list */}
           <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
             {cargando ? (
               <p className="text-center text-indigo-600 font-semibold py-8">
@@ -91,9 +94,7 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
                     <p className="font-bold text-gray-900 text-lg">
                       {c.nombre} {c.apellido}
                     </p>
-                    <p className="text-sm text-gray-600">
-                      {c.identificacion}
-                    </p>
+                    <p className="text-sm text-gray-600">{c.identificacion}</p>
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">Tel:</span> {c.telefono}
                     </p>
@@ -113,6 +114,7 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
           </div>
         </div>
 
+        {/* Footer */}
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end shadow-inner rounded-b-2xl">
           <button
             onClick={onClose}

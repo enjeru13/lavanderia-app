@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
+    "@lavanderia/shared": "workspace:*",
     "@lottiefiles/dotlottie-react": "^0.14.4",
     "@tailwindcss/vite": "^4.1.11",
     "axios": "^1.10.0",
+    "dayjs": "^1.11.13",
     "dotenv": "^17.2.0",
     "lottie-react": "^2.4.1",
     "react": "^19.1.0",
@@ -23,8 +25,7 @@
     "react-router-dom": "^7.6.3",
     "react-to-print": "^3.1.1",
     "react-toastify": "^11.0.5",
-    "zod": "^3.25.76",
-    "@lavanderia/shared": "workspace:*"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",

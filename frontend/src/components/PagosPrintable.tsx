@@ -7,6 +7,10 @@ import type {
   MetodoPago,
 } from "@lavanderia/shared/types/types";
 import "./styles/pagos.css";
+import dayjs from "dayjs";
+import "dayjs/locale/es";
+
+dayjs.locale("es");
 
 interface PagoConOrden extends Pago {
   orden?: Orden & {
@@ -31,11 +35,7 @@ const metodoPagoDisplay: Record<MetodoPago, string> = {
 
 export const PagosPrintable = forwardRef<HTMLDivElement, PagosPrintableProps>(
   ({ pagos, monedaPrincipal, totalIngresos }, ref) => {
-    const fechaGeneracion = new Date().toLocaleDateString("es-VE", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
+    const fechaGeneracion = dayjs().format("DD [de] MMMM [de] YYYY");
 
     return (
       <div ref={ref} className="print-container">
@@ -69,9 +69,8 @@ export const PagosPrintable = forwardRef<HTMLDivElement, PagosPrintableProps>(
             ) : (
               pagos.map((pago) => (
                 <tr key={pago.id} className="avoid-break">
-                  <td>
-                    {new Date(pago.fechaPago).toLocaleDateString("es-VE")}
-                  </td>
+                  <td>{dayjs(pago.fechaPago).format("DD/MM/YYYY")}</td>
+
                   <td>#{pago.ordenId}</td>
                   <td>
                     {pago.orden?.cliente

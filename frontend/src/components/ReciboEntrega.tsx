@@ -1,6 +1,10 @@
 import { forwardRef } from "react";
 import { formatearMoneda, type Moneda } from "../utils/monedaHelpers";
 import "../components/styles/recibo.css";
+import dayjs from "dayjs";
+import "dayjs/locale/es";
+
+dayjs.locale("es");
 
 interface ReciboItem {
   descripcion: string;
@@ -55,7 +59,8 @@ const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
 
     const formatDate = (date: string | Date | undefined | null) => {
       if (!date) return "";
-      return new Date(date).toLocaleDateString();
+      const fecha = dayjs(date);
+      return fecha.isValid() ? fecha.format("DD/MM/YYYY") : "";
     };
 
     return (

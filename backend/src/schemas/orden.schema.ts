@@ -1,12 +1,13 @@
 import { z } from "zod";
+import dayjs from "dayjs";
 
 const fechaTransformada = z
   .union([z.string(), z.null(), z.undefined()])
   .optional()
   .transform((val) => {
     if (val === null || val === undefined || val === "") return null;
-    const timestamp = Date.parse(val);
-    return isNaN(timestamp) ? null : new Date(timestamp);
+    const fecha = dayjs(val);
+    return fecha.isValid() ? fecha.toDate() : null;
   })
   .refine((val) => val === null || val instanceof Date, {
     message: "Fecha inválida",

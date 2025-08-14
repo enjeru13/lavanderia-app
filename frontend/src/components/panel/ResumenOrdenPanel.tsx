@@ -5,6 +5,10 @@ import type {
   ServicioSeleccionado,
 } from "@lavanderia/shared/types/types";
 import { FaClipboardList } from "react-icons/fa";
+import dayjs from "dayjs";
+import "dayjs/locale/es";
+
+dayjs.locale("es");
 
 type Props = {
   cliente: ClienteResumen | null;
@@ -30,20 +34,8 @@ export default function ResumenOrdenPanel({
 
   const formatFechaEntrega = (dateString: string) => {
     if (!dateString) return "No definida";
-    try {
-      const [y, m, d] = dateString.split("-");
-      return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString(
-        "es-VE",
-        {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }
-      );
-    } catch (error) {
-      console.error("Error al formatear fecha de entrega:", error);
-      return dateString;
-    }
+    const fecha = dayjs(dateString);
+    return fecha.isValid() ? fecha.format("DD/MM/YYYY") : "Fecha inválida";
   };
 
   return (

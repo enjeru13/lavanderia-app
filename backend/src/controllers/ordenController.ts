@@ -6,6 +6,8 @@ import {
   ObservacionUpdateSchema,
 } from "../schemas/orden.schema";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import dayjs from "dayjs";
+
 
 export async function getAllOrdenes(req: Request, res: Response) {
   try {
@@ -93,7 +95,7 @@ export async function createOrden(req: Request, res: Response) {
         estado,
         total: parseFloat(total.toFixed(2)),
         observaciones,
-        fechaEntrega: fechaEntrega ? new Date(fechaEntrega) : null,
+        fechaEntrega: fechaEntrega ? dayjs(fechaEntrega).toDate() : null,
         abonado: 0,
         faltante: parseFloat(total.toFixed(2)),
         estadoPago: "INCOMPLETO",
@@ -140,7 +142,7 @@ export async function updateOrden(req: Request, res: Response) {
     let fechaFinalEntrega: Date | null = ordenActual.fechaEntrega || null;
 
     if (fechaEntrega !== undefined) {
-      fechaFinalEntrega = fechaEntrega === null ? null : new Date(fechaEntrega);
+      fechaFinalEntrega = fechaEntrega === null ? null : dayjs(fechaEntrega).toDate();
     }
 
     if (estado === "ENTREGADO") {
@@ -152,7 +154,7 @@ export async function updateOrden(req: Request, res: Response) {
       const seDebeActualizar = !ordenActual.fechaEntrega || mismoDia;
 
       if (fechaEntrega === undefined && seDebeActualizar) {
-        fechaFinalEntrega = new Date();
+        fechaFinalEntrega = dayjs().toDate();
       }
     }
 

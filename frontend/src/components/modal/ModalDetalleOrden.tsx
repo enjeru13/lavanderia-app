@@ -15,6 +15,7 @@ import { calcularResumenPago } from "@lavanderia/shared/utils/pagoFinance";
 import type { Orden, Configuracion } from "@lavanderia/shared/types/types";
 import { useAuth } from "../../hooks/useAuth";
 import ModalReciboEntrega from "./ModalReciboEntrega";
+import dayjs from "dayjs";
 
 interface Props {
   orden: Orden;
@@ -109,8 +110,13 @@ export default function ModalDetalleOrden({
       nombre: orden.cliente?.nombre ?? "",
       apellido: orden.cliente?.apellido ?? "",
       identificacion: orden.cliente?.identificacion ?? "",
-      fechaIngreso: orden.fechaIngreso,
-      fechaEntrega: orden.fechaEntrega ?? null,
+      fechaIngreso: dayjs(orden.fechaIngreso).isValid()
+        ? dayjs(orden.fechaIngreso).toDate()
+        : new Date(),
+      fechaEntrega:
+        orden.fechaEntrega && dayjs(orden.fechaEntrega).isValid()
+          ? dayjs(orden.fechaEntrega).toDate()
+          : null,
     },
     items:
       orden.detalles?.map((d) => ({
@@ -178,7 +184,7 @@ export default function ModalDetalleOrden({
               Fecha de ingreso
             </p>
             <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 font-medium text-gray-900 shadow-sm">
-              {new Date(orden.fechaIngreso).toLocaleDateString("es-VE")}
+              {dayjs(orden.fechaIngreso).format("DD/MM/YYYY")}
             </div>
           </div>
           <div>
@@ -187,7 +193,7 @@ export default function ModalDetalleOrden({
             </p>
             <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 font-medium text-gray-900 shadow-sm">
               {orden.fechaEntrega
-                ? new Date(orden.fechaEntrega).toLocaleDateString("es-VE")
+                ? dayjs(orden.fechaEntrega).format("DD/MM/YYYY")
                 : "No definida"}
             </div>
           </div>
@@ -228,7 +234,7 @@ export default function ModalDetalleOrden({
                 >
                   <div className="flex justify-between items-center mb-1">
                     <span className="font-semibold text-gray-900">
-                      {new Date(p.fechaPago).toLocaleDateString("es-VE")}
+                      {dayjs(p.fechaPago).format("DD/MM/YYYY")}
                     </span>
                     <span className="font-bold text-indigo-700">
                       {formatearMoneda(p.monto, p.moneda)}

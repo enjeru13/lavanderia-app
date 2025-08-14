@@ -6,6 +6,10 @@ import type {
   Orden,
   MetodoPago,
 } from "@lavanderia/shared/types/types";
+import dayjs from "dayjs";
+import "dayjs/locale/es";
+
+dayjs.locale("es");
 
 interface PagoConOrden extends Pago {
   orden?: Orden & { cliente?: { nombre: string; apellido: string } };
@@ -105,11 +109,7 @@ export default function TablaPagos({
                   className="border-t border-gray-100 hover:bg-blue-50 transition-colors duration-150 text-gray-700 font-semibold"
                 >
                   <td className="px-4 py-3 whitespace-nowrap">
-                    {new Date(pago.fechaPago).toLocaleDateString("es-VE", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    {dayjs(pago.fechaPago).format("DD MMM YYYY")}
                   </td>
                   <td className="px-4 py-3 font-bold text-blue-700 whitespace-nowrap">
                     #{pago.ordenId}

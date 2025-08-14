@@ -12,6 +12,7 @@ import {
 } from "../../utils/monedaHelpers";
 import type { Orden } from "@lavanderia/shared/types/types";
 import { useAuth } from "../../hooks/useAuth";
+import dayjs from "dayjs";
 
 interface Props {
   ordenes: Orden[];
@@ -97,11 +98,11 @@ export default function TablaOrdenes({
                     </div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    {new Date(o.fechaIngreso).toLocaleDateString("es-VE")}
+                    {dayjs(o.fechaIngreso).format("DD/MM/YYYY")}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {o.fechaEntrega ? (
-                      new Date(o.fechaEntrega).toLocaleDateString("es-VE")
+                      dayjs(o.fechaEntrega).format("DD/MM/YYYY")
                     ) : (
                       <span className="text-gray-400">—</span>
                     )}
