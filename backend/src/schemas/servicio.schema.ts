@@ -17,4 +17,9 @@ export const ServicioSchema = z.object({
   descripcion: z.string().nullable().optional(),
 
   permiteDecimales: z.boolean().optional(),
+
+  categoriaId: z
+    .string()
+    .uuid("El ID de la categoría debe ser un UUID válido.")
+    .min(1, "El ID de la categoría es requerido."),
 });

@@ -5,7 +5,9 @@ import type {
   Servicio,
   ServicioCreate,
   ServicioUpdatePayload,
+  Categoria,
 } from "@lavanderia/shared/types/types";
+import { AxiosError } from "axios";
 
 type FormularioServicioProps = {
   servicio?: Servicio;
@@ -13,20 +15,30 @@ type FormularioServicioProps = {
   onSubmit: (
     data: ServicioCreate | (ServicioUpdatePayload & { id: number })
   ) => Promise<void>;
+  categorias: Categoria[];
+  cargandoCategorias: boolean;
 };
 
 export default function FormularioServicio({
   servicio,
   onClose,
   onSubmit,
+  categorias,
+  cargandoCategorias,
 }: FormularioServicioProps) {
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState<number | null>(null);
   const [descripcion, setDescripcion] = useState("");
-  const [errores, setErrores] = useState<{ nombre?: string; precio?: string }>(
-    {}
-  );
   const [permiteDecimales, setPermiteDecimales] = useState(false);
+  const [categoriaSeleccionadaId, setCategoriaSeleccionadaId] = useState<
+    string | ""
+  >("");
+
+  const [errores, setErrores] = useState<{
+    nombre?: string;
+    precio?: string;
+    categoria?: string;
+  }>({});
   const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
@@ -35,21 +47,28 @@ export default function FormularioServicio({
       setPrecio(servicio.precioBase || null);
       setDescripcion(servicio.descripcion || "");
       setPermiteDecimales(servicio.permiteDecimales ?? false);
+      setCategoriaSeleccionadaId(servicio.categoriaId || "");
     } else {
       setNombre("");
       setPrecio(null);
       setDescripcion("");
       setPermiteDecimales(false);
+      setCategoriaSeleccionadaId("");
     }
     setErrores({});
   }, [servicio]);
 
   const guardar = async () => {
     const nuevosErrores: typeof errores = {};
-    if (!nombre.trim())
+    if (!nombre.trim()) {
       nuevosErrores.nombre = "El nombre del servicio es obligatorio.";
-    if (precio === null || isNaN(precio) || precio < 0)
+    }
+    if (precio === null || isNaN(precio) || precio < 0) {
       nuevosErrores.precio = "El precio base debe ser un número positivo.";
+    }
+    if (!categoriaSeleccionadaId) {
+      nuevosErrores.categoria = "Debe seleccionar una categoría.";
+    }
 
     setErrores(nuevosErrores);
     if (Object.keys(nuevosErrores).length > 0) return;
@@ -65,6 +84,7 @@ export default function FormularioServicio({
         precioBase: precio as number,
         descripcion: descripcionFinal,
         permiteDecimales,
+        categoriaId: categoriaSeleccionadaId,
       };
     } else {
       data = {
@@ -72,15 +92,22 @@ export default function FormularioServicio({
         precioBase: precio as number,
         descripcion: descripcionFinal,
         permiteDecimales,
+        categoriaId: categoriaSeleccionadaId,
       };
     }
 
     setCargando(true);
     try {
       await onSubmit(data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error al guardar servicio:", error);
-      toast.error("Ocurrió un error al guardar el servicio");
+      let errorMessage = "Ocurrió un error al guardar el servicio.";
+      if (error instanceof AxiosError) {
+        errorMessage = error.response?.data?.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+      }
+      toast.error(errorMessage);
     } finally {
       setCargando(false);
     }
@@ -119,6 +146,39 @@ export default function FormularioServicio({
             {errores.nombre && (
               <p className="text-red-600 text-xs font-medium mt-1">
                 {errores.nombre}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Categoría:
+            </label>
+            {cargandoCategorias ? (
+              <p className="text-gray-500 italic">Cargando categorías...</p>
+            ) : categorias.length === 0 ? (
+              <p className="text-red-600 text-sm font-medium">
+                No hay categorías disponibles. Por favor, crea una en "Gestionar
+                Categorías".
+              </p>
+            ) : (
+              <select
+                value={categoriaSeleccionadaId}
+                onChange={(e) => setCategoriaSeleccionadaId(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                disabled={cargando}
+              >
+                <option value="">Selecciona una categoría</option>
+                {categorias.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.nombre}
+                  </option>
+                ))}
+              </select>
+            )}
+            {errores.categoria && (
+              <p className="text-red-600 text-xs font-medium mt-1">
+                {errores.categoria}
               </p>
             )}
           </div>

@@ -3,26 +3,31 @@ import type {
   Servicio,
   ServicioCreate,
   ServicioUpdatePayload,
+  Categoria,
 } from "@lavanderia/shared/types/types";
+export interface ServicioConCategoria extends Servicio {
+  categoria: Categoria;
+}
 
 export const servicioService = {
   /**
    * @returns
    */
-  getAll: (): Promise<{ data: Servicio[] }> => apiClient.get("/servicios"),
+  getAll: (): Promise<{ data: ServicioConCategoria[] }> =>
+    apiClient.get("/servicios"),
 
   /**
    * @param id
    * @returns
    */
-  getById: (id: number): Promise<{ data: Servicio }> =>
+  getById: (id: number): Promise<{ data: ServicioConCategoria }> =>
     apiClient.get(`/servicios/${id}`),
 
   /**
    * @param data
    * @returns
    */
-  create: (data: ServicioCreate): Promise<{ data: Servicio }> =>
+  create: (data: ServicioCreate): Promise<{ data: ServicioConCategoria }> =>
     apiClient.post("/servicios", data),
 
   /**
@@ -33,7 +38,8 @@ export const servicioService = {
   update: (
     id: number,
     data: ServicioUpdatePayload
-  ): Promise<{ data: Servicio }> => apiClient.put(`/servicios/${id}`, data),
+  ): Promise<{ data: ServicioConCategoria }> =>
+    apiClient.put(`/servicios/${id}`, data),
 
   /**
    * @param id

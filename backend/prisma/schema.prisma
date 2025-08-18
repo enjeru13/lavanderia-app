@@ -48,8 +48,8 @@ enum Role {
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
-  password  String   
-  name      String?  
+  password  String
+  name      String?
   role      Role     @default(EMPLOYEE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -57,47 +57,62 @@ model User {
 
 // Modelo de Cliente
 model Cliente {
-  id                Int       @id @default(autoincrement())
-  nombre            String
-  apellido          String
-  tipo              TipoCliente
-  telefono          String
+  id                  Int       @id @default(autoincrement())
+  nombre              String
+  apellido            String
+  tipo                TipoCliente
+  telefono            String
   telefono_secundario String?
-  direccion         String
-  identificacion    String    @unique
-  email             String?
-  fechaRegistro     DateTime  @default(now())
-  ordenes           Orden[]
+  direccion           String
+  identificacion      String    @unique
+  email               String?
+  fechaRegistro       DateTime  @default(now())
+  ordenes             Orden[]
+}
+
+//  Modelo de Categoria
+model Categoria {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  servicios Servicio[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Modelo de Servicio
 model Servicio {
-  id             Int          @id @default(autoincrement())
-  nombreServicio String
-  descripcion    String?
-  precioBase     Float
-  permiteDecimales Boolean @default(false)
+  id                 Int            @id @default(autoincrement())
+  nombreServicio     String
+  descripcion        String?
+  precioBase         Float
+  permiteDecimales   Boolean        @default(false)
+
+  // Nuevos campos para la relación con Categoria:
+  categoriaId        String
+  categoria          Categoria      @relation(fields: [categoriaId], references: [id])
+
   detalleOrdenes DetalleOrden[]
 }
 
 // Modelo de Orden
 model Orden {
-  id            Int           @id @default(autoincrement())
-  clienteId     Int
-  estado        EstadoOrden   @default(PENDIENTE)
-  fechaIngreso  DateTime      @default(now())
-  fechaEntrega  DateTime?
+  id          Int          @id @default(autoincrement())
+  clienteId   Int
+  estado      EstadoOrden  @default(PENDIENTE)
+  fechaIngreso DateTime    @default(now())
+  fechaEntrega DateTime?
   observaciones String?
-  total         Float
-  abonado       Float         @default(0)
-  faltante      Float         @default(0)
-  estadoPago    EstadoPago    @default(INCOMPLETO)
-  cliente       Cliente       @relation(fields: [clienteId], references: [id])
-  detalles      DetalleOrden[]
-  pagos         Pago[]
+  total       Float
+  abonado     Float        @default(0)
+  faltante    Float        @default(0)
+  estadoPago  EstadoPago   @default(INCOMPLETO)
+  cliente     Cliente      @relation(fields: [clienteId], references: [id])
+  detalles    DetalleOrden[]
+  pagos       Pago[]
 }
 
-// Modelo de DetalleOrden (items de la orden)
+// Modelo de DetalleOrden 
 model DetalleOrden {
   id         Int      @id @default(autoincrement())
   ordenId    Int
@@ -111,39 +126,39 @@ model DetalleOrden {
 
 // Modelo de Pago
 model Pago {
-  id         Int        @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   ordenId    Int
   monto      Float
   moneda     Moneda
   metodoPago MetodoPago
   nota       String?
-  fechaPago  DateTime   @default(now())
-  orden      Orden      @relation(fields: [ordenId], references: [id])
+  fechaPago  DateTime @default(now())
+  orden      Orden    @relation(fields: [ordenId], references: [id])
   vueltos    VueltoEntregado[]
 }
 
 // Modelo de VueltoEntregado
 model VueltoEntregado {
-  id       Int      @id @default(autoincrement())
-  pagoId   Int
-  monto    Float
-  moneda   String
-  pago     Pago     @relation(fields: [pagoId], references: [id], onDelete: Cascade)
+  id      Int    @id @default(autoincrement())
+  pagoId  Int
+  monto   Float
+  moneda  String
+  pago    Pago   @relation(fields: [pagoId], references: [id], onDelete: Cascade)
 
   @@index([pagoId])
 }
 
 // Modelo de Configuración
 model Configuracion {
-  id                 Int      @id @default(1)
-  nombreNegocio      String?
-  monedaPrincipal    Moneda   @default(USD)
-  tasaUSD            Float?
-  tasaVES            Float?
-  tasaCOP            Float?
-  rif                String?
-  direccion          String?
-  telefonoPrincipal  String?
-  telefonoSecundario String?
-  mensajePieRecibo   String?
+  id                  Int      @id @default(1)
+  nombreNegocio       String?
+  monedaPrincipal     Moneda   @default(USD)
+  tasaUSD             Float?
+  tasaVES             Float?
+  tasaCOP             Float?
+  rif                 String?
+  direccion           String?
+  telefonoPrincipal   String?
+  telefonoSecundario  String?
+  mensajePieRecibo    String?
 }

@@ -15,23 +15,25 @@ import detalleRouter from "./routes/detalleOrdenRoute";
 import pagoRouter from "./routes/pagoRoute";
 import configuracionRouter from "./routes/configuracionRoute";
 import authRoute from "./routes/authRoute";
+import categoriaRouter from "./routes/categoriaRoute";
 
 const app = express();
 
 const allowedOrigins = [
-  'http://localhost:5173',
-  'https://lavanderia-app-frontend.netlify.app'
+  "http://localhost:5173",
+  "https://lavanderia-app-frontend.netlify.app",
 ];
 
 const corsOptions = {
   origin: allowedOrigins,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
 app.use(morgan("dev"));
 app.use(express.json());
 app.use("/api/auth", authRoute);
+app.use("/api/categorias", categoriaRouter);
 app.use("/api", protect);
 
 // Rutas protegidas

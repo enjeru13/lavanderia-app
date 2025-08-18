@@ -6,6 +6,13 @@ export type EstadoPagoRaw = "COMPLETO" | "INCOMPLETO";
 export type EstadoPagoTexto = "Sin pagos" | "Parcial" | "Pagado";
 export type SortDirection = "asc" | "desc";
 
+export interface Categoria {
+  id: string;
+  nombre: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Cliente {
   id: number;
   nombre: string;
@@ -53,8 +60,11 @@ export interface Servicio {
   nombreServicio: string;
   descripcion: string | null;
   precioBase: number;
-  detalleOrdenes?: DetalleOrden[];
   permiteDecimales: boolean;
+  categoriaId: string;
+  categoria?: Categoria;
+
+  detalleOrdenes?: DetalleOrden[];
 }
 
 export interface ServicioCreate {
@@ -62,6 +72,7 @@ export interface ServicioCreate {
   descripcion?: string | null;
   precioBase: number;
   permiteDecimales: boolean;
+  categoriaId: string;
 }
 
 export type ServicioUpdatePayload = Partial<ServicioCreate>;

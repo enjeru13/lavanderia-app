@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaTags } from "react-icons/fa";
 import TablaServicios from "../components/tabla/TablaServicios";
 import FormularioServicio from "../components/formulario/FormularioServicio";
 import ConfirmacionModal from "../components/modal/ConfirmacionModal";
 import { servicioService } from "../services/serviciosService";
 import { configuracionService } from "../services/configuracionService";
+import { categoriasService } from "../services/categoriasService";
 import { useAuth } from "../hooks/useAuth";
 import type {
   Servicio,
   ServicioCreate,
   ServicioUpdatePayload,
   Moneda,
+  Categoria,
 } from "@lavanderia/shared/types/types";
+import CategoriasModal from "../components/modal/ModalCategorias";
 
 export default function PantallaServicios() {
   const [servicios, setServicios] = useState<Servicio[]>([]);
@@ -28,16 +31,32 @@ export default function PantallaServicios() {
   >();
 
   const [monedaPrincipal, setMonedaPrincipal] = useState<Moneda>("USD");
+  const [mostrarCategoriasModal, setMostrarCategoriasModal] = useState(false);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [cargandoCategorias, setCargandoCategorias] = useState(true);
 
   const { hasRole } = useAuth();
 
   const cargarServicios = async () => {
     try {
       const res = await servicioService.getAll();
-      setServicios(res.data || []);
+      setServicios(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error("Error al cargar servicios:", error);
       toast.error("No se pudieron cargar los servicios");
+    }
+  };
+
+  const cargarCategoriasEnPantalla = async () => {
+    setCargandoCategorias(true);
+    try {
+      const res = await categoriasService.getAll();
+      setCategorias(Array.isArray(res) ? res : []);
+    } catch (error) {
+      console.error("Error al cargar categorías en PantallaServicios:", error);
+      toast.error("No se pudieron cargar las categorías.");
+    } finally {
+      setCargandoCategorias(false);
     }
   };
 
@@ -54,6 +73,7 @@ export default function PantallaServicios() {
   useEffect(() => {
     cargarServicios();
     cargarConfiguracion();
+    cargarCategoriasEnPantalla();
   }, []);
 
   const abrirNuevoServicio = () => {
@@ -119,17 +139,40 @@ export default function PantallaServicios() {
     }
   };
 
+  const abrirCategoriasModal = () => {
+    if (hasRole(["ADMIN"])) {
+      setMostrarCategoriasModal(true);
+    } else {
+      toast.error("No tienes permiso para gestionar categorías.");
+    }
+  };
+
+  const cerrarCategoriasModal = () => {
+    setMostrarCategoriasModal(false);
+    cargarCategoriasEnPantalla();
+    cargarServicios();
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Servicios</h1>
-        <button
-          onClick={abrirNuevoServicio}
-          className="bg-green-600 text-white p-3 font-bold rounded hover:bg-green-700 transition flex items-center gap-2"
-        >
-          <FaPlus className="w-4 h-4" />
-          Nuevo Servicio
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={abrirCategoriasModal}
+            className="bg-purple-600 text-white p-3 font-bold rounded hover:bg-purple-700 transition flex items-center gap-2"
+          >
+            <FaTags className="w-4 h-4" />
+            Gestionar Categorías
+          </button>
+          <button
+            onClick={abrirNuevoServicio}
+            className="bg-green-600 text-white p-3 font-bold rounded hover:bg-green-700 transition flex items-center gap-2"
+          >
+            <FaPlus className="w-4 h-4" />
+            Nuevo Servicio
+          </button>
+        </div>
       </div>
 
       <TablaServicios
@@ -140,14 +183,21 @@ export default function PantallaServicios() {
       />
 
       {mostrarFormulario && (
-        <FormularioServicio
-          servicio={servicioSeleccionado}
-          onClose={() => {
-            setMostrarFormulario(false);
-            setServicioSeleccionado(undefined);
-          }}
-          onSubmit={guardarServicio}
-        />
+        <>
+          {console.log("Categorías enviadas a FormularioServicio:", categorias)}
+          <FormularioServicio
+            servicio={servicioSeleccionado}
+            onClose={() => {
+              setMostrarFormulario(false);
+              setServicioSeleccionado(undefined);
+              cargarServicios();
+              cargarCategoriasEnPantalla();
+            }}
+            onSubmit={guardarServicio}
+            categorias={categorias}
+            cargandoCategorias={cargandoCategorias}
+          />
+        </>
       )}
 
       {mostrarConfirmacionEliminar && (
@@ -159,6 +209,10 @@ export default function PantallaServicios() {
             setServicioAEliminarId(undefined);
           }}
         />
+      )}
+
+      {mostrarCategoriasModal && (
+        <CategoriasModal onClose={cerrarCategoriasModal} />
       )}
     </div>
   );

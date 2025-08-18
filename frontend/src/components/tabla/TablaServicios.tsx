@@ -25,6 +25,7 @@ export default function TablaServicios({
           <thead className="bg-gray-100 text-gray-600 font-semibold border-b border-gray-200">
             <tr>
               <th className="px-6 py-3 text-left">Servicio</th>
+              <th className="px-6 py-3 text-left">Categoría</th>
               <th className="px-6 py-3 text-left">Precio</th>
               <th className="px-6 py-3 text-left">Descripción</th>
               <th className="px-6 py-3 text-center">Acciones</th>
@@ -33,7 +34,7 @@ export default function TablaServicios({
           <tbody>
             <tr>
               <td
-                colSpan={4}
+                colSpan={5}
                 className="px-6 py-10 text-center text-gray-500 italic bg-white"
               >
                 No hay servicios registrados.
@@ -52,6 +53,7 @@ export default function TablaServicios({
           <thead className="bg-gray-100 text-gray-600 font-semibold border-b border-gray-200">
             <tr>
               <th className="px-6 py-3 text-left">Servicio</th>
+              <th className="px-6 py-3 text-left">Categoría</th>
               <th className="px-6 py-3 text-left">Precio</th>
               <th className="px-6 py-3 text-left">Descripción</th>
               <th className="px-6 py-3 text-center">Acciones</th>
@@ -65,6 +67,9 @@ export default function TablaServicios({
               >
                 <td className="px-6 py-4 text-gray-800 font-semibold">
                   {s.nombreServicio}
+                </td>
+                <td className="px-6 py-4 text-gray-700">
+                  {s.categoria?.nombre || "Sin Categoría"}
                 </td>
                 <td className="px-6 py-4 text-indigo-700 font-extrabold">
                   {formatearMoneda(s.precioBase, monedaPrincipal)}

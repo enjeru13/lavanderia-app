@@ -82,8 +82,13 @@ export default function ResumenOrdenPanel({
                     className="p-4 flex justify-between items-center hover:bg-gray-50 transition duration-200 ease-in-out"
                   >
                     <span className="font-medium text-gray-900">
-                      {servicio?.nombreServicio ?? "Servicio desconocido"} ×
-                      {s.cantidad}
+                      {servicio?.nombreServicio ?? "Servicio desconocido"}
+                      {servicio?.categoria?.nombre && (
+                        <span className="text-gray-500 text-sm font-normal">
+                          ({servicio.categoria.nombre})
+                        </span>
+                      )}
+                      × {s.cantidad}
                     </span>
                     <span className="font-bold text-green-700">
                       {formatearMoneda(
