@@ -23,7 +23,7 @@ export default function TablaClientes({
         <table className="min-w-full text-sm">
           <thead className="bg-gray-100 text-gray-600 font-semibold border-b border-gray-200">
             <tr>
-              <th className="px-6 py-3 text-left">Nombre</th>
+              <th className="px-6 py-3 text-left">Nombre / Razón Social</th>
               <th className="px-6 py-3 text-left">Teléfono</th>
               <th className="px-6 py-3 text-left">Dirección</th>
               <th className="px-6 py-3 text-center">Acciones</th>
@@ -50,7 +50,7 @@ export default function TablaClientes({
         <table className="min-w-full bg-white text-sm">
           <thead className="bg-gray-100 text-gray-600 font-semibold border-b border-gray-200">
             <tr>
-              <th className="px-6 py-3 text-left">Nombre</th>
+              <th className="px-6 py-3 text-left">Nombre / Razón Social</th>
               <th className="px-6 py-3 text-left">Teléfono</th>
               <th className="px-6 py-3 text-left">Dirección</th>
               <th className="px-6 py-3 text-center">Acciones</th>
@@ -63,7 +63,13 @@ export default function TablaClientes({
                 className="border-t border-gray-100 hover:bg-blue-50 transition-colors duration-150 text-gray-700"
               >
                 <td className="px-6 py-4 text-gray-800 font-semibold">
-                  {c.nombre} {c.apellido}
+                  {c.tipo === "EMPRESA" ? (
+                    <span className="font-bold text-indigo-700">
+                      {c.nombre}
+                    </span>
+                  ) : (
+                    `${c.nombre} ${c.apellido}`
+                  )}
                 </td>
                 <td className="px-6 py-4 text-gray-600 font-semibold">
                   {c.telefono ?? (

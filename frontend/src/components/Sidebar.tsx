@@ -84,8 +84,8 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 bg-gradient-to-br from-blue-800 to-blue-600 text-white min-h-screen p-7 flex flex-col gap-8 shadow-2xl rounded-r-2xl sticky top-0">
-      <div className="text-2xl font-extrabold text-white mb-6 border-blue-400 pb-4">
+    <aside className="w-64 bg-gradient-to-br from-blue-900 to-blue-700 text-white min-h-screen p-7 flex flex-col gap-8 shadow-2xl sticky top-0">
+      <div className="text-3xl font-extrabold text-white mb-6 tracking-wide pb-4">
         Menú
       </div>
       <nav className="flex flex-col gap-6">
@@ -100,7 +100,7 @@ export default function Sidebar() {
 
           return (
             <div key={grupo.section}>
-              <p className="text-xs uppercase font-bold text-blue-200 mb-3 tracking-wider">
+              <p className="text-xs uppercase font-bold text-blue-200 mb-3 tracking-wider opacity-80">
                 {grupo.section}
               </p>
               <ul className="flex flex-col gap-2">
@@ -111,15 +111,23 @@ export default function Sidebar() {
                       key={link.to}
                       to={link.to}
                       className={`
-                        flex items-center gap-4 py-3 px-5 rounded-lg transition-all duration-200 ease-in-out
+                        flex items-center gap-4 py-3 px-5 rounded-lg transition-all duration-200 ease-in-out group
                         ${
                           isActive
-                            ? "bg-blue-500 text-white shadow-lg transform scale-105 font-bold"
-                            : "hover:bg-blue-500 hover:text-white hover:shadow-md hover:transform hover:scale-105"
+                            ? "bg-blue-500 text-white shadow-lg transform translate-x-2 font-bold ring-2 ring-blue-300"
+                            : "text-blue-100 hover:bg-blue-700/50 hover:text-white hover:shadow-md hover:transform hover:translate-x-1"
                         }
                       `}
                     >
-                      <span className="text-xl">{link.icon}</span>
+                      <span
+                        className={`text-xl ${
+                          isActive
+                            ? "text-white"
+                            : "text-blue-300 group-hover:text-white"
+                        }`}
+                      >
+                        {link.icon}
+                      </span>
                       <span>{link.label}</span>
                     </Link>
                   );

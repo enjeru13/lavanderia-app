@@ -48,7 +48,7 @@ export default function PantallaPagos() {
   const [cargandoOrdenDetalle, setCargandoOrdenDetalle] = useState(false);
   const [mostrarModalImprimir, setMostrarModalImprimir] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(15);
 
   const cargarPagos = useCallback(async () => {
     try {

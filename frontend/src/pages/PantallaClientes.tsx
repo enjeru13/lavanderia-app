@@ -29,7 +29,7 @@ export default function PantallaClientes() {
   >();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(15);
   const [totalFilteredItems, setTotalFilteredItems] = useState(0);
 
   const { hasRole } = useAuth();
