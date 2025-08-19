@@ -63,7 +63,7 @@ export default function TablaServicios({
             {servicios.map((s) => (
               <tr
                 key={s.id}
-                className="border-t border-gray-100 hover:bg-blue-50 transition-colors duration-150 text-gray-700"
+                className="border-t border-gray-100 hover:bg-blue-50 transition-colors duration-150 text-gray-700 font-semibold"
               >
                 <td className="px-6 py-4 text-gray-800 font-semibold">
                   {s.nombreServicio}

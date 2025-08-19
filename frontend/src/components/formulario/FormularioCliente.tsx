@@ -9,7 +9,10 @@ import type {
 import { isAxiosError } from "axios";
 import { toast } from "react-toastify";
 
-type ClienteFormState = ClienteCreate & { id?: number };
+type ClienteFormState = ClienteCreate & {
+  id?: number;
+  razon_social?: string | null;
+};
 
 type Props = {
   cliente?: Cliente;
@@ -27,6 +30,7 @@ export default function FormularioCliente({
   const [form, setForm] = useState<ClienteFormState>({
     nombre: "",
     apellido: "",
+    razon_social: null,
     tipo: "NATURAL",
     telefono: "",
     telefono_secundario: null,
@@ -41,8 +45,9 @@ export default function FormularioCliente({
     if (cliente) {
       setForm({
         id: cliente.id,
-        nombre: cliente.nombre,
-        apellido: cliente.apellido,
+        nombre: cliente.tipo === "EMPRESA" ? "" : cliente.nombre,
+        apellido: cliente.tipo === "EMPRESA" ? "" : cliente.apellido,
+        razon_social: cliente.tipo === "EMPRESA" ? cliente.nombre : null,
         tipo: cliente.tipo,
         telefono: cliente.telefono,
         telefono_secundario:
@@ -57,6 +62,7 @@ export default function FormularioCliente({
       setForm({
         nombre: "",
         apellido: "",
+        razon_social: null,
         tipo: "NATURAL",
         telefono: "",
         telefono_secundario: null,
@@ -65,6 +71,7 @@ export default function FormularioCliente({
         email: null,
       });
     }
+    setErrores({});
   }, [cliente]);
 
   const handleIdentificacionChange = (
@@ -76,10 +83,15 @@ export default function FormularioCliente({
       "J-": "EMPRESA",
       "E-": "NATURAL",
     };
+    const nuevoTipo = tipoMap[prefijo];
+
     setForm((prev) => ({
       ...prev,
-      tipo: tipoMap[prefijo],
+      tipo: nuevoTipo,
       identificacion: prefijo + valorSinPrefijo,
+      nombre: nuevoTipo === "EMPRESA" ? "" : prev.nombre,
+      apellido: nuevoTipo === "EMPRESA" ? "" : prev.apellido,
+      razon_social: nuevoTipo === "EMPRESA" ? prev.razon_social : null,
     }));
   };
 
@@ -102,22 +114,31 @@ export default function FormularioCliente({
     const errores: Record<string, string> = {};
     const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
     const regexTelefono = /^[0-9()+\-.\s]{6,20}$/;
-    const regexIdentificacion = /^(V|J|E)-\d{6,10}$/;
+    const regexIdentificacion = /^(V|J|E)-[\d-]{6,15}$/;
 
-    if (!data.nombre.trim()) {
-      errores.nombre = "El nombre es obligatorio.";
-    } else if (!soloLetras.test(data.nombre)) {
-      errores.nombre = "El nombre solo puede contener letras.";
-    } else if (data.nombre.trim().length < 2) {
-      errores.nombre = "El nombre debe tener al menos 2 caracteres.";
-    }
+    if (data.tipo === "EMPRESA") {
+      if (!data.razon_social || !data.razon_social.trim()) {
+        errores.razon_social = "La razón social es obligatoria.";
+      } else if (data.razon_social.trim().length < 2) {
+        errores.razon_social =
+          "La razón social debe tener al menos 2 caracteres.";
+      }
+    } else {
+      if (!data.nombre || !data.nombre.trim()) {
+        errores.nombre = "El nombre es obligatorio.";
+      } else if (!soloLetras.test(data.nombre)) {
+        errores.nombre = "El nombre solo puede contener letras.";
+      } else if (data.nombre.trim().length < 2) {
+        errores.nombre = "El nombre debe tener al menos 2 caracteres.";
+      }
 
-    if (!data.apellido.trim()) {
-      errores.apellido = "El apellido es obligatorio.";
-    } else if (!soloLetras.test(data.apellido)) {
-      errores.apellido = "El apellido solo puede contener letras.";
-    } else if (data.apellido.trim().length < 2) {
-      errores.apellido = "El apellido debe tener al menos 2 caracteres.";
+      if (!data.apellido || !data.apellido.trim()) {
+        errores.apellido = "El apellido es obligatorio.";
+      } else if (!soloLetras.test(data.apellido)) {
+        errores.apellido = "El apellido solo puede contener letras.";
+      } else if (data.apellido.trim().length < 2) {
+        errores.apellido = "El apellido debe tener al menos 2 caracteres.";
+      }
     }
 
     if (!data.telefono.trim()) {
@@ -145,7 +166,7 @@ export default function FormularioCliente({
       errores.identificacion = "La identificación es obligatoria.";
     } else if (!regexIdentificacion.test(data.identificacion)) {
       errores.identificacion =
-        "Formato de identificación inválido (Ej: V-12345678).";
+        "Formato de identificación inválido (Ej: V-12345678, J-12345678-0).";
     }
 
     if (
@@ -163,6 +184,7 @@ export default function FormularioCliente({
     setForm({
       nombre: "",
       apellido: "",
+      razon_social: null,
       tipo: "NATURAL",
       telefono: "",
       telefono_secundario: null,
@@ -177,43 +199,58 @@ export default function FormularioCliente({
     const erroresDetectados = validarFormularioLocal(form);
     setErrores(erroresDetectados);
 
-    if (Object.keys(erroresDetectados).length > 0) return;
+    if (Object.keys(erroresDetectados).length > 0) {
+      toast.error("Por favor, corrige los errores del formulario.");
+      return;
+    }
 
-    const datosParaBackend = {
-      ...form,
-      telefono_secundario:
-        form.telefono_secundario === "" ? null : form.telefono_secundario,
-      email: form.email === "" ? null : form.email,
-    };
+    let datosParaBackend:
+      | ClienteCreate
+      | (ClienteUpdatePayload & { id: number });
+
+    if (form.tipo === "EMPRESA") {
+      datosParaBackend = {
+        nombre: form.razon_social || "",
+        apellido: "",
+        tipo: form.tipo,
+        telefono: form.telefono,
+        telefono_secundario:
+          form.telefono_secundario === "" ? null : form.telefono_secundario,
+        direccion: form.direccion,
+        identificacion: form.identificacion,
+        email: form.email === "" ? null : form.email,
+      };
+    } else {
+      datosParaBackend = {
+        nombre: form.nombre,
+        apellido: form.apellido,
+        tipo: form.tipo,
+        telefono: form.telefono,
+        telefono_secundario:
+          form.telefono_secundario === "" ? null : form.telefono_secundario,
+        direccion: form.direccion,
+        identificacion: form.identificacion,
+        email: form.email === "" ? null : form.email,
+      };
+    }
 
     try {
       if (cliente && cliente.id) {
         const updateData: ClienteUpdatePayload & { id: number } = {
           id: cliente.id,
-          nombre: datosParaBackend.nombre,
-          apellido: datosParaBackend.apellido,
-          tipo: datosParaBackend.tipo,
-          telefono: datosParaBackend.telefono,
-          telefono_secundario: datosParaBackend.telefono_secundario,
-          direccion: datosParaBackend.direccion,
-          identificacion: datosParaBackend.identificacion,
-          email: datosParaBackend.email,
+          ...datosParaBackend,
         };
         await onSubmit(updateData);
+        toast.success("Cliente actualizado correctamente.");
       } else {
         const createData: ClienteCreate = {
-          nombre: datosParaBackend.nombre,
-          apellido: datosParaBackend.apellido,
-          tipo: datosParaBackend.tipo,
-          telefono: datosParaBackend.telefono,
-          telefono_secundario: datosParaBackend.telefono_secundario,
-          direccion: datosParaBackend.direccion,
-          identificacion: datosParaBackend.identificacion,
-          email: datosParaBackend.email,
+          ...datosParaBackend,
         };
         await onSubmit(createData);
+        toast.success("Cliente registrado correctamente.");
       }
       resetForm();
+      onClose();
     } catch (error: unknown) {
       if (
         isAxiosError(error) &&
@@ -227,6 +264,7 @@ export default function FormularioCliente({
             detalles[campo]?._errors?.[0] || "Campo inválido";
         }
         setErrores(erroresFormateados);
+        toast.error("Error en la validación de datos.");
       } else {
         toast.error("Error inesperado al guardar el cliente.");
       }
@@ -255,42 +293,106 @@ export default function FormularioCliente({
           onSubmit={handleSubmit}
           className="px-6 py-6 flex-1 overflow-y-auto space-y-6 text-base text-gray-800"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Nombre
-              </label>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Identificación
+            </label>
+            <div className="flex gap-3">
+              <select
+                className="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                value={form.identificacion.slice(0, 2)}
+                onChange={(e) => {
+                  const prefijo = e.target.value as "V-" | "J-" | "E-";
+                  const sinPrefijo = form.identificacion.replace(
+                    /^(V-|J-|E-)/,
+                    ""
+                  );
+                  handleIdentificacionChange(prefijo, sinPrefijo);
+                }}
+              >
+                <option value="V-">V</option>
+                <option value="E-">E</option>
+                <option value="J-">J</option>
+              </select>
               <input
-                name="nombre"
-                value={form.nombre}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                name="identificacion"
+                value={form.identificacion.replace(/^(V-|J-|E-)/, "")}
+                onChange={(e) => {
+                  const prefijo = form.identificacion.slice(0, 2) as
+                    | "V-"
+                    | "J-"
+                    | "E-";
+                  handleIdentificacionChange(prefijo, e.target.value);
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                placeholder="Número sin prefijo (Ej: 12345678-0, 9876543)"
                 required
               />
-              {errores.nombre && (
-                <p className="text-red-600 text-xs mt-1 font-medium">
-                  {errores.nombre}
-                </p>
-              )}
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Apellido
-              </label>
-              <input
-                name="apellido"
-                value={form.apellido}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
-                required
-              />
-              {errores.apellido && (
-                <p className="text-red-600 text-xs mt-1 font-medium">
-                  {errores.apellido}
-                </p>
-              )}
-            </div>
+            {errores.identificacion && (
+              <p className="text-red-600 text-xs mt-1 font-medium">
+                {errores.identificacion}
+              </p>
+            )}
           </div>
+
+          {form.tipo === "EMPRESA" ? (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Razón Social
+              </label>
+              <input
+                name="razon_social"
+                value={form.razon_social || ""}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                placeholder="Ej. Prado Expres C.A."
+                required
+              />
+              {errores.razon_social && (
+                <p className="text-red-600 text-xs mt-1 font-medium">
+                  {errores.razon_social}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Nombre
+                </label>
+                <input
+                  name="nombre"
+                  value={form.nombre}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                  required
+                />
+                {errores.nombre && (
+                  <p className="text-red-600 text-xs mt-1 font-medium">
+                    {errores.nombre}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Apellido
+                </label>
+                <input
+                  name="apellido"
+                  value={form.apellido}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                  required
+                />
+                {errores.apellido && (
+                  <p className="text-red-600 text-xs mt-1 font-medium">
+                    {errores.apellido}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
@@ -344,49 +446,6 @@ export default function FormularioCliente({
             {errores.direccion && (
               <p className="text-red-600 text-xs mt-1 font-medium">
                 {errores.direccion}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Identificación
-            </label>
-            <div className="flex gap-3">
-              <select
-                className="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
-                value={form.identificacion.slice(0, 2)}
-                onChange={(e) => {
-                  const prefijo = e.target.value as "V-" | "J-" | "E-";
-                  const sinPrefijo = form.identificacion.replace(
-                    /^(V-|J-|E-)/,
-                    ""
-                  );
-                  handleIdentificacionChange(prefijo, sinPrefijo);
-                }}
-              >
-                <option value="V-">V</option>
-                <option value="J-">J</option>
-                <option value="E-">E</option>
-              </select>
-              <input
-                name="identificacion"
-                value={form.identificacion.replace(/^(V-|J-|E-)/, "")}
-                onChange={(e) => {
-                  const prefijo = form.identificacion.slice(0, 2) as
-                    | "V-"
-                    | "J-"
-                    | "E-";
-                  handleIdentificacionChange(prefijo, e.target.value);
-                }}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
-                placeholder="Número sin prefijo (Ej: 12345678)"
-                required
-              />
-            </div>
-            {errores.identificacion && (
-              <p className="text-red-600 text-xs mt-1 font-medium">
-                {errores.identificacion}
               </p>
             )}
           </div>

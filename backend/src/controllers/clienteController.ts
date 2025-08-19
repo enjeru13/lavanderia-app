@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma";
-import { ClienteSchema } from "../schemas/cliente.schema";
+import { ClienteSchema, ClienteUpdateSchema } from "../schemas/cliente.schema";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 export async function getAllClientes(req: Request, res: Response) {
@@ -56,7 +56,7 @@ export async function createCliente(req: Request, res: Response) {
 
 export async function updateCliente(req: Request, res: Response) {
   const { id } = req.params;
-  const partialClienteSchema = ClienteSchema.partial();
+  const partialClienteSchema = ClienteUpdateSchema;
   const result = partialClienteSchema.safeParse(req.body);
 
   if (!result.success) {
