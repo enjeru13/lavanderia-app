@@ -19,6 +19,7 @@ try {
 const PRINTNODE_API_KEY = process.env.PRINTNODE_API_KEY;
 const PRINTER_ID = 74626370;
 
+// Comandos de impresora ESC/POS
 const ESC = "\x1B";
 const GS = "\x1D";
 const CENTRAR = `${ESC}\x61\x01`;
@@ -31,15 +32,22 @@ const PAGINA_DE_CODIGOS = `${ESC}\x74\x13`;
 
 const LINE_WIDTH = 32;
 
+// Función para formatear la fecha
 const formatDate = (date) => {
   if (!date) return "";
   return dayjs(date).format("DD/MM/YYYY");
 };
 
+// Función para formatear el monto a moneda
 const formatearMoneda = (monto) => {
   return `$${Number(monto).toFixed(2)}`;
 };
-const generateReceiptText = (datosRecibo, receiptType) => {
+
+/**
+ * @param {object} datosRecibo
+ * @returns {string}
+ */
+const generateReceiptText = (datosRecibo) => {
   let reciboTexto = "";
   const {
     clienteInfo,
@@ -52,6 +60,7 @@ const generateReceiptText = (datosRecibo, receiptType) => {
     mensajePieRecibo,
   } = datosRecibo;
 
+  // Encabezado de la lavandería
   reciboTexto += CENTRAR;
   reciboTexto += TAMAÑO_2X;
   reciboTexto += `${NEGRITA}${lavanderiaInfo.nombre}${NORMAL}\n\n`;
@@ -64,10 +73,6 @@ const generateReceiptText = (datosRecibo, receiptType) => {
   if (lavanderiaInfo.telefonoSecundario) {
     reciboTexto += `CANTV: ${lavanderiaInfo.telefonoSecundario}\n`;
   }
-
-  reciboTexto += TAMAÑO_2X;
-  reciboTexto += `${NEGRITA}--- COPIA ${receiptType.toUpperCase()} ---\n\n${NORMAL}`;
-  reciboTexto += TAMAÑO_NORMAL;
 
   if (numeroOrden)
     reciboTexto += `${NEGRITA}N° Orden: ${NORMAL}#${numeroOrden}\n`;
@@ -86,11 +91,13 @@ const generateReceiptText = (datosRecibo, receiptType) => {
   }
   reciboTexto += `--------------------------------\n`;
 
+  // Encabezado de los ítems
   reciboTexto += `${"ITEM".padEnd(16)}${"CANT".padStart(6)}${"TOTAL".padStart(
     10
   )}\n`;
   reciboTexto += `--------------------------------\n`;
 
+  // Lista de ítems
   items.forEach((item) => {
     const itemDescripcion = item.descripcion.slice(0, 16).padEnd(16);
     const itemCantidad = String(item.cantidad).padStart(6);
@@ -103,6 +110,8 @@ const generateReceiptText = (datosRecibo, receiptType) => {
 
   const totalCantidad = items.reduce((sum, item) => sum + item.cantidad, 0);
   const porPagar = Math.max(total - abono, 0);
+
+  // Función auxiliar para alinear líneas de total
   const formatAlignedLine = (labelText, valueText) => {
     const spacesToPad = LINE_WIDTH - labelText.length - valueText.length;
     return `${NEGRITA}${labelText}${NORMAL}${Array(spacesToPad + 1).join(
@@ -120,12 +129,14 @@ const generateReceiptText = (datosRecibo, receiptType) => {
 
   reciboTexto += `--------------------------------\n`;
 
+  // Observaciones si existen
   if (observaciones) {
     reciboTexto += `${NEGRITA}Observaciones:${NORMAL}\n`;
     reciboTexto += `${observaciones}\n`;
     reciboTexto += `--------------------------------\n`;
   }
 
+  // Pie de recibo
   reciboTexto += CENTRAR;
   reciboTexto += `¡Gracias por preferirnos!\n`;
   reciboTexto += ALINEAR_IZQUIERDA;
@@ -142,20 +153,19 @@ const generateReceiptText = (datosRecibo, receiptType) => {
   return reciboTexto;
 };
 
+// Endpoint para imprimir el recibo
 app.post("/imprimir-recibo", async (req, res) => {
   const datosRecibo = req.body;
   let reciboTexto = PAGINA_DE_CODIGOS;
 
-  reciboTexto += generateReceiptText(datosRecibo, "cliente");
-
-  reciboTexto += generateReceiptText(datosRecibo, "interno");
+  reciboTexto += generateReceiptText(datosRecibo);
 
   const encodedText = Iconv.encode(reciboTexto, "CP858");
   const contentBase64 = encodedText.toString("base64");
 
   const requestData = {
     printer: PRINTER_ID,
-    title: "Recibo de Lavandería (Cliente e Interno)",
+    title: "Recibo de Lavandería",
     contentType: "raw_base64",
     content: contentBase64,
   };
@@ -179,8 +189,9 @@ app.post("/imprimir-recibo", async (req, res) => {
       res.status(200).json({ message: "Comando de impresión enviado." });
     } else {
       console.error("Error al enviar el trabajo a PrintNode:", response.data);
-      res.status(500).json({
+      res.status(response.status).json({
         message: "Error en la impresión. Revisa el servicio de PrintNode.",
+        details: response.data,
       });
     }
   } catch (e) {
@@ -190,7 +201,10 @@ app.post("/imprimir-recibo", async (req, res) => {
     );
     res
       .status(500)
-      .json({ message: "Error de conexión con el servicio de impresión." });
+      .json({
+        message: "Error de conexión con el servicio de impresión.",
+        details: e.response?.data || e.message,
+      });
   }
 });
 
