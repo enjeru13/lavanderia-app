@@ -5,7 +5,24 @@ export interface TasasConversion {
   COP?: number | null;
 }
 
-/** Convierte desde una moneda a la principal */
+/**
+ * @param input
+ * @returns
+ */
+export function normalizarMoneda(input: unknown): Moneda {
+  const valor = String(input).toUpperCase();
+  if (valor === "VES") return "VES";
+  if (valor === "COP") return "COP";
+  return "USD";
+}
+
+/**
+ * @param monto
+ * @param moneda
+ * @param tasas
+ * @param principal
+ * @returns
+ */
 export function convertirAmonedaPrincipal(
   monto: number,
   moneda: Moneda,
@@ -21,7 +38,13 @@ export function convertirAmonedaPrincipal(
   return tasa && tasa > 0 ? parseFloat((monto / tasa).toFixed(2)) : 0;
 }
 
-/** Convierte desde la principal hacia otra */
+/**
+ * @param monto
+ * @param destino
+ * @param tasas
+ * @param principal
+ * @returns
+ */
 export function convertirDesdePrincipal(
   monto: number,
   destino: Moneda,
@@ -37,25 +60,44 @@ export function convertirDesdePrincipal(
   return tasa && tasa > 0 ? parseFloat((monto * tasa).toFixed(2)) : 0;
 }
 
-/** Formatea visualmente el monto con símbolo de moneda */
+/**
+ * @param monto
+ * @param moneda
+ * @returns
+ */
 export function formatearMoneda(monto: number, moneda: Moneda = "USD"): string {
-  const locales: Record<Moneda, string> = {
-    USD: "en-US",
-    VES: "es-VE",
-    COP: "es-CO",
-  };
-
-  const opciones: Intl.NumberFormatOptions = {
+  const formatterOptions: Intl.NumberFormatOptions = {
     style: "currency",
     currency: moneda,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   };
 
-  return new Intl.NumberFormat(locales[moneda], opciones).format(monto);
+  let locale = "en-US";
+  switch (moneda) {
+    case "VES":
+      locale = "es-VE";
+      break;
+    case "COP":
+      locale = "es-CO";
+      if (Number.isInteger(monto)) {
+        formatterOptions.minimumFractionDigits = 0;
+        formatterOptions.maximumFractionDigits = 0;
+      }
+      break;
+    case "USD":
+    default:
+      locale = "en-US";
+      break;
+  }
+
+  return new Intl.NumberFormat(locale, formatterOptions).format(monto);
 }
 
-/** Convierte una tasa string en número válido */
+/**
+ * @param valor
+ * @returns
+ */
 export function parsearTasa(valor: string): number | undefined {
   if (!valor) return undefined;
   const normalizado = valor.replace(",", ".");
@@ -64,7 +106,10 @@ export function parsearTasa(valor: string): number | undefined {
   return isNaN(num) ? undefined : num;
 }
 
-/** Devuelve la tasa como string fijo con dos decimales */
+/**
+ * @param valor
+ * @returns
+ */
 export function formatearTasa(valor: number | string): string {
   const num =
     typeof valor === "string" ? parseFloat(valor.replace(",", ".")) : valor;
@@ -72,17 +117,23 @@ export function formatearTasa(valor: number | string): string {
   return isNaN(num) ? "" : num.toFixed(2);
 }
 
-/** Normaliza una cadena string como Moneda válida */
-export function normalizarMoneda(input: unknown): Moneda {
-  const valor = String(input).toUpperCase();
-  if (valor === "VES") return "VES";
-  if (valor === "COP") return "COP";
-  return "USD";
-}
+/**
+ * @param valor
+ * @param moneda
+ * @returns
+ */
+export function parsearMonto(valor: string, moneda: Moneda): number {
+  if (!valor) return 0;
 
-/** Sanitiza montos string ingresados por el usuario */
-export function parsearMonto(valor: string): number {
-  const limpio = valor.replace(",", ".").replace(/[^\d.]/g, "");
+  let limpio = valor.trim();
+
+  if (moneda === "VES" || moneda === "COP") {
+    limpio = limpio.replace(/\./g, "");
+    limpio = limpio.replace(/,/g, ".");
+  } else {
+    limpio = limpio.replace(/,/g, "");
+  }
+
   const num = parseFloat(limpio);
   return isNaN(num) ? 0 : num;
 }
