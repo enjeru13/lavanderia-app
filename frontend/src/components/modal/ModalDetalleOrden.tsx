@@ -203,21 +203,47 @@ export default function ModalDetalleOrden({
           <h3 className="font-bold text-gray-800 text-lg mb-3">
             Servicios contratados
           </h3>
-          <div className="divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-            {orden.detalles?.map((d, idx) => (
-              <div
-                key={idx}
-                className="flex justify-between items-center p-4 bg-white hover:bg-gray-50 transition duration-200 ease-in-out"
-              >
-                <span className="font-medium text-gray-900">
-                  {d.servicio?.nombreServicio ?? "Servicio no disponible"}
-                </span>
-                <span className="text-gray-500 text-sm">x{d.cantidad}</span>
-                <span className="font-bold text-green-700">
-                  {formatearMoneda(d.subtotal, principalSeguro)}
-                </span>
-              </div>
-            ))}
+          <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
+            <table className="min-w-full bg-white text-sm">
+              <thead className="bg-gray-100 text-gray-600 font-semibold border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-2 text-left">Servicio</th>
+                  <th className="px-4 py-2 text-center">Cantidad</th>
+                  <th className="px-4 py-2 text-right">Precio Unitario</th>
+                  <th className="px-4 py-2 text-right">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orden.detalles?.map((d) => (
+                  <tr
+                    key={d.id}
+                    className="border-t border-gray-100 hover:bg-gray-50 transition duration-200 ease-in-out"
+                  >
+                    <td className="px-4 py-2 font-medium text-gray-900">
+                      {d.servicio?.nombreServicio ?? "Servicio no disponible"}
+                    </td>
+                    <td className="px-4 py-2 text-center text-gray-700">
+                      x{d.cantidad}
+                    </td>
+                    <td className="px-4 py-2 text-right text-indigo-700 font-bold">
+                      {formatearMoneda(d.precioUnit, principalSeguro)}
+                    </td>
+                    <td className="px-4 py-2 text-right text-green-700 font-bold">
+                      {formatearMoneda(d.subtotal, principalSeguro)}
+                    </td>
+                  </tr>
+                )) ?? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-4 py-4 text-center text-gray-500 italic"
+                    >
+                      No hay servicios asociados a esta orden.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
