@@ -43,7 +43,38 @@ export const ordenSchema = z.object({
     .min(1, "Debes agregar al menos un servicio a la orden"),
 });
 
-export const ordenUpdateSchema = ordenSchema.partial();
+export const ordenUpdateSchema = z
+  .object({
+    clienteId: z.number().int().positive("ID de cliente inválido").optional(),
+    estado: z
+      .enum(["PENDIENTE", "ENTREGADO"], {
+        errorMap: () => ({ message: "Estado de orden inválido" }),
+      })
+      .optional(),
+    observaciones: z.string().nullable().optional(),
+    fechaEntrega: fechaTransformada.optional(),
+    servicios: z
+      .array(
+        z.object({
+          servicioId: z.number().int().positive("ID de servicio inválido"),
+          cantidad: z
+            .union([z.number(), z.string()])
+            .transform((val) =>
+              typeof val === "string"
+                ? Number(val.replace(",", ".").replace(/\s/g, ""))
+                : val
+            )
+            .refine((n) => n > 0 && !isNaN(n), {
+              message: "La cantidad debe ser un número válido mayor que 0",
+            }),
+        })
+      )
+      .min(1, "Debes agregar al menos un servicio a la orden")
+      .optional(),
+    deliveredByUserId: z.number().int().nullable().optional(),
+    deliveredByUserName: z.string().nullable().optional(),
+  })
+  .partial();
 
 export const ObservacionUpdateSchema = z.object({
   observaciones: z.string().nullable().optional(),

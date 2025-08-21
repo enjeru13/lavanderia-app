@@ -7,7 +7,16 @@ import {
 } from "../schemas/orden.schema";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import dayjs from "dayjs";
+import { Role } from "@prisma/client";
 
+interface AuthRequest extends Request {
+  user?: {
+    id: number;
+    email: string;
+    name?: string;
+    role: Role;
+  };
+}
 
 export async function getAllOrdenes(req: Request, res: Response) {
   try {
@@ -16,6 +25,13 @@ export async function getAllOrdenes(req: Request, res: Response) {
         cliente: true,
         detalles: { include: { servicio: true } },
         pagos: true,
+        deliveredBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
       orderBy: { fechaIngreso: "desc" },
     });
@@ -35,6 +51,13 @@ export async function getOrdenById(req: Request, res: Response) {
         cliente: true,
         detalles: { include: { servicio: true } },
         pagos: true,
+        deliveredBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
     if (!orden) {
@@ -114,7 +137,7 @@ export async function createOrden(req: Request, res: Response) {
   }
 }
 
-export async function updateOrden(req: Request, res: Response) {
+export async function updateOrden(req: AuthRequest, res: Response) {
   const { id } = req.params;
   const result = ordenUpdateSchema.safeParse(req.body);
 
@@ -125,12 +148,24 @@ export async function updateOrden(req: Request, res: Response) {
     });
   }
 
-  const { fechaEntrega, estado, ...rest } = result.data;
+  const {
+    fechaEntrega,
+    estado,
+    deliveredByUserId,
+    deliveredByUserName,
+    ...rest
+  } = result.data;
 
   try {
     const ordenActual = await prisma.orden.findUnique({
       where: { id: Number(id) },
-      select: { fechaIngreso: true, fechaEntrega: true },
+      select: {
+        fechaIngreso: true,
+        fechaEntrega: true,
+        estado: true,
+        deliveredByUserId: true,
+        deliveredByUserName: true,
+      },
     });
 
     if (!ordenActual) {
@@ -138,24 +173,24 @@ export async function updateOrden(req: Request, res: Response) {
         .status(404)
         .json({ message: "Orden no encontrada para actualizar." });
     }
-
     let fechaFinalEntrega: Date | null = ordenActual.fechaEntrega || null;
-
+    let finalDeliveredByUserId: number | null | undefined =
+      ordenActual.deliveredByUserId;
+    let finalDeliveredByUserName: string | null | undefined =
+      ordenActual.deliveredByUserName;
     if (fechaEntrega !== undefined) {
-      fechaFinalEntrega = fechaEntrega === null ? null : dayjs(fechaEntrega).toDate();
+      fechaFinalEntrega =
+        fechaEntrega === null ? null : dayjs(fechaEntrega).toDate();
     }
-
-    if (estado === "ENTREGADO") {
-      const mismoDia =
-        ordenActual.fechaEntrega &&
-        ordenActual.fechaEntrega.toISOString().split("T")[0] ===
-          ordenActual.fechaIngreso.toISOString().split("T")[0];
-
-      const seDebeActualizar = !ordenActual.fechaEntrega || mismoDia;
-
-      if (fechaEntrega === undefined && seDebeActualizar) {
-        fechaFinalEntrega = dayjs().toDate();
-      }
+    if (
+      estado === "ENTREGADO" &&
+      ordenActual.estado !== "ENTREGADO" &&
+      req.user &&
+      !ordenActual.deliveredByUserId
+    ) {
+      fechaFinalEntrega = dayjs().toDate();
+      finalDeliveredByUserId = req.user.id;
+      finalDeliveredByUserName = req.user.name || req.user.email;
     }
 
     const datosParaGuardar: any = {
@@ -163,6 +198,12 @@ export async function updateOrden(req: Request, res: Response) {
       ...(estado !== undefined && { estado }),
       ...(fechaFinalEntrega !== undefined && {
         fechaEntrega: fechaFinalEntrega,
+      }),
+      ...(finalDeliveredByUserId !== undefined && {
+        deliveredByUserId: finalDeliveredByUserId,
+      }),
+      ...(finalDeliveredByUserName !== undefined && {
+        deliveredByUserName: finalDeliveredByUserName,
       }),
     };
 
@@ -178,6 +219,13 @@ export async function updateOrden(req: Request, res: Response) {
         pagos: true,
         detalles: {
           include: { servicio: true },
+        },
+        deliveredBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
         },
       },
     });
@@ -251,6 +299,13 @@ export async function actualizarObservacion(req: Request, res: Response) {
         cliente: true,
         pagos: true,
         detalles: true,
+        deliveredBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
 

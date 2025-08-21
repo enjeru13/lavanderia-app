@@ -2,12 +2,13 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma";
 import { Role } from "@prisma/client";
-
 declare global {
   namespace Express {
     interface Request {
       user?: {
         id: number;
+        email: string;
+        name?: string;
         role: Role;
       };
     }
@@ -59,7 +60,12 @@ export const protect = async (
       });
     }
 
-    req.user = { id: user.id, role: user.role };
+    req.user = {
+      id: user.id,
+      email: user.email,
+      name: user.name ?? undefined,
+      role: user.role,
+    };
     next();
     return;
   } catch (error) {

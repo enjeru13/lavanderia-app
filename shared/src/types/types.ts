@@ -111,7 +111,14 @@ export interface OrdenCreate {
   servicios: ServicioSeleccionado[];
 }
 
-export type OrdenUpdatePayload = Partial<OrdenCreate>;
+export interface OrdenUpdatePayload {
+  clienteId?: number;
+  estado?: EstadoOrden;
+  observaciones?: string | null;
+  fechaEntrega?: string | null;
+  deliveredByUserId?: number | null;
+  deliveredByUserName?: string | null;
+}
 
 export interface Orden {
   id: number;
@@ -127,6 +134,13 @@ export interface Orden {
   cliente?: Cliente;
   detalles?: DetalleOrden[];
   pagos?: Pago[];
+  deliveredByUserId?: number | null;
+  deliveredByUserName?: string | null;
+  deliveredBy?: {
+  id: number;
+  name: string | null;
+  email: string;
+  } | null;
 }
 
 export interface Pago {

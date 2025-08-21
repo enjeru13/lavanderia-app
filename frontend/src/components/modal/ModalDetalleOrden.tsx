@@ -197,6 +197,16 @@ export default function ModalDetalleOrden({
                 : "No definida"}
             </div>
           </div>
+          {orden.estado === "ENTREGADO" && orden.deliveredBy && (
+            <div>
+              <p className="text-gray-700 font-semibold text-sm mb-2">
+                Entregado Por
+              </p>
+              <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 font-medium text-gray-900 shadow-sm">
+                {orden.deliveredBy.name || orden.deliveredBy.email}
+              </div>
+            </div>
+          )}
         </div>
 
         <div>
