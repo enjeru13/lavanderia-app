@@ -3,7 +3,7 @@
   max-width: 80mm;
   margin: 0 auto;
   padding: 12px;
-  font-family: "Inter", sans-serif;
+  font-family: "monospace", "Courier New", Courier, sans-serif;
   font-size: 13px;
   color: #333;
   line-height: 1.5;
@@ -33,11 +33,6 @@ hr {
   margin: 10px 0;
 }
 
-.items-list {
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
 .item-linea {
   display: flex;
   justify-content: space-between;
@@ -55,8 +50,17 @@ hr {
   padding-right: 8px;
 }
 
-.item-linea .cantidad,
-.item-linea .precio-unitario {
+.item-linea span:nth-child(2) {
+  flex-shrink: 0;
+  width: 40px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.item-linea span:last-child {
+  flex-shrink: 0;
+  width: 70px;
+  text-align: right;
   white-space: nowrap;
 }
 
@@ -98,11 +102,11 @@ hr {
   margin-top: 15px;
   padding-top: 10px;
   border-top: 1px dashed #bbb;
+  font-size: 11px;
 }
 
 .footer p {
   text-align: center;
-  font-size: 11px;
   margin-top: 4px;
   color: #666;
 }
@@ -114,52 +118,69 @@ hr {
 }
 
 @media print {
-  body {
+  body > *:not(.print-only-wrapper) {
+    display: none !important;
+  }
+
+  .print-only-wrapper {
+    display: block !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 80mm;
     margin: 0;
     padding: 0;
-    width: 58mm;
-    background: white;
-    color: black;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    font-family: "monospace", "Courier New", Courier, sans-serif !important;
+    color: black !important;
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    page-break-after: auto;
   }
 
   .recibo {
-    width: 58mm !important;
-    font-size: 10px;
-    padding: 6px;
-    box-shadow: none;
-    border-radius: 0;
+    width: 80mm !important;
+    font-size: 10px !important;
+    padding: 6px !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
   }
 
   .recibo h2 {
-    font-size: 16px;
-    margin-bottom: 6px;
+    font-size: 16px !important;
+    margin-bottom: 6px !important;
   }
   .encabezado p {
-    font-size: 10px;
+    font-size: 10px !important;
+    margin: 2px 0 !important;
   }
   .item-linea,
   .datos-cliente p,
   .observaciones p {
-    font-size: 10px;
+    font-size: 10px !important;
+    margin: 2px 0 !important;
   }
   .totales p {
-    font-size: 11px;
+    font-size: 11px !important;
+    margin: 2px 0 !important;
   }
   .totales p strong {
-    font-size: 12px;
+    font-size: 12px !important;
   }
   .footer p {
-    font-size: 9px;
+    font-size: 9px !important;
+    margin: 2px 0 !important;
   }
 
   hr {
-    border-top: 1px dashed black;
-    margin: 8px 0;
+    border-top: 1px dashed black !important;
+    margin: 6px 0 !important;
   }
 
   .recibo::after {
-    height: 25px;
+    height: 25px !important;
   }
 }
