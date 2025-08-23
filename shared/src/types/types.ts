@@ -251,3 +251,39 @@ export interface AuthContextType {
   logout: () => void;
   hasRole: (requiredRole: Role | Role[]) => boolean;
 }
+
+export interface ReciboItem {
+  descripcion: string;
+  cantidad: number;
+  precioUnitario: number;
+  permiteDecimales: boolean;
+}
+
+export interface ReciboClienteInfo {
+  nombre: string;
+  apellido: string;
+  identificacion: string;
+  fechaIngreso: Date;
+  fechaEntrega?: Date | null;
+}
+
+export interface ReciboLavanderiaInfo {
+  nombre: string;
+  rif: string | null;
+  direccion: string | null;
+  telefonoPrincipal: string | null;
+  telefonoSecundario: string | null;
+}
+
+export interface ReciboData {
+  clienteInfo: ReciboClienteInfo;
+  items: ReciboItem[];
+  abono: number;
+  total: number;
+  lavanderiaInfo: ReciboLavanderiaInfo;
+  numeroOrden?: number;
+  observaciones: string | null;
+  mensajePieRecibo: string | null;
+  monedaPrincipal: Moneda;
+  totalCantidadPiezas: number;
+}

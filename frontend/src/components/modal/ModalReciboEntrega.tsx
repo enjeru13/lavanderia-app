@@ -3,49 +3,21 @@ import { FaPrint } from "react-icons/fa";
 import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
 import ReciboEntrega from "../ReciboEntrega";
-import type { Moneda } from "../../utils/monedaHelpers";
+import type { ReciboData } from "@lavanderia/shared/types/types";
+
 const API_URL = import.meta.env.VITE_PRINT_SERVER_URL;
 
-interface ReciboItem {
-  descripcion: string;
-  cantidad: number;
-  precioUnitario: number;
-}
-interface ReciboClienteInfo {
-  nombre: string;
-  apellido: string;
-  identificacion: string;
-  fechaIngreso: string | Date;
-  fechaEntrega?: string | Date | null;
-}
-interface ReciboLavanderiaInfo {
-  nombre: string;
-  rif: string | null;
-  direccion: string | null;
-  telefonoPrincipal: string | null;
-  telefonoSecundario: string | null;
-}
-type Props = {
+interface ModalReciboEntregaProps {
   visible: boolean;
   onClose: () => void;
-  datosRecibo: {
-    clienteInfo: ReciboClienteInfo;
-    items: ReciboItem[];
-    abono: number;
-    total: number;
-    lavanderiaInfo: ReciboLavanderiaInfo;
-    numeroOrden?: number;
-    observaciones?: string | null;
-    mensajePieRecibo?: string | null;
-    monedaPrincipal: Moneda;
-  };
-};
+  datosRecibo: ReciboData;
+}
 
 export default function ModalReciboEntrega({
   visible,
   onClose,
   datosRecibo,
-}: Props) {
+}: ModalReciboEntregaProps) {
   const imprimirConServidor = async () => {
     try {
       const response = await fetch(`${API_URL}/imprimir-recibo`, {
@@ -108,6 +80,7 @@ export default function ModalReciboEntrega({
             observaciones={datosRecibo.observaciones}
             mensajePieRecibo={datosRecibo.mensajePieRecibo}
             monedaPrincipal={datosRecibo.monedaPrincipal}
+            totalCantidadPiezas={datosRecibo.totalCantidadPiezas}
           />
         </div>
 

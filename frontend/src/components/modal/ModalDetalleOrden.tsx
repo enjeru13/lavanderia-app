@@ -12,7 +12,11 @@ import {
 import { badgeEstado } from "../../utils/badgeHelpers";
 import { toast } from "react-toastify";
 import { calcularResumenPago } from "@lavanderia/shared/utils/pagoFinance";
-import type { Orden, Configuracion } from "@lavanderia/shared/types/types";
+import type {
+  Orden,
+  Configuracion,
+  ReciboData,
+} from "@lavanderia/shared/types/types";
 import { useAuth } from "../../hooks/useAuth";
 import ModalReciboEntrega from "./ModalReciboEntrega";
 import dayjs from "dayjs";
@@ -24,36 +28,6 @@ interface Props {
   onAbrirPagoExtra: (orden: Orden) => void;
   tasas: TasasConversion;
   monedaPrincipal: Moneda;
-}
-
-interface ReciboData {
-  clienteInfo: {
-    nombre: string;
-    apellido: string;
-    identificacion: string;
-    fechaIngreso: Date;
-    fechaEntrega: Date | null;
-  };
-  items: Array<{
-    descripcion: string;
-    cantidad: number;
-    precioUnitario: number;
-    permiteDecimales: boolean;
-  }>;
-  abono: number;
-  total: number;
-  numeroOrden?: number;
-  observaciones: string | null;
-  lavanderiaInfo: {
-    nombre: string;
-    rif: string | null;
-    direccion: string | null;
-    telefonoPrincipal: string | null;
-    telefonoSecundario: string | null;
-  };
-  mensajePieRecibo: string | null;
-  monedaPrincipal: Moneda;
-  totalCantidadPiezas: number;
 }
 
 export default function ModalDetalleOrden({
@@ -334,19 +308,19 @@ export default function ModalDetalleOrden({
             Resumen de Pagos
           </h3>
           <div className="grid grid-cols-2 gap-4 text-sm font-medium">
-            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg shadow-sm">
+            <div className="p-3 bg-blue-50 rounded-lg shadow-sm flex justify-between items-center">
               <span className="text-blue-800">Total Orden:</span>
               <span className="font-bold text-blue-900">
                 {formatearMoneda(orden.total, principalSeguro)}
               </span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg shadow-sm">
+            <div className="p-3 bg-green-50 rounded-lg shadow-sm flex justify-between items-center">
               <span className="text-green-800">Total Abonado:</span>
               <span className="font-bold text-green-900">
                 {formatearMoneda(resumen.abonado, principalSeguro)}
               </span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg shadow-sm">
+            <div className="p-3 bg-red-50 rounded-lg shadow-sm flex justify-between items-center">
               <span className="text-red-800">Saldo Pendiente:</span>
               <span className="font-bold text-red-900">
                 {formatearMoneda(resumen.faltante, principalSeguro)}
@@ -436,7 +410,6 @@ export default function ModalDetalleOrden({
             </button>
           )}
         </div>
-
         {verModalRecibo && configuracion && (
           <ModalReciboEntrega
             visible={true}

@@ -1,48 +1,9 @@
 import { forwardRef } from "react";
-import {
-  formatearMoneda,
-  type Moneda,
-} from "../../../shared/src/utils/monedaHelpers";
+import { formatearMoneda } from "../../../shared/src/utils/monedaHelpers";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
-
+import type { ReciboData as ReciboProps } from "@lavanderia/shared/types/types";
 dayjs.locale("es");
-
-interface ReciboItem {
-  descripcion: string;
-  cantidad: number;
-  precioUnitario: number;
-  permiteDecimales: boolean;
-}
-
-interface ReciboClienteInfo {
-  nombre: string;
-  apellido: string;
-  identificacion: string;
-  fechaIngreso: string | Date;
-  fechaEntrega?: string | Date | null;
-}
-
-interface ReciboLavanderiaInfo {
-  nombre: string;
-  rif: string | null;
-  direccion: string | null;
-  telefonoPrincipal: string | null;
-  telefonoSecundario: string | null;
-}
-
-interface ReciboProps {
-  clienteInfo: ReciboClienteInfo;
-  items: ReciboItem[];
-  abono: number;
-  total: number;
-  lavanderiaInfo: ReciboLavanderiaInfo;
-  numeroOrden?: number;
-  observaciones?: string | null;
-  mensajePieRecibo?: string | null;
-  monedaPrincipal: Moneda;
-  totalCantidadPiezas: number;
-}
 
 const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
   (
