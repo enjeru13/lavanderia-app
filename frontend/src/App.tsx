@@ -17,7 +17,6 @@ import PantallaConfiguracion from "./pages/PantallaConfiguracion";
 import PantallaLogin from "./pages/PantallaLogin";
 import PantallaRegister from "./pages/PantallaRegister";
 import PantallaEstadoOrdenes from "./pages/PantallaEstadoOrdenes";
-
 import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 import type { Role } from "@lavanderia/shared/types/types";

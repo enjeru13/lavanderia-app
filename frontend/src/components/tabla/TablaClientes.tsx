@@ -93,14 +93,14 @@ export default function TablaClientes({
                       title="Editar cliente"
                       className="p-2 bg-blue-100 border border-blue-300 text-blue-700 rounded-md hover:bg-blue-200 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm"
                     >
-                      <FaPen size={14} />
+                      <FaPen size={12} />
                     </button>
                     <button
                       onClick={() => onVerInfo(c)}
                       title="Ver información del cliente"
                       className="p-2 bg-gray-100 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-200 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm"
                     >
-                      <FaSearch size={14} />
+                      <FaSearch size={12} />
                     </button>
                     {hasRole(["ADMIN"]) && (
                       <button
@@ -108,7 +108,7 @@ export default function TablaClientes({
                         title="Eliminar cliente"
                         className="p-2 bg-red-100 border border-red-300 text-red-700 rounded-md hover:bg-red-200 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm"
                       >
-                        <FaTrashAlt size={14} />
+                        <FaTrashAlt size={12} />
                       </button>
                     )}
                   </div>

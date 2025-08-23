@@ -92,7 +92,7 @@ export default function TablaServicios({
                         title="Editar servicio"
                         className="p-2 bg-blue-100 border border-blue-300 text-blue-700 rounded-md hover:bg-blue-200 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm"
                       >
-                        <FaPen size={14} />
+                        <FaPen size={12} />
                       </button>
                     )}
                     {hasRole(["ADMIN"]) && (
@@ -101,7 +101,7 @@ export default function TablaServicios({
                         title="Eliminar servicio"
                         className="p-2 bg-red-100 border border-red-300 text-red-700 rounded-md hover:bg-red-200 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm"
                       >
-                        <FaTrashAlt size={14} />
+                        <FaTrashAlt size={12} />
                       </button>
                     )}
                   </div>
