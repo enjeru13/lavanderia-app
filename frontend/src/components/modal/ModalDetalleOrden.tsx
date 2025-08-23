@@ -26,6 +26,36 @@ interface Props {
   monedaPrincipal: Moneda;
 }
 
+interface ReciboData {
+  clienteInfo: {
+    nombre: string;
+    apellido: string;
+    identificacion: string;
+    fechaIngreso: Date;
+    fechaEntrega: Date | null;
+  };
+  items: Array<{
+    descripcion: string;
+    cantidad: number;
+    precioUnitario: number;
+    permiteDecimales: boolean;
+  }>;
+  abono: number;
+  total: number;
+  numeroOrden?: number;
+  observaciones: string | null;
+  lavanderiaInfo: {
+    nombre: string;
+    rif: string | null;
+    direccion: string | null;
+    telefonoPrincipal: string | null;
+    telefonoSecundario: string | null;
+  };
+  mensajePieRecibo: string | null;
+  monedaPrincipal: Moneda;
+  totalCantidadPiezas: number;
+}
+
 export default function ModalDetalleOrden({
   orden,
   onClose,
@@ -105,44 +135,58 @@ export default function ModalDetalleOrden({
     hasRole,
   ]);
 
-  const generarDatosRecibo = () => ({
-    clienteInfo: {
-      nombre: orden.cliente?.nombre ?? "",
-      apellido: orden.cliente?.apellido ?? "",
-      identificacion: orden.cliente?.identificacion ?? "",
-      fechaIngreso: dayjs(orden.fechaIngreso).isValid()
-        ? dayjs(orden.fechaIngreso).toDate()
-        : new Date(),
-      fechaEntrega:
-        orden.fechaEntrega && dayjs(orden.fechaEntrega).isValid()
-          ? dayjs(orden.fechaEntrega).toDate()
-          : null,
-    },
-    items:
-      orden.detalles?.map((d) => ({
-        descripcion: d.servicio?.nombreServicio ?? "Descripción no disponible",
-        cantidad: d.cantidad,
-        precioUnitario: d.precioUnit,
-      })) ?? [],
-    abono: resumen.abonado,
-    total: orden.total,
-    numeroOrden: orden.id,
-    observaciones:
-      observacionesEditadas.trim() === "" ? null : observacionesEditadas.trim(),
+  const generarDatosRecibo = (): ReciboData => {
+    const totalCantidadPiezas =
+      orden.detalles?.reduce((sum, detalle) => {
+        return (
+          sum + (detalle.servicio?.permiteDecimales ? 1 : detalle.cantidad)
+        );
+      }, 0) ?? 0;
 
-    lavanderiaInfo: {
-      nombre: configuracion?.nombreNegocio ?? "Lavandería sin nombre",
-      rif: configuracion?.rif ?? null,
-      direccion: configuracion?.direccion ?? null,
-      telefonoPrincipal: configuracion?.telefonoPrincipal ?? null,
-      telefonoSecundario: configuracion?.telefonoSecundario ?? null,
-    },
-    mensajePieRecibo:
-      configuracion?.mensajePieRecibo === ""
-        ? null
-        : configuracion?.mensajePieRecibo ?? null,
-    monedaPrincipal: principalSeguro,
-  });
+    return {
+      clienteInfo: {
+        nombre: orden.cliente?.nombre ?? "",
+        apellido: orden.cliente?.apellido ?? "",
+        identificacion: orden.cliente?.identificacion ?? "",
+        fechaIngreso: dayjs(orden.fechaIngreso).isValid()
+          ? dayjs(orden.fechaIngreso).toDate()
+          : new Date(),
+        fechaEntrega:
+          orden.fechaEntrega && dayjs(orden.fechaEntrega).isValid()
+            ? dayjs(orden.fechaEntrega).toDate()
+            : null,
+      },
+      items:
+        orden.detalles?.map((d) => ({
+          descripcion:
+            d.servicio?.nombreServicio ?? "Descripción no disponible",
+          cantidad: d.cantidad,
+          precioUnitario: d.precioUnit,
+          permiteDecimales: d.servicio?.permiteDecimales ?? false,
+        })) ?? [],
+      abono: resumen.abonado,
+      total: orden.total,
+      numeroOrden: orden.id,
+      observaciones:
+        observacionesEditadas.trim() === ""
+          ? null
+          : observacionesEditadas.trim(),
+
+      lavanderiaInfo: {
+        nombre: configuracion?.nombreNegocio ?? "Lavandería sin nombre",
+        rif: configuracion?.rif ?? null,
+        direccion: configuracion?.direccion ?? null,
+        telefonoPrincipal: configuracion?.telefonoPrincipal ?? null,
+        telefonoSecundario: configuracion?.telefonoSecundario ?? null,
+      },
+      mensajePieRecibo:
+        configuracion?.mensajePieRecibo === ""
+          ? null
+          : configuracion?.mensajePieRecibo ?? null,
+      monedaPrincipal: principalSeguro,
+      totalCantidadPiezas: totalCantidadPiezas,
+    };
+  };
 
   const isObservacionesDisabled = !hasRole(["ADMIN"]) || guardandoObservaciones;
 

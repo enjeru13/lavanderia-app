@@ -132,14 +132,14 @@ export interface Orden {
   faltante: number;
   estadoPago: EstadoPagoRaw;
   cliente?: Cliente;
-  detalles?: DetalleOrden[];
+  detalles?: (DetalleOrden & { servicio: Servicio })[];
   pagos?: Pago[];
   deliveredByUserId?: number | null;
   deliveredByUserName?: string | null;
   deliveredBy?: {
-  id: number;
-  name: string | null;
-  email: string;
+    id: number;
+    name: string | null;
+    email: string;
   } | null;
 }
 

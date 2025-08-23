@@ -12,6 +12,7 @@ interface ReciboItem {
   descripcion: string;
   cantidad: number;
   precioUnitario: number;
+  permiteDecimales: boolean;
 }
 
 interface ReciboClienteInfo {
@@ -40,6 +41,7 @@ interface ReciboProps {
   observaciones?: string | null;
   mensajePieRecibo?: string | null;
   monedaPrincipal: Moneda;
+  totalCantidadPiezas: number;
 }
 
 const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
@@ -54,6 +56,7 @@ const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
       observaciones,
       mensajePieRecibo,
       monedaPrincipal,
+      totalCantidadPiezas,
     },
     ref
   ) => {
@@ -85,7 +88,6 @@ const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
           <h2 className="text-lg font-extrabold mb-1">
             {lavanderiaInfo.nombre}
           </h2>{" "}
-          {/* Simula 2X */}
           {lavanderiaInfo.rif && (
             <p className="text-xs">{`RIF: ${lavanderiaInfo.rif}`}</p>
           )}
@@ -155,10 +157,7 @@ const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
 
         {/* Totales */}
         <div className="totales text-sm">
-          {formatAlignedLine(
-            "Total Cantidad Piezas:",
-            items.reduce((sum, item) => sum + item.cantidad, 0)
-          )}
+          {formatAlignedLine("Total Servicios:", totalCantidadPiezas)}
           {formatAlignedLine("Total:", formatearMoneda(total, monedaPrincipal))}
           {formatAlignedLine(
             "Total Abono:",

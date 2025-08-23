@@ -58,6 +58,7 @@ const generateReceiptText = (datosRecibo) => {
     numeroOrden,
     observaciones,
     mensajePieRecibo,
+    totalCantidadPiezas,
   } = datosRecibo;
 
   // Encabezado de la lavandería
@@ -108,10 +109,8 @@ const generateReceiptText = (datosRecibo) => {
   });
   reciboTexto += `--------------------------------\n`;
 
-  const totalCantidad = items.reduce((sum, item) => sum + item.cantidad, 0);
   const porPagar = Math.max(total - abono, 0);
 
-  // Función auxiliar para alinear líneas de total
   const formatAlignedLine = (labelText, valueText) => {
     const spacesToPad = LINE_WIDTH - labelText.length - valueText.length;
     return `${NEGRITA}${labelText}${NORMAL}${Array(spacesToPad + 1).join(
@@ -120,8 +119,8 @@ const generateReceiptText = (datosRecibo) => {
   };
 
   reciboTexto += formatAlignedLine(
-    "Total Cantidad Piezas:",
-    String(totalCantidad)
+    "Total Servicios:",
+    String(totalCantidadPiezas)
   );
   reciboTexto += formatAlignedLine("Total:", formatearMoneda(total));
   reciboTexto += formatAlignedLine("Total Abono:", formatearMoneda(abono));
@@ -147,7 +146,6 @@ const generateReceiptText = (datosRecibo) => {
   }
   reciboTexto += CENTRAR;
   reciboTexto += `(NO DA DERECHO A CREDITO FISCAL)\n`;
-
   reciboTexto += "\n\n\n\n";
 
   return reciboTexto;
@@ -199,12 +197,10 @@ app.post("/imprimir-recibo", async (req, res) => {
       "Error de conexión con PrintNode:",
       e.response?.data || e.message
     );
-    res
-      .status(500)
-      .json({
-        message: "Error de conexión con el servicio de impresión.",
-        details: e.response?.data || e.message,
-      });
+    res.status(500).json({
+      message: "Error de conexión con el servicio de impresión.",
+      details: e.response?.data || e.message,
+    });
   }
 });
 

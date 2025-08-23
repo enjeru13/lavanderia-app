@@ -78,7 +78,7 @@ export default function PantallaServicios() {
     cargarServicios();
     cargarConfiguracion();
     cargarCategoriasEnPantalla();
-  }, [cargarServicios, cargarConfiguracion, cargarCategoriasEnPantalla]); // Dependencias para useCallback
+  }, [cargarServicios, cargarConfiguracion, cargarCategoriasEnPantalla]);
 
   useEffect(() => {
     setCurrentPage(1);

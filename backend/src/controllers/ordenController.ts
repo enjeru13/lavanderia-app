@@ -23,7 +23,20 @@ export async function getAllOrdenes(req: Request, res: Response) {
     const ordenes = await prisma.orden.findMany({
       include: {
         cliente: true,
-        detalles: { include: { servicio: true } },
+        detalles: {
+          include: {
+            servicio: {
+              select: {
+                id: true,
+                nombreServicio: true,
+                descripcion: true,
+                precioBase: true,
+                permiteDecimales: true,
+                categoriaId: true,
+              },
+            },
+          },
+        },
         pagos: true,
         deliveredBy: {
           select: {
@@ -49,7 +62,20 @@ export async function getOrdenById(req: Request, res: Response) {
       where: { id: Number(id) },
       include: {
         cliente: true,
-        detalles: { include: { servicio: true } },
+        detalles: {
+          include: {
+            servicio: {
+              select: {
+                id: true,
+                nombreServicio: true,
+                descripcion: true,
+                precioBase: true,
+                permiteDecimales: true,
+                categoriaId: true,
+              },
+            },
+          },
+        },
         pagos: true,
         deliveredBy: {
           select: {
@@ -126,7 +152,20 @@ export async function createOrden(req: Request, res: Response) {
       },
       include: {
         cliente: true,
-        detalles: { include: { servicio: true } },
+        detalles: {
+          include: {
+            servicio: {
+              select: {
+                id: true,
+                nombreServicio: true,
+                descripcion: true,
+                precioBase: true,
+                permiteDecimales: true,
+                categoriaId: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -218,7 +257,18 @@ export async function updateOrden(req: AuthRequest, res: Response) {
         cliente: true,
         pagos: true,
         detalles: {
-          include: { servicio: true },
+          include: {
+            servicio: {
+              select: {
+                id: true,
+                nombreServicio: true,
+                descripcion: true,
+                precioBase: true,
+                permiteDecimales: true,
+                categoriaId: true,
+              },
+            },
+          },
         },
         deliveredBy: {
           select: {
@@ -298,7 +348,20 @@ export async function actualizarObservacion(req: Request, res: Response) {
       include: {
         cliente: true,
         pagos: true,
-        detalles: true,
+        detalles: {
+          include: {
+            servicio: {
+              select: {
+                id: true,
+                nombreServicio: true,
+                descripcion: true,
+                precioBase: true,
+                permiteDecimales: true,
+                categoriaId: true,
+              },
+            },
+          },
+        },
         deliveredBy: {
           select: {
             id: true,

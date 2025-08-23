@@ -47,7 +47,7 @@ export default function TablaOrdenes({
               <th className="px-4 py-2 text-left whitespace-nowrap">Ingreso</th>
               <th className="px-4 py-2 text-left whitespace-nowrap">Entrega</th>
               <th className="px-4 py-2 text-left whitespace-nowrap">
-                Entregado Por
+                Entregado
               </th>
               <th className="px-4 py-2 text-left whitespace-nowrap">Total</th>
               <th className="px-4 py-2 text-left whitespace-nowrap">
@@ -135,7 +135,7 @@ export default function TablaOrdenes({
                         title="Ver detalles de la orden"
                         className="p-2 bg-blue-100 border border-blue-300 text-blue-700 rounded-md hover:bg-blue-200 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm"
                       >
-                        <FaSearch size={14} />
+                        <FaSearch size={12} />
                       </button>
 
                       {o.estadoPago !== "COMPLETO" &&
@@ -145,7 +145,7 @@ export default function TablaOrdenes({
                             title="Registrar pago"
                             className="p-2 bg-yellow-100 border border-yellow-300 text-yellow-700 rounded-md hover:bg-yellow-200 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm"
                           >
-                            <FaMoneyBillWave size={14} />
+                            <FaMoneyBillWave size={12} />
                           </button>
                         )}
 
@@ -155,7 +155,7 @@ export default function TablaOrdenes({
                           title="Marcar como entregada"
                           className="p-2 bg-green-100 border border-green-300 text-green-700 rounded-md hover:bg-green-200 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm"
                         >
-                          <FaCheckCircle size={14} />
+                          <FaCheckCircle size={12} />
                         </button>
                       )}
 
@@ -165,7 +165,7 @@ export default function TablaOrdenes({
                           title="Eliminar orden"
                           className="p-2 bg-red-100 border border-red-300 text-red-700 rounded-md hover:bg-red-200 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm"
                         >
-                          <FaTrashAlt size={14} />
+                          <FaTrashAlt size={12} />
                         </button>
                       )}
                     </div>
