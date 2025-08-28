@@ -115,7 +115,7 @@ export default function TablaPagos({
                     #{pago.ordenId}
                   </td>
                   <td className="px-4 py-3">
-                    {pago.orden?.cliente?.nombre}
+                    {pago.orden?.cliente?.nombre}{" "}
                     {pago.orden?.cliente?.apellido}
                   </td>
                   <td className="px-4 py-3 capitalize whitespace-nowrap">
