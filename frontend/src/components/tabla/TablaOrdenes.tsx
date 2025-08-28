@@ -46,9 +46,6 @@ export default function TablaOrdenes({
               <th className="px-4 py-2 text-left whitespace-nowrap">Balance</th>
               <th className="px-4 py-2 text-left whitespace-nowrap">Ingreso</th>
               <th className="px-4 py-2 text-left whitespace-nowrap">Entrega</th>
-              <th className="px-4 py-2 text-left whitespace-nowrap">
-                Entregado
-              </th>
               <th className="px-4 py-2 text-left whitespace-nowrap">Total</th>
               <th className="px-4 py-2 text-left whitespace-nowrap">
                 Observaciones
@@ -62,7 +59,7 @@ export default function TablaOrdenes({
             {ordenes.length === 0 ? (
               <tr>
                 <td
-                  colSpan={10}
+                  colSpan={9}
                   className="px-6 py-10 text-center text-gray-500 italic bg-white"
                 >
                   No se encontraron órdenes registradas.
@@ -87,18 +84,26 @@ export default function TablaOrdenes({
                     </div>
                   </td>
                   <td className="px-4 py-3 text-xs space-y-0.5 whitespace-nowrap">
-                    <div className="text-gray-600">
-                      Abonado:
-                      <span className="font-semibold">
-                        {formatearMoneda(o.abonado ?? 0, principalSeguro)}
-                      </span>
-                    </div>
-                    <div className="text-red-600">
-                      Falta:
-                      <span className="font-semibold">
-                        {formatearMoneda(o.faltante ?? 0, principalSeguro)}
-                      </span>
-                    </div>
+                    {o.faltante === 0 ? (
+                      <div className="text-green-600 font-semibold">
+                        Total pagado
+                      </div>
+                    ) : (
+                      <>
+                        <div className="text-gray-600">
+                          Abonado:
+                          <span className="font-semibold">
+                            {formatearMoneda(o.abonado ?? 0, principalSeguro)}
+                          </span>
+                        </div>
+                        <div className="text-red-600">
+                          Falta:
+                          <span className="font-semibold">
+                            {formatearMoneda(o.faltante ?? 0, principalSeguro)}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {dayjs(o.fechaIngreso).format("DD/MM/YYYY")}
@@ -109,11 +114,6 @@ export default function TablaOrdenes({
                     ) : (
                       <span className="text-gray-400">—</span>
                     )}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                    {o.estado === "ENTREGADO" && o.deliveredBy
-                      ? o.deliveredBy.name || o.deliveredBy.email
-                      : "—"}
                   </td>
                   <td className="px-4 py-3 text-indigo-700 font-extrabold whitespace-nowrap">
                     {formatearMoneda(o.total ?? 0, principalSeguro)}
