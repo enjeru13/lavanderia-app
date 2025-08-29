@@ -4,7 +4,7 @@ import {
   FaUsers,
   FaClipboardList,
   FaTshirt,
-  FaMoneyBillWave,
+  // FaMoneyBillWave,
   FaCog,
   FaChartBar,
 } from "react-icons/fa";
@@ -52,12 +52,12 @@ export default function Sidebar() {
     {
       section: "Finanzas",
       items: [
-        {
-          to: "/pagos",
-          label: "Pagos",
-          icon: <FaMoneyBillWave />,
-          roles: ["ADMIN"],
-        },
+        // {
+        //   to: "/pagos",
+        //   label: "Pagos",
+        //   icon: <FaMoneyBillWave />,
+        //   roles: ["ADMIN"],
+        // },
         {
           to: "/estado-ordenes",
           label: "Estado de Órdenes",
