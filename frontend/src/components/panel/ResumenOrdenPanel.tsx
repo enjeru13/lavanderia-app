@@ -107,7 +107,11 @@ export default function ResumenOrdenPanel({
             <span className="font-semibold text-gray-700 block mb-1">
               Observaciones:
             </span>
-            <p className="text-gray-900">{observaciones}</p>
+            <p className="text-gray-900 break-words whitespace-pre-wrap max-w-full">
+              {observaciones.length > 180
+                ? observaciones.slice(0, 180) + "..."
+                : observaciones}
+            </p>
           </div>
         )}
         {fechaEntrega && (
