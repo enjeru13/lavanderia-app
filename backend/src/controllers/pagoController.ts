@@ -31,14 +31,15 @@ async function recalcularEstadoOrden(ordenId: number) {
     COP: config?.tasaCOP ?? null,
   };
 
-  console.log("DEBUG BACKEND: Recalculando estado para Orden ID:", ordenId);
-  console.log("DEBUG BACKEND: Moneda Principal:", principalMoneda);
-  console.log("DEBUG BACKEND: Tasas de Conversión:", tasas);
-  console.log("DEBUG BACKEND: Pagos de la orden:", orden.pagos);
-  console.log("DEBUG BACKEND: Total de la orden:", orden.total);
+  // 🛠️ CORRECCIÓN 1: Convertir los pagos de la orden (Decimal -> Number)
+  // antes de pasarlos a la función de cálculo compartida.
+  const pagosNormalizados = orden.pagos.map((p) => ({
+    ...p,
+    tasa: p.tasa ? Number(p.tasa) : null,
+  }));
 
   const resumen = calcularResumenPago(
-    { total: orden.total, pagos: orden.pagos },
+    { total: orden.total, pagos: pagosNormalizados }, // Usamos los normalizados
     tasas,
     principalMoneda
   );
@@ -60,7 +61,7 @@ async function recalcularEstadoOrden(ordenId: number) {
 
 export async function getAllPagos(req: Request, res: Response) {
   try {
-    const pagos = await prisma.pago.findMany({
+    const pagosRaw = await prisma.pago.findMany({
       include: {
         orden: {
           include: {
@@ -71,6 +72,12 @@ export async function getAllPagos(req: Request, res: Response) {
       },
       orderBy: { fechaPago: "desc" },
     });
+
+    // Conversión correcta
+    const pagos = pagosRaw.map((p) => ({
+      ...p,
+      tasa: p.tasa ? Number(p.tasa) : null,
+    }));
     return res.json(pagos);
   } catch (error) {
     console.error("Error al obtener pagos:", error);
@@ -82,7 +89,7 @@ export async function getPagoById(req: Request, res: Response) {
   const { id } = req.params;
 
   try {
-    const pago = await prisma.pago.findUnique({
+    const pagoRaw = await prisma.pago.findUnique({
       where: { id: Number(id) },
       include: {
         orden: {
@@ -94,9 +101,15 @@ export async function getPagoById(req: Request, res: Response) {
       },
     });
 
-    if (!pago) {
+    if (!pagoRaw) {
       return res.status(404).json({ message: "Pago no encontrado" });
     }
+
+    // Conversión correcta
+    const pago = {
+      ...pagoRaw,
+      tasa: pagoRaw.tasa ? Number(pagoRaw.tasa) : null,
+    };
 
     return res.json(pago);
   } catch (error) {
@@ -139,15 +152,12 @@ export async function createPago(req: Request, res: Response) {
     if (config) {
       switch (moneda) {
         case "VES":
-          // Guardamos la tasa del BCV/Paralelo de este momento exacto
           tasaSnapshot = config.tasaVES ?? 0;
           break;
         case "COP":
-          // Guardamos la tasa de Pesos de este momento exacto
           tasaSnapshot = config.tasaCOP ?? 0;
           break;
         case "USD":
-          // Si es dólar, la tasa es 1 (o podrías guardar la referencia en VES si quisieras)
           tasaSnapshot = 1;
           break;
       }
@@ -187,6 +197,15 @@ export async function createPago(req: Request, res: Response) {
         vueltos: true,
       },
     });
+
+    // Conversión correcta
+    if (pagoConOrden) {
+      const respuesta = {
+        ...pagoConOrden,
+        tasa: pagoConOrden.tasa ? Number(pagoConOrden.tasa) : null,
+      };
+      return res.status(201).json(respuesta);
+    }
 
     return res.status(201).json(pagoConOrden);
   } catch (error) {
@@ -248,6 +267,15 @@ export async function updatePago(req: Request, res: Response) {
         vueltos: true,
       },
     });
+
+    // 🛠️ CORRECCIÓN 2: Añadida la conversión en updatePago
+    if (pagoConOrden) {
+      const respuesta = {
+        ...pagoConOrden,
+        tasa: pagoConOrden.tasa ? Number(pagoConOrden.tasa) : null,
+      };
+      return res.json(respuesta);
+    }
 
     return res.json(pagoConOrden);
   } catch (error) {
