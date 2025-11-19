@@ -3,60 +3,21 @@ generator client {
 }
 
 datasource db {
-  provider  = "mysql"
-  url       = env("DATABASE_URL")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
-// Enum para los tipos de cliente
-enum TipoCliente {
-  NATURAL
-  EMPRESA
-}
-
-// Enum para el estado de la orden
-enum EstadoOrden {
-  PENDIENTE
-  ENTREGADO
-}
-
-// Enum para el método de pago
-enum MetodoPago {
-  EFECTIVO
-  TRANSFERENCIA
-  PAGO_MOVIL
-}
-
-// Enum para los tipos de moneda
-enum Moneda {
-  USD
-  VES
-  COP
-}
-
-// Enum para el estado de pago
-enum EstadoPago {
-  COMPLETO
-  INCOMPLETO
-}
-
-enum Role {
-  ADMIN
-  EMPLOYEE
-}
-
-// Modelo de Usuario
 model User {
-  id            Int            @id @default(autoincrement())
-  email         String         @unique
-  password      String
-  name          String?
-  role          Role           @default(EMPLOYEE)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  ordenesEntregadas Orden[] @relation("DeliveredBy")
+  id                Int      @id @default(autoincrement())
+  email             String   @unique
+  password          String
+  name              String?
+  role              Role     @default(EMPLOYEE)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  ordenesEntregadas Orden[]  @relation("DeliveredBy")
 }
 
-// Modelo de Cliente
 model Cliente {
   id                  Int         @id @default(autoincrement())
   nombre              String
@@ -71,28 +32,27 @@ model Cliente {
   ordenes             Orden[]
 }
 
-//  Modelo de Categoria
 model Categoria {
-  id         String     @id @default(uuid())
-  nombre     String     @unique
-  servicios  Servicio[]
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id        String     @id @default(uuid())
+  nombre    String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  servicios Servicio[]
 }
 
-// Modelo de Servicio
 model Servicio {
-  id                Int            @id @default(autoincrement())
-  nombreServicio    String
-  descripcion       String?
-  precioBase        Float
-  permiteDecimales  Boolean        @default(false)
-  categoriaId       String
-  categoria         Categoria      @relation(fields: [categoriaId], references: [id])
-  detalleOrdenes    DetalleOrden[]
+  id               Int            @id @default(autoincrement())
+  nombreServicio   String
+  descripcion      String?
+  precioBase       Float
+  permiteDecimales Boolean        @default(false)
+  categoriaId      String
+  detalleOrdenes   DetalleOrden[]
+  categoria        Categoria      @relation(fields: [categoriaId], references: [id])
+
+  @@index([categoriaId], map: "Servicio_categoriaId_fkey")
 }
 
-// Modelo de Orden
 model Orden {
   id                  Int            @id @default(autoincrement())
   clienteId           Int
@@ -106,61 +66,97 @@ model Orden {
   estadoPago          EstadoPago     @default(INCOMPLETO)
   deliveredByUserId   Int?
   deliveredByUserName String?
-  cliente             Cliente        @relation(fields: [clienteId], references: [id])
   detalles            DetalleOrden[]
-  pagos               Pago[]
+  cliente             Cliente        @relation(fields: [clienteId], references: [id])
   deliveredBy         User?          @relation("DeliveredBy", fields: [deliveredByUserId], references: [id])
+  pagos               Pago[]
+
   @@index([clienteId])
   @@index([estado])
   @@index([deliveredByUserId])
 }
 
-// Modelo de DetalleOrden
 model DetalleOrden {
-  id          Int      @id @default(autoincrement())
-  ordenId     Int
-  servicioId  Int
-  cantidad    Float
-  precioUnit  Float
-  subtotal    Float
-  orden       Orden    @relation(fields: [ordenId], references: [id])
-  servicio    Servicio @relation(fields: [servicioId], references: [id])
+  id         Int      @id @default(autoincrement())
+  ordenId    Int
+  servicioId Int
+  cantidad   Float
+  precioUnit Float
+  subtotal   Float
+  orden      Orden    @relation(fields: [ordenId], references: [id])
+  servicio   Servicio @relation(fields: [servicioId], references: [id])
+
+  @@index([ordenId], map: "DetalleOrden_ordenId_fkey")
+  @@index([servicioId], map: "DetalleOrden_servicioId_fkey")
 }
 
-// Modelo de Pago
 model Pago {
-  id          Int          @id @default(autoincrement())
-  ordenId     Int
-  monto       Float
-  moneda      Moneda
-  metodoPago  MetodoPago
-  nota        String?
-  fechaPago   DateTime     @default(now())
-  orden       Orden        @relation(fields: [ordenId], references: [id])
-  vueltos     VueltoEntregado[]
+  id         Int               @id @default(autoincrement())
+  ordenId    Int
+  monto      Float
+  moneda     Moneda
+  metodoPago MetodoPago
+  tasa       Decimal         @db.Decimal(10, 2) @default(0.00)
+  nota       String?
+  fechaPago  DateTime          @default(now())
+  orden      Orden             @relation(fields: [ordenId], references: [id])
+  vueltos    VueltoEntregado[]
+
+  @@index([ordenId], map: "Pago_ordenId_fkey")
 }
 
-// Modelo de VueltoEntregado
 model VueltoEntregado {
-  id      Int    @id @default(autoincrement())
-  pagoId  Int
-  monto   Float
-  moneda  String
-  pago    Pago   @relation(fields: [pagoId], references: [id], onDelete: Cascade)
+  id     Int    @id @default(autoincrement())
+  pagoId Int
+  monto  Float
+  moneda String
+  pago   Pago   @relation(fields: [pagoId], references: [id], onDelete: Cascade)
+
   @@index([pagoId])
 }
 
-// Modelo de Configuración
 model Configuracion {
-  id                  Int       @id @default(1)
-  nombreNegocio       String?
-  monedaPrincipal     Moneda    @default(USD)
-  tasaUSD             Float?
-  tasaVES             Float?
-  tasaCOP             Float?
-  rif                 String?
-  direccion           String?
-  telefonoPrincipal   String?
-  telefonoSecundario  String?
-  mensajePieRecibo    String?
+  id                 Int     @id @default(1)
+  nombreNegocio      String?
+  monedaPrincipal    Moneda  @default(USD)
+  tasaUSD            Float?
+  tasaVES            Float?
+  tasaCOP            Float?
+  rif                String?
+  direccion          String?
+  telefonoPrincipal  String?
+  telefonoSecundario String?
+  mensajePieRecibo   String?
+}
+
+enum TipoCliente {
+  NATURAL
+  EMPRESA
+}
+
+enum EstadoOrden {
+  PENDIENTE
+  ENTREGADO
+}
+
+enum MetodoPago {
+  EFECTIVO
+  TRANSFERENCIA
+  PAGO_MOVIL
+}
+
+enum Moneda {
+  USD
+  VES
+  COP
+}
+
+enum EstadoPago {
+  COMPLETO
+  INCOMPLETO
+}
+
+enum Role {
+  ADMIN
+  EMPLOYEE
 }

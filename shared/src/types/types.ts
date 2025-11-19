@@ -149,6 +149,7 @@ export interface Pago {
   monto: number;
   moneda: Moneda;
   metodoPago: MetodoPago;
+  tasa?: number | null;
   nota: string | null;
   fechaPago: string;
   orden?: Orden & { cliente?: { nombre: string; apellido: string } };

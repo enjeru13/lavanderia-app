@@ -2,11 +2,6 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { FaPrint, FaSearch } from "react-icons/fa";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
-import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
-import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
-
-dayjs.extend(isSameOrAfter);
-dayjs.extend(isSameOrBefore);
 
 import {
   formatearMoneda,
@@ -23,10 +18,11 @@ import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
 import TablaPagos from "../components/tabla/TablaPagos";
 import ModalImprimirPagos from "../components/modal/ModalImprimirPagos";
 
-import type { Pago, Orden } from "@lavanderia/shared/types/types";
+import type { Pago, Orden, Configuracion } from "@lavanderia/shared/types/types";
 
 interface PagoConOrden extends Pago {
   orden?: Orden & { cliente?: { nombre: string; apellido: string } };
+  tasa?: number | null; // Aseguramos el tipo para la tasa histórica
 }
 
 type SortKeys = "fechaPago" | "ordenId" | "monto";
@@ -36,13 +32,15 @@ export default function PantallaPagos() {
   const [pagos, setPagos] = useState<PagoConOrden[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
+  const [configNegocio, setConfigNegocio] = useState<Configuracion | null>(null);
+  
+  // --- FILTROS DE TIEMPO (SOLO MES Y AÑO) ---
+  const [mesSeleccionado, setMesSeleccionado] = useState(dayjs().month());
+  const [anioSeleccionado, setAnioSeleccionado] = useState(dayjs().year());
+
   const [sortColumn, setSortColumn] = useState<SortKeys | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-  const [ordenSeleccionada, setOrdenSeleccionada] = useState<Orden | null>(
-    null
-  );
+  const [ordenSeleccionada, setOrdenSeleccionada] = useState<Orden | null>(null);
   const [tasas, setTasas] = useState<TasasConversion>({});
   const [monedaPrincipal, setMonedaPrincipal] = useState<Moneda>("USD");
   const [cargandoOrdenDetalle, setCargandoOrdenDetalle] = useState(false);
@@ -67,6 +65,7 @@ export default function PantallaPagos() {
     try {
       const res = await configuracionService.get();
       const config = res.data;
+      setConfigNegocio(config);
       setMonedaPrincipal(normalizarMoneda(config.monedaPrincipal ?? "USD"));
       setTasas({
         VES: config.tasaVES ?? null,
@@ -82,9 +81,10 @@ export default function PantallaPagos() {
     cargarConfiguracion().then(cargarPagos);
   }, [cargarConfiguracion, cargarPagos]);
 
+  // Resetea la página si cambian los filtros
   useEffect(() => {
     setCurrentPage(1);
-  }, [filtroBusqueda, fechaInicio, fechaFin]);
+  }, [filtroBusqueda, mesSeleccionado, anioSeleccionado]);
 
   const handleSort = (column: SortKeys) => {
     if (sortColumn === column) {
@@ -96,31 +96,28 @@ export default function PantallaPagos() {
   };
 
   const pagosFiltradosYSorteadas = useMemo(() => {
+    // 1. FILTRADO
     const pagosFiltrados = pagos.filter((pago) => {
       const termino = filtroBusqueda.trim().toLowerCase();
+      
+      // Lógica de búsqueda por texto
       const matchOrdenId = String(pago.ordenId).includes(termino);
       const nombreCliente = `${pago.orden?.cliente?.nombre ?? ""} ${
         pago.orden?.cliente?.apellido ?? ""
       }`.toLowerCase();
       const matchCliente = nombreCliente.includes(termino);
 
-      const pagoFecha = dayjs(pago.fechaPago);
-      let matchFecha = true;
+      // Lógica de fecha (Mes y Año exactos)
+      const fechaPago = dayjs(pago.fechaPago);
+      const coincideMes = fechaPago.month() === mesSeleccionado;
+      const coincideAnio = fechaPago.year() === anioSeleccionado;
 
-      if (fechaInicio) {
-        const inicio = dayjs(fechaInicio).startOf("day");
-        matchFecha = pagoFecha.isSameOrAfter(inicio);
-      }
-      if (fechaFin && matchFecha) {
-        const fin = dayjs(fechaFin).endOf("day");
-        matchFecha = pagoFecha.isSameOrBefore(fin);
-      }
-
-      return (matchOrdenId || matchCliente) && matchFecha;
+      return (matchOrdenId || matchCliente) && coincideMes && coincideAnio;
     });
 
     const pagosProcesados = [...pagosFiltrados];
 
+    // 2. ORDENAMIENTO (Con Tasa Histórica)
     if (sortColumn) {
       pagosProcesados.sort((a, b) => {
         let valA: number;
@@ -133,16 +130,29 @@ export default function PantallaPagos() {
           valA = a.ordenId;
           valB = b.ordenId;
         } else {
+          // Ordenar por monto real usando snapshot histórico
+          const tasaEfectivaA =
+            a.tasa && a.tasa > 0
+              ? a.tasa
+              : tasas[a.moneda as keyof TasasConversion];
+          const tasasSnapshotA = { ...tasas, [a.moneda]: tasaEfectivaA };
+
+          const tasaEfectivaB =
+            b.tasa && b.tasa > 0
+              ? b.tasa
+              : tasas[b.moneda as keyof TasasConversion];
+          const tasasSnapshotB = { ...tasas, [b.moneda]: tasaEfectivaB };
+
           valA = convertirAmonedaPrincipal(
             a.monto,
             a.moneda,
-            tasas,
+            tasasSnapshotA,
             monedaPrincipal
           );
           valB = convertirAmonedaPrincipal(
             b.monto,
             b.moneda,
-            tasas,
+            tasasSnapshotB,
             monedaPrincipal
           );
         }
@@ -151,13 +161,24 @@ export default function PantallaPagos() {
       });
     }
 
+    // 3. CÁLCULO TOTAL INGRESOS (Con Tasa Histórica)
     const totalIngresos = pagosFiltrados.reduce((sum, pago) => {
+      const tasaHistorica =
+        pago.tasa && pago.tasa > 0
+          ? pago.tasa
+          : tasas[pago.moneda as keyof TasasConversion];
+
+      const tasasSnapshot = {
+        ...tasas,
+        [pago.moneda]: tasaHistorica,
+      };
+
       return (
         sum +
         convertirAmonedaPrincipal(
           pago.monto,
           pago.moneda,
-          tasas,
+          tasasSnapshot,
           monedaPrincipal
         )
       );
@@ -177,15 +198,15 @@ export default function PantallaPagos() {
     };
   }, [
     pagos,
-    filtroBusqueda,
-    fechaInicio,
-    fechaFin,
     sortColumn,
+    currentPage,
+    itemsPerPage,
+    filtroBusqueda,
+    mesSeleccionado,  // Dependencia clave
+    anioSeleccionado, // Dependencia clave
     sortDirection,
     tasas,
     monedaPrincipal,
-    currentPage,
-    itemsPerPage,
   ]);
 
   const {
@@ -223,6 +244,7 @@ export default function PantallaPagos() {
       </h1>
 
       <div className="mb-5 flex flex-wrap items-center gap-4 font-semibold">
+        {/* BUSCADOR */}
         <div className="flex flex-col">
           <label
             htmlFor="filtroBusqueda"
@@ -243,56 +265,73 @@ export default function PantallaPagos() {
           </div>
         </div>
 
+        {/* SELECTOR DE MES */}
         <div className="flex flex-col">
-          <label htmlFor="fechaInicio" className="text-xs text-gray-500 mb-1">
-            Desde
-          </label>
-          <input
-            type="date"
-            id="fechaInicio"
-            value={fechaInicio}
-            onChange={(e) => setFechaInicio(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
-          />
+          <label className="text-xs text-gray-500 mb-1">Mes</label>
+          <select
+            value={mesSeleccionado}
+            onChange={(e) => setMesSeleccionado(Number(e.target.value))}
+            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm bg-white cursor-pointer"
+          >
+            <option value={0}>Enero</option>
+            <option value={1}>Febrero</option>
+            <option value={2}>Marzo</option>
+            <option value={3}>Abril</option>
+            <option value={4}>Mayo</option>
+            <option value={5}>Junio</option>
+            <option value={6}>Julio</option>
+            <option value={7}>Agosto</option>
+            <option value={8}>Septiembre</option>
+            <option value={9}>Octubre</option>
+            <option value={10}>Noviembre</option>
+            <option value={11}>Diciembre</option>
+          </select>
         </div>
 
+        {/* SELECTOR DE AÑO */}
         <div className="flex flex-col">
-          <label htmlFor="fechaFin" className="text-xs text-gray-500 mb-1">
-            Hasta
-          </label>
-          <input
-            type="date"
-            id="fechaFin"
-            value={fechaFin}
-            onChange={(e) => setFechaFin(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
-          />
+          <label className="text-xs text-gray-500 mb-1">Año</label>
+          <select
+            value={anioSeleccionado}
+            onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
+            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm bg-white cursor-pointer"
+          >
+            {/* Rango de años. Puedes ajustar esto dinámicamente si prefieres */}
+            {[2024, 2025, 2026, 2027].map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
         </div>
 
+        {/* BOTÓN IMPRIMIR */}
         <div className="flex flex-col mt-5">
           <button
             onClick={() => setMostrarModalImprimir(true)}
             className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-600 transition duration-200 ease-in-out transform hover:scale-105 flex items-center gap-2 font-bold text-sm shadow-md"
           >
-            <FaPrint size={16} /> Imprimir historial
+            <FaPrint size={16} /> Imprimir reporte
           </button>
         </div>
       </div>
 
+      {/* BANNER TOTAL INGRESOS */}
       <div className="bg-blue-50 p-4 rounded-lg shadow-sm border border-blue-200 mb-6 flex justify-between items-center">
         <span className="text-blue-800 font-semibold text-lg">
-          Total de Ingresos:
+          Total Ingresos ({dayjs().month(mesSeleccionado).format("MMMM")}):
         </span>
         <span className="text-blue-900 font-bold text-2xl">
           {formatearMoneda(totalIngresos, monedaPrincipal)}
         </span>
       </div>
 
+      {/* TABLA */}
       {loading || cargandoOrdenDetalle ? (
         <p className="text-gray-500">Cargando pagos...</p>
       ) : pagosParaMostrar.length === 0 && totalFilteredItems === 0 ? (
         <p className="text-gray-500">
-          No se encontraron pagos registrados con los filtros aplicados.
+          No se encontraron pagos en este mes.
         </p>
       ) : (
         <>
@@ -333,6 +372,7 @@ export default function PantallaPagos() {
         pagos={pagosCompletos}
         monedaPrincipal={monedaPrincipal}
         totalIngresos={totalIngresos}
+        configuracion={configNegocio}
       />
     </div>
   );

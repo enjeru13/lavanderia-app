@@ -7,6 +7,7 @@ import {
 export interface Pago {
   monto: number;
   moneda: Moneda;
+  tasa?: number | null;
 }
 
 export interface OrdenPago {
@@ -22,14 +23,29 @@ export type EstadoPagoRaw = "COMPLETO" | "INCOMPLETO";
  */
 export function calcularTotalAbonado(
   pagos: Pago[] = [],
-  tasas: TasasConversion,
+  tasasActuales: TasasConversion,
   principal: Moneda = "USD"
 ): number {
-  return pagos.reduce(
-    (sum, p) =>
-      sum + convertirAmonedaPrincipal(p.monto, p.moneda, tasas, principal),
-    0
-  );
+  return pagos.reduce((sum, p) => {
+    const tasaGlobal =
+      p.moneda === "VES"
+        ? tasasActuales.VES
+        : p.moneda === "COP"
+        ? tasasActuales.COP
+        : undefined;
+
+    const tasaEfectiva = p.tasa && p.tasa > 0 ? p.tasa : tasaGlobal;
+
+    const tasasSnapshot: TasasConversion = {
+      ...tasasActuales,
+      [p.moneda]: tasaEfectiva,
+    };
+
+    return (
+      sum +
+      convertirAmonedaPrincipal(p.monto, p.moneda, tasasSnapshot, principal)
+    );
+  }, 0);
 }
 
 /**
@@ -39,8 +55,9 @@ export function obtenerEstadoPagoTexto(
   total: number,
   abonado: number
 ): EstadoPagoTexto {
+  const epsilon = 0.005;
   if (abonado === 0) return "Sin pagos";
-  if (abonado >= total) return "Pagado";
+  if (abonado >= total - epsilon) return "Pagado";
   return "Parcial";
 }
 
@@ -51,7 +68,8 @@ export function obtenerEstadoPagoRaw(
   total: number,
   abonado: number
 ): EstadoPagoRaw {
-  return abonado >= total ? "COMPLETO" : "INCOMPLETO";
+  const epsilon = 0.005;
+  return abonado >= total - epsilon ? "COMPLETO" : "INCOMPLETO";
 }
 
 /**

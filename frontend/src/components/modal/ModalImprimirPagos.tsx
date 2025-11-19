@@ -1,13 +1,16 @@
+// src/components/modal/ModalImprimirPagos.tsx
 import { FaPrint } from "react-icons/fa";
 import { FiX } from "react-icons/fi";
 import { useRef } from "react";
 import { useReactToPrint } from "react-to-print";
 import { createPortal } from "react-dom";
-import { PagosPrintable } from "../PagosPrintable";
-import type { Moneda, Pago, Orden } from "@lavanderia/shared/types/types";
+import { PagosPrintable } from "../PagosPrintable"; // Asegúrate que la ruta sea correcta
+import type { Moneda, Pago, Orden, Configuracion } from "@lavanderia/shared/types/types";
 
+// Actualizamos la interfaz para incluir la tasa
 interface PagoConOrden extends Pago {
   orden?: Orden & { cliente?: { nombre: string; apellido: string } };
+  tasa?: number | null; 
 }
 
 interface Props {
@@ -16,6 +19,7 @@ interface Props {
   pagos: PagoConOrden[];
   monedaPrincipal: Moneda;
   totalIngresos: number;
+  configuracion?: Configuracion | null; // Nueva prop para configuración
 }
 
 export default function ModalImprimirPagos({
@@ -24,61 +28,75 @@ export default function ModalImprimirPagos({
   pagos,
   monedaPrincipal,
   totalIngresos,
+  configuracion
 }: Props) {
   const printRef = useRef<HTMLDivElement>(null);
 
   const imprimir = useReactToPrint({
     contentRef: printRef,
+    documentTitle: `Reporte_Pagos_${new Date().toISOString().split('T')[0]}`,
+    // Ajustamos los márgenes del papel aquí
     pageStyle: `
+      @page {
+        size: auto;
+        margin: 15mm;
+      }
       @media print {
         body {
-          margin: 0;
-          padding: 0;
-          font-size: 12px;
-        }
-        .no-print {
-          display: none !important;
+          -webkit-print-color-adjust: exact;
         }
       }
     `,
-    documentTitle: "Historial_Pagos",
-    onAfterPrint: () => console.log("Historial de pagos impreso"),
   });
 
   if (!visible) return null;
 
   return createPortal(
-    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-[999] p-4 print:hidden">
-      <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-4xl w-full relative text-base transform transition-all duration-300 scale-100 opacity-100 ring-1 ring-gray-200 flex flex-col h-[90vh]">
-        <div className="flex justify-between items-center pb-4 border-b border-gray-200 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            <FaPrint size={28} className="text-blue-600" /> Vista previa de
-            impresión
+    <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-[999] p-4 print:hidden">
+      <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full flex flex-col h-[90vh] overflow-hidden animate-fade-in-up">
+        
+        {/* Header del Modal (Solo visible en pantalla) */}
+        <div className="flex justify-between items-center p-5 border-b border-gray-200 bg-gray-50">
+          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <FaPrint className="text-blue-600" /> 
+            Vista Previa
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-3xl font-bold transition-transform transform hover:rotate-90"
+            className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500"
             title="Cerrar"
           >
-            <FiX />
+            <FiX size={24} />
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-grow pr-2">
-          <PagosPrintable
-            ref={printRef}
-            pagos={pagos}
-            monedaPrincipal={monedaPrincipal}
-            totalIngresos={totalIngresos}
-          />
+        {/* Área de Contenido (Lo que se ve y se imprime) */}
+        <div className="flex-1 overflow-y-auto bg-gray-100 p-6">
+            {/* Contenedor blanco centrado que simula la hoja de papel */}
+            <div className="bg-white shadow-lg mx-auto max-w-[210mm] min-h-[297mm] p-8 print:shadow-none print:m-0 print:p-0 print:max-w-none print:min-h-0">
+                <PagosPrintable
+                    ref={printRef}
+                    pagos={pagos}
+                    monedaPrincipal={monedaPrincipal}
+                    totalIngresos={totalIngresos}
+                    configuracion={configuracion}
+                />
+            </div>
         </div>
 
-        <div className="pt-6 flex justify-end border-t border-gray-200 mt-6">
+        {/* Footer del Modal (Botones de acción) */}
+        <div className="p-5 border-t border-gray-200 bg-white flex justify-end gap-3">
           <button
-            onClick={imprimir}
-            className="px-6 py-3.5 bg-green-600 text-white rounded-lg font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out flex items-center gap-2"
+            onClick={onClose}
+            className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition"
           >
-            <FaPrint size={18} /> Imprimir
+            Cancelar
+          </button>
+          <button
+            onClick={() => imprimir()}
+            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold shadow-md flex items-center gap-2 transition"
+          >
+            <FaPrint /> Imprimir Reporte
           </button>
         </div>
       </div>

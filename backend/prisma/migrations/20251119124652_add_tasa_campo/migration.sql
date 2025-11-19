@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Pago` ADD COLUMN `tasa` DECIMAL(10, 2) NOT NULL DEFAULT 0.00;

@@ -3,8 +3,10 @@ import prisma from "../lib/prisma";
 import { PagoSchema } from "../schemas/pago.schema";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { calcularResumenPago } from "@lavanderia/shared/dist/utils/pagoFinance";
-import type { Moneda, TasasConversion } from "@lavanderia/shared/dist/types/types";
-
+import type {
+  Moneda,
+  TasasConversion,
+} from "@lavanderia/shared/dist/types/types";
 
 async function recalcularEstadoOrden(ordenId: number) {
   const orden = await prisma.orden.findUnique({
@@ -132,6 +134,25 @@ export async function createPago(req: Request, res: Response) {
         .json({ message: `Orden con ID ${ordenId} no encontrada.` });
     }
 
+    const config = await prisma.configuracion.findFirst();
+    let tasaSnapshot = 1;
+    if (config) {
+      switch (moneda) {
+        case "VES":
+          // Guardamos la tasa del BCV/Paralelo de este momento exacto
+          tasaSnapshot = config.tasaVES ?? 0;
+          break;
+        case "COP":
+          // Guardamos la tasa de Pesos de este momento exacto
+          tasaSnapshot = config.tasaCOP ?? 0;
+          break;
+        case "USD":
+          // Si es dólar, la tasa es 1 (o podrías guardar la referencia en VES si quisieras)
+          tasaSnapshot = 1;
+          break;
+      }
+    }
+
     const nuevoPago = await prisma.pago.create({
       data: {
         ordenId,
@@ -139,6 +160,7 @@ export async function createPago(req: Request, res: Response) {
         moneda,
         metodoPago,
         nota: nota ?? null,
+        tasa: tasaSnapshot,
       },
     });
 

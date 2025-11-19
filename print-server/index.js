@@ -29,7 +29,6 @@ const NORMAL = `${ESC}\x45\x00`;
 const TAMAÑO_NORMAL = `${GS}\x21\x00`;
 const TAMAÑO_2X = `${GS}\x21\x01`;
 const PAGINA_DE_CODIGOS = `${ESC}\x74\x13`;
-
 const LINE_WIDTH = 32;
 
 // Función para formatear la fecha

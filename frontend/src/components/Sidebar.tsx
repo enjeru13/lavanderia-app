@@ -7,6 +7,7 @@ import {
   // FaMoneyBillWave,
   FaCog,
   FaChartBar,
+  FaMoneyBillWave,
 } from "react-icons/fa";
 import { useAuth } from "../hooks/useAuth";
 import type { Role } from "@lavanderia/shared/types/types";
@@ -52,12 +53,12 @@ export default function Sidebar() {
     {
       section: "Finanzas",
       items: [
-        // {
-        //   to: "/pagos",
-        //   label: "Pagos",
-        //   icon: <FaMoneyBillWave />,
-        //   roles: ["ADMIN"],
-        // },
+        {
+          to: "/pagos",
+          label: "Pagos",
+          icon: <FaMoneyBillWave />,
+          roles: ["ADMIN"],
+        },
         {
           to: "/estado-ordenes",
           label: "Estado de Órdenes",

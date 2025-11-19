@@ -11,8 +11,10 @@ import "dayjs/locale/es";
 
 dayjs.locale("es");
 
+// 1. CORRECCIÓN DEL TIPO AQUÍ
 interface PagoConOrden extends Pago {
   orden?: Orden & { cliente?: { nombre: string; apellido: string } };
+  tasa?: number | null;
 }
 
 type SortKeys = "fechaPago" | "ordenId" | "monto";
@@ -74,6 +76,10 @@ export default function TablaPagos({
             <th className="px-4 py-2 font-semibold whitespace-nowrap">
               Método
             </th>
+            {/* NUEVA COLUMNA DE TASA (OPCIONAL) */}
+            <th className="px-4 py-2 font-semibold whitespace-nowrap">
+              Tasa (Hist.)
+            </th>
             <th className="px-4 py-2 font-semibold whitespace-nowrap">
               Moneda
             </th>
@@ -82,7 +88,7 @@ export default function TablaPagos({
               onClick={() => onSort("monto")}
             >
               <div className="flex items-center gap-1">
-                Monto abonado {getSortIcon("monto")}
+                Monto {getSortIcon("monto")}
               </div>
             </th>
             <th className="px-4 py-2 font-semibold text-center whitespace-nowrap">
@@ -94,7 +100,7 @@ export default function TablaPagos({
           {pagos.length === 0 ? (
             <tr>
               <td
-                colSpan={7}
+                colSpan={8} // Aumentamos el colspan por la nueva columna
                 className="px-6 py-10 text-center text-gray-500 italic bg-white"
               >
                 No se encontraron pagos registrados.
@@ -103,6 +109,11 @@ export default function TablaPagos({
           ) : (
             pagos.map((pago) => {
               const monedaSegura: Moneda = pago.moneda;
+
+              // Lógica visual para la tasa
+              const mostrarTasa =
+                pago.tasa && pago.tasa > 1 && pago.moneda !== "USD";
+
               return (
                 <tr
                   key={pago.id}
@@ -121,6 +132,18 @@ export default function TablaPagos({
                   <td className="px-4 py-3 capitalize whitespace-nowrap">
                     {metodoPagoDisplay[pago.metodoPago]}
                   </td>
+
+                  {/* CELDA DE LA TASA HISTÓRICA */}
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-500 text-xs">
+                    {mostrarTasa ? (
+                      <span className="bg-gray-100 px-2 py-1 rounded border border-gray-300">
+                        {Number(pago.tasa).toFixed(2)}
+                      </span>
+                    ) : (
+                      <span className="text-gray-300">-</span>
+                    )}
+                  </td>
+
                   <td className="px-4 py-3 font-medium whitespace-nowrap">
                     {monedaSegura}
                   </td>
