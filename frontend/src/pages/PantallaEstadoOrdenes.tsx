@@ -1,5 +1,11 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { FaSearch, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
+import {
+  FaSearch,
+  FaSort,
+  FaSortUp,
+  FaSortDown,
+  FaPrint,
+} from "react-icons/fa";
 import { toast } from "react-toastify";
 import {
   normalizarMoneda,
@@ -12,12 +18,14 @@ import { calcularResumenPago } from "@lavanderia/shared/utils/pagoFinance";
 import { badgeEstado, badgePago } from "../utils/badgeHelpers";
 import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
 import ModalPago from "../components/modal/ModalPago";
+import ModalImprimirOrdenes from "../components/modal/ModalImprimirOrdenes"; // <--- IMPORTAR ESTO
 import ControlesPaginacion from "../components/ControlesPaginacion";
 import type {
   Orden,
   SortDirection,
   EstadoOrden,
   EstadoPagoRaw,
+  Configuracion, // <--- IMPORTAR CONFIGURACION
 } from "@lavanderia/shared/types/types";
 import { useAuth } from "../hooks/useAuth";
 
@@ -35,13 +43,21 @@ export default function PantallaEstadoOrdenes() {
   const [tasas, setTasas] = useState<TasasConversion>({});
   const [monedaPrincipal, setMonedaPrincipal] = useState<Moneda>("USD");
   const [cargandoOrdenDetalle, setCargandoOrdenDetalle] = useState(false);
+
+  // Filtros
   const [filtroEstadoEntrega, setFiltroEstadoEntrega] = useState<
     EstadoOrden | "" | "TODOS"
   >("TODOS");
   const [filtroEstadoPago, setFiltroEstadoPago] = useState<
     EstadoPagoRaw | "" | "TODOS"
   >("TODOS");
+
+  // Modales y Configuración
   const [mostrarModalPago, setMostrarModalPago] = useState(false);
+  const [mostrarModalImprimir, setMostrarModalImprimir] = useState(false); // <--- NUEVO ESTADO
+  const [configNegocio, setConfigNegocio] = useState<Configuracion | null>(
+    null
+  ); // <--- NUEVO ESTADO
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(15);
@@ -53,6 +69,10 @@ export default function PantallaEstadoOrdenes() {
     try {
       const res = await configuracionService.get();
       const config = res.data;
+
+      // 1. GUARDAR CONFIGURACIÓN DEL NEGOCIO
+      setConfigNegocio(config);
+
       const newMonedaPrincipal = normalizarMoneda(
         config.monedaPrincipal ?? "USD"
       );
@@ -127,6 +147,7 @@ export default function PantallaEstadoOrdenes() {
     return <FaSort />;
   };
 
+  // --- MEMO DE FILTRADO (Sin cambios en lógica, solo se usa para pasar al reporte) ---
   const ordenesFiltradasYSorteadas = useMemo(() => {
     let ordenesProcesadas = [...ordenes];
 
@@ -187,9 +208,9 @@ export default function PantallaEstadoOrdenes() {
     }
 
     setTotalFilteredItems(ordenesProcesadas.length);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return ordenesProcesadas.slice(startIndex, endIndex);
+    return ordenesProcesadas;
+    // Nota: Retornamos TODAS las procesadas aquí para usarlas en el reporte
+    // La paginación la aplicamos abajo solo para mostrar en pantalla
   }, [
     ordenes,
     busqueda,
@@ -197,9 +218,13 @@ export default function PantallaEstadoOrdenes() {
     sortDirection,
     filtroEstadoEntrega,
     filtroEstadoPago,
-    currentPage,
-    itemsPerPage,
   ]);
+
+  const ordenesPaginadas = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return ordenesFiltradasYSorteadas.slice(startIndex, endIndex);
+  }, [ordenesFiltradasYSorteadas, currentPage, itemsPerPage]);
 
   const totalPages = useMemo(() => {
     return Math.ceil(totalFilteredItems / itemsPerPage);
@@ -284,16 +309,16 @@ export default function PantallaEstadoOrdenes() {
             htmlFor="filtroBusquedaOrdenes"
             className="text-xs text-gray-500 mb-1"
           >
-            Buscar por N° de Orden o Cliente
+            Buscar
           </label>
-          <div className="relative w-72">
+          <div className="relative w-64">
             <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
             <input
               type="text"
               id="filtroBusquedaOrdenes"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Orden o cliente"
+              placeholder="N° Orden o Cliente"
               className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
             />
           </div>
@@ -304,7 +329,7 @@ export default function PantallaEstadoOrdenes() {
             htmlFor="filtroEstadoEntrega"
             className="text-xs text-gray-500 mb-1"
           >
-            Estado de Entrega
+            Entrega
           </label>
           <select
             id="filtroEstadoEntrega"
@@ -312,9 +337,9 @@ export default function PantallaEstadoOrdenes() {
             onChange={(e) =>
               setFiltroEstadoEntrega(e.target.value as EstadoOrden | "TODOS")
             }
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm bg-white"
           >
-            <option value="TODOS">Todos</option>
+            <option value="TODOS">Todas</option>
             <option value="PENDIENTE">Pendiente</option>
             <option value="ENTREGADO">Entregado</option>
           </select>
@@ -325,7 +350,7 @@ export default function PantallaEstadoOrdenes() {
             htmlFor="filtroEstadoPago"
             className="text-xs text-gray-500 mb-1"
           >
-            Estado de Pago
+            Pago
           </label>
           <select
             id="filtroEstadoPago"
@@ -333,12 +358,22 @@ export default function PantallaEstadoOrdenes() {
             onChange={(e) =>
               setFiltroEstadoPago(e.target.value as EstadoPagoRaw | "TODOS")
             }
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm bg-white"
           >
             <option value="TODOS">Todos</option>
             <option value="COMPLETO">Completo</option>
             <option value="INCOMPLETO">Incompleto</option>
           </select>
+        </div>
+
+        {/* 2. BOTÓN DE IMPRIMIR REPORTE */}
+        <div className="flex flex-col mt-5">
+          <button
+            onClick={() => setMostrarModalImprimir(true)}
+            className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-600 transition duration-200 ease-in-out transform hover:scale-105 flex items-center gap-2 font-bold text-sm shadow-md"
+          >
+            <FaPrint size={16} /> Generar Reporte
+          </button>
         </div>
       </div>
 
@@ -393,30 +428,34 @@ export default function PantallaEstadoOrdenes() {
                 </tr>
               </thead>
               <tbody>
-                {ordenesFiltradasYSorteadas.map((o) => (
-                  <tr
-                    key={o.id}
-                    className="border-t border-gray-100 hover:bg-blue-50 transition-colors duration-150 text-gray-700 font-semibold"
-                  >
-                    <td className="px-4 py-3 font-bold text-blue-700 whitespace-nowrap">
-                      #{o.id}
-                    </td>
-                    <td className="px-4 py-3">
-                      {o.cliente?.nombre} {o.cliente?.apellido}
-                    </td>
-                    <td className="px-4 py-3">{badgeEstado(o.estado)}</td>
-                    <td className="px-4 py-3">{badgePago(o.estadoPago)}</td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => handleVerDetallesOrden(o.id)}
-                        title="Ver detalles de la orden"
-                        className="p-2 bg-blue-100 border border-blue-300 text-blue-700 rounded-md hover:bg-blue-200 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm"
-                      >
-                        <FaSearch size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {ordenesPaginadas.map(
+                  (
+                    o // Usamos ordenesPaginadas para la tabla
+                  ) => (
+                    <tr
+                      key={o.id}
+                      className="border-t border-gray-100 hover:bg-blue-50 transition-colors duration-150 text-gray-700 font-semibold"
+                    >
+                      <td className="px-4 py-3 font-bold text-blue-700 whitespace-nowrap">
+                        #{o.id}
+                      </td>
+                      <td className="px-4 py-3">
+                        {o.cliente?.nombre} {o.cliente?.apellido}
+                      </td>
+                      <td className="px-4 py-3">{badgeEstado(o.estado)}</td>
+                      <td className="px-4 py-3">{badgePago(o.estadoPago)}</td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => handleVerDetallesOrden(o.id)}
+                          title="Ver detalles de la orden"
+                          className="p-2 bg-blue-100 border border-blue-300 text-blue-700 rounded-md hover:bg-blue-200 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm"
+                        >
+                          <FaSearch size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           </div>
@@ -451,6 +490,19 @@ export default function PantallaEstadoOrdenes() {
           onPagoRegistrado={handlePagoRegistrado}
         />
       )}
+
+      {/* 3. MODAL DE IMPRESIÓN */}
+      <ModalImprimirOrdenes
+        visible={mostrarModalImprimir}
+        onClose={() => setMostrarModalImprimir(false)}
+        ordenes={ordenesFiltradasYSorteadas} // Pasamos TODAS las filtradas, no solo las de la página actual
+        monedaPrincipal={monedaPrincipal}
+        configuracion={configNegocio}
+        filtros={{
+          estado: filtroEstadoEntrega,
+          pago: filtroEstadoPago,
+        }}
+      />
     </div>
   );
 }
