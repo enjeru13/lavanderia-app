@@ -80,6 +80,7 @@ export type ServicioUpdatePayload = Partial<ServicioCreate>;
 export type ServicioSeleccionado = {
   servicioId: number;
   cantidad: number;
+  descuento?: number;
 };
 
 export interface DetalleOrden {
@@ -118,6 +119,7 @@ export interface OrdenUpdatePayload {
   fechaEntrega?: string | null;
   deliveredByUserId?: number | null;
   deliveredByUserName?: string | null;
+  servicios?: ServicioSeleccionado[];
 }
 
 export interface Orden {
@@ -171,6 +173,8 @@ export interface PagoUpdatePayload {
   moneda?: Moneda;
   metodoPago?: MetodoPago;
   nota?: string | null;
+  fechaPago?: string;
+  tasa?: number;
   vueltos?: VueltoEntregadoCreate[];
 }
 

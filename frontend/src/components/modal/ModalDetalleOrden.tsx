@@ -1,8 +1,11 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { ordenesService } from "../../services/ordenesService";
 import { configuracionService } from "../../services/configuracionService";
+import { pagosService } from "../../services/pagosService";
 import { FiX } from "react-icons/fi";
 import { BiMessageSquareDetail } from "react-icons/bi";
+import { FaEdit, FaCheck, FaTimes, FaPencilAlt } from "react-icons/fa";
 import {
   formatearMoneda,
   normalizarMoneda,
@@ -16,6 +19,7 @@ import type {
   Orden,
   Configuracion,
   ReciboData,
+  Pago,
 } from "@lavanderia/shared/types/types";
 import { useAuth } from "../../hooks/useAuth";
 import ModalReciboEntrega from "./ModalReciboEntrega";
@@ -38,6 +42,7 @@ export default function ModalDetalleOrden({
   onAbrirPagoExtra,
   onPagoRegistrado,
 }: Props) {
+  const navigate = useNavigate();
   const [observacionesEditadas, setObservacionesEditadas] = useState(
     orden.observaciones ?? ""
   );
@@ -47,6 +52,11 @@ export default function ModalDetalleOrden({
     null
   );
   const [cargandoConfiguracion, setCargandoConfiguracion] = useState(true);
+
+  // --- ESTADOS PARA EDICIÓN DE FECHA DE PAGO ---
+  const [editingPagoId, setEditingPagoId] = useState<number | null>(null);
+  const [editDateValue, setEditDateValue] = useState("");
+  const [guardandoFechaPago, setGuardandoFechaPago] = useState(false);
 
   const { hasRole } = useAuth();
 
@@ -74,6 +84,13 @@ export default function ModalDetalleOrden({
     [orden, tasas, principalSeguro]
   );
 
+  // --- FUNCIÓN DE NAVEGACIÓN A EDITAR ---
+  const handleIrAEditar = () => {
+    onClose(); // Cerramos el modal primero
+    navigate(`/ordenes/editar/${orden.id}`); // Redirigimos a la pantalla de edición
+  };
+
+  // --- FUNCIONES PARA OBSERVACIONES ---
   const guardarObservaciones = useCallback(async () => {
     if (observacionesEditadas.trim() === (orden.observaciones ?? "").trim()) {
       toast.info("No hay cambios en las observaciones.");
@@ -109,6 +126,42 @@ export default function ModalDetalleOrden({
     hasRole,
   ]);
 
+  // --- FUNCIONES PARA EDICIÓN DE FECHA DE PAGO ---
+  const handleEditPagoClick = (pago: Pago) => {
+    setEditingPagoId(pago.id);
+    setEditDateValue(dayjs(pago.fechaPago).format("YYYY-MM-DD"));
+  };
+
+  const handleCancelEditPago = () => {
+    setEditingPagoId(null);
+    setEditDateValue("");
+  };
+
+  const handleSaveFechaPago = async (pagoId: number) => {
+    if (!editDateValue) {
+      toast.error("La fecha no puede estar vacía");
+      return;
+    }
+
+    setGuardandoFechaPago(true);
+    try {
+      const nuevaFechaISO = dayjs(editDateValue).toISOString();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await pagosService.update(pagoId, { fechaPago: nuevaFechaISO } as any);
+
+      toast.success("Fecha del pago actualizada");
+
+      const res = await ordenesService.getById(orden.id);
+      onPagoRegistrado(res.data);
+      handleCancelEditPago();
+    } catch (error) {
+      console.error("Error actualizando fecha de pago:", error);
+      toast.error("Error al actualizar la fecha.");
+    } finally {
+      setGuardandoFechaPago(false);
+    }
+  };
+
   const generarDatosRecibo = (): ReciboData => {
     const totalCantidadPiezas =
       orden.detalles?.reduce((sum, detalle) => {
@@ -130,6 +183,7 @@ export default function ModalDetalleOrden({
             ? dayjs(orden.fechaEntrega).toDate()
             : null,
       },
+      // CORRECCIÓN AQUÍ: Se cambió precioUnit por precioUnitario para coincidir con la interfaz ReciboItem
       items:
         orden.detalles?.map((d) => ({
           descripcion:
@@ -167,6 +221,7 @@ export default function ModalDetalleOrden({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6">
       <div className="relative bg-white max-w-2xl w-full p-6 rounded-2xl shadow-2xl ring-1 ring-gray-200 space-y-6 text-base text-gray-800 overflow-auto max-h-[90vh] transform transition-all duration-300 scale-100 opacity-100">
+        {/* HEADER */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <h2 className="text-2xl font-extrabold text-green-700 flex items-center gap-3">
             <BiMessageSquareDetail className="text-3xl" />
@@ -182,6 +237,7 @@ export default function ModalDetalleOrden({
           </button>
         </div>
 
+        {/* GRID DE INFO */}
         <div className="grid sm:grid-cols-2 gap-5">
           <div>
             <p className="text-gray-700 font-semibold text-sm mb-2">Cliente</p>
@@ -227,6 +283,7 @@ export default function ModalDetalleOrden({
           )}
         </div>
 
+        {/* TABLA SERVICIOS */}
         <div>
           <h3 className="font-bold text-gray-800 text-lg mb-3">
             Servicios contratados
@@ -275,6 +332,7 @@ export default function ModalDetalleOrden({
           </div>
         </div>
 
+        {/* PAGOS REALIZADOS */}
         {(orden.pagos?.length ?? 0) > 0 && (
           <div>
             <h3 className="font-bold text-gray-800 text-lg mb-3">
@@ -287,15 +345,63 @@ export default function ModalDetalleOrden({
                   className="bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm hover:bg-gray-200 transition duration-200 ease-in-out"
                 >
                   <div className="flex justify-between items-center mb-1">
-                    <span className="font-semibold text-gray-900">
-                      {dayjs(p.fechaPago).format("DD/MM/YYYY")}
-                    </span>
+                    {/* --- SECCIÓN EDITABLE DE FECHA --- */}
+                    <div className="flex items-center gap-2">
+                      {editingPagoId === p.id ? (
+                        <div className="flex items-center gap-1 animate-fade-in">
+                          <input
+                            type="date"
+                            value={editDateValue}
+                            onChange={(e) => setEditDateValue(e.target.value)}
+                            disabled={guardandoFechaPago}
+                            className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                          />
+                          <button
+                            onClick={() => handleSaveFechaPago(p.id)}
+                            disabled={guardandoFechaPago}
+                            className="p-1 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+                            title="Guardar"
+                          >
+                            <FaCheck size={12} />
+                          </button>
+                          <button
+                            onClick={handleCancelEditPago}
+                            disabled={guardandoFechaPago}
+                            className="p-1 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+                            title="Cancelar"
+                          >
+                            <FaTimes size={12} />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <span className="font-semibold text-gray-900">
+                            {dayjs(p.fechaPago).format("DD/MM/YYYY")}
+                          </span>
+                          {hasRole(["ADMIN"]) && (
+                            <button
+                              onClick={() => handleEditPagoClick(p)}
+                              className="text-gray-400 hover:text-blue-600 ml-1 transition-colors"
+                              title="Editar fecha"
+                            >
+                              <FaEdit size={12} />
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+
                     <span className="font-bold text-indigo-700">
                       {formatearMoneda(p.monto, p.moneda)}
                     </span>
                   </div>
                   <p className="text-xs text-gray-600 italic">
                     Pago en {p.moneda} vía {p.metodoPago}
+                    {p.tasa && p.tasa > 1 && p.moneda !== "USD" && (
+                      <span className="ml-1 text-gray-500 not-italic">
+                        (Tasa: {Number(p.tasa).toFixed(2)})
+                      </span>
+                    )}
                   </p>
                 </li>
               ))}
@@ -303,6 +409,7 @@ export default function ModalDetalleOrden({
           </div>
         )}
 
+        {/* RESUMEN DE PAGOS */}
         <div className="border-t border-gray-200 pt-6 space-y-3">
           <h3 className="font-bold text-gray-800 text-lg mb-3">
             Resumen de Pagos
@@ -329,6 +436,7 @@ export default function ModalDetalleOrden({
           </div>
         </div>
 
+        {/* NOTAS */}
         <div className="pt-4 space-y-3 border-t border-gray-200">
           <h3 className="font-bold text-gray-800 text-lg mb-3">
             Notas de la orden
@@ -359,57 +467,45 @@ export default function ModalDetalleOrden({
                   : "bg-indigo-600 hover:bg-indigo-700"
               }`}
             >
-              {guardandoObservaciones ? (
-                <>
-                  <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Guardando...
-                </>
-              ) : (
-                "Guardar notas"
-              )}
+              {guardandoObservaciones ? "Guardando..." : "Guardar notas"}
             </button>
           </div>
         </div>
 
-        <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+        {/* FOOTER CON BOTONES DE ACCIÓN */}
+        <div className="flex flex-wrap gap-3 justify-end items-center pt-4 border-t border-gray-200">
+          {/* BOTÓN VER RECIBO */}
           <button
             onClick={() => setVerModalRecibo(true)}
             disabled={cargandoConfiguracion}
-            className={`px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5 ${
+            className={`px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-sm ${
               cargandoConfiguracion ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
-            Ver recibo de entrega
+            Ver recibo
           </button>
 
+          {/* --- BOTÓN: EDITAR ORDEN --- */}
+          {hasRole(["ADMIN", "EMPLOYEE"]) && orden.estado !== "ENTREGADO" && (
+            <button
+              onClick={handleIrAEditar}
+              className="px-5 py-2.5 bg-yellow-500 text-white rounded-lg font-semibold hover:bg-yellow-600 transition-all shadow-sm flex items-center gap-2"
+            >
+              <FaPencilAlt /> Editar Orden
+            </button>
+          )}
+
+          {/* BOTÓN REGISTRAR PAGO */}
           {resumen.faltante > 0 && (
             <button
               onClick={() => onAbrirPagoExtra(orden)}
-              className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 text-base flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out"
+              className="px-5 py-2.5 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 flex items-center gap-2 shadow-sm"
             >
               Registrar pago
             </button>
           )}
         </div>
+
         {verModalRecibo && configuracion && (
           <ModalReciboEntrega
             visible={true}

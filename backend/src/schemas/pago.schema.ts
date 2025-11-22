@@ -36,5 +36,9 @@ export const PagoSchema = z.object({
   moneda: MonedaSchema,
   metodoPago: MetodoPagoSchema,
   nota: z.string().nullable().optional(),
+  
+  fechaPago: z.string().datetime().optional(), // Permite recibir fechas ISO (ej: 2023-10-27T...)
+  tasa: z.number().positive().optional(),      // Permite recibir la tasa
+
   vueltos: z.array(VueltoSchema).optional(),
 });

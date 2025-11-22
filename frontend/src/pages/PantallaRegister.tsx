@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate, Link } from "react-router-dom";
 import { FaUserPlus, FaUser, FaEnvelope, FaLock } from "react-icons/fa";
@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import { PiEyeBold, PiEyeClosed } from "react-icons/pi";
 
 const registerSchema = z
   .object({
@@ -32,6 +33,11 @@ type RegisterFormInputs = z.infer<typeof registerSchema>;
 export default function RegisterPage() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Estado para controlar si se muestra la contraseña
+  const [showPassword, setShowPassword] = useState(false);
+  // Estado para controlar si se muestra la contraseña
+  const [showPassword2, setShowPassword2] = useState(false);
 
   const {
     register,
@@ -152,7 +158,8 @@ export default function RegisterPage() {
                     type="email"
                     id="email"
                     {...register("email")}
-                    className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-500 text-base shadow-sm bg-gray-50 transition duration-200
+                    className={`w-full pl-10 pr-10 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-500 text-base shadow-sm bg-gray-50 transition duration-200
+
                     ${errors.email ? "border-red-500" : "border-gray-300"}`}
                     placeholder="tu@email.com"
                     disabled={isSubmitting}
@@ -177,14 +184,28 @@ export default function RegisterPage() {
                     <FaLock className="text-gray-400" />
                   </span>
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     id="password"
                     {...register("password")}
-                    className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-500 text-base shadow-sm bg-gray-50 transition duration-200
+                    className={`w-full pl-10 pr-10 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-500 text-base shadow-sm bg-gray-50 transition duration-200
+
                     ${errors.password ? "border-red-500" : "border-gray-300"}`}
                     placeholder="••••••••"
                     disabled={isSubmitting}
                   />
+                  {/* Botón para alternar visibilidad */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-green-600 cursor-pointer focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <PiEyeClosed size={22} title="Ocultar contraseña" />
+                    ) : (
+                      <PiEyeBold size={22} title="Mostrar contraseña" />
+                    )}
+                  </button>
                 </div>
                 {errors.password && (
                   <p className="mt-1 text-sm text-red-600 font-medium">
@@ -205,7 +226,7 @@ export default function RegisterPage() {
                     <FaLock className="text-gray-400" />
                   </span>
                   <input
-                    type="password"
+                    type={showPassword2 ? "text" : "password"}
                     id="confirmPassword"
                     {...register("confirmPassword")}
                     className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-500 text-base shadow-sm bg-gray-50 transition duration-200
@@ -217,7 +238,21 @@ export default function RegisterPage() {
                     placeholder="••••••••"
                     disabled={isSubmitting}
                   />
+                  {/* Botón para alternar visibilidad */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword2(!showPassword2)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-green-600 cursor-pointer focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword2 ? (
+                      <PiEyeClosed size={22} title="Ocultar contraseña" />
+                    ) : (
+                      <PiEyeBold size={22} title="Mostrar contraseña" />
+                    )}
+                  </button>
                 </div>
+
                 {errors.confirmPassword && (
                   <p className="mt-1 text-sm text-red-600 font-medium">
                     {errors.confirmPassword.message}
@@ -265,7 +300,7 @@ export default function RegisterPage() {
               </button>
             </form>
             <div className="mt-8 text-center text-sm text-gray-600">
-              ¿Ya tienes una cuenta?{' '}
+              ¿Ya tienes una cuenta?{" "}
               <Link
                 to="/login"
                 className="text-green-600 hover:underline font-bold transition-colors duration-200"

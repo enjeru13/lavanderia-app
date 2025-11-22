@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate, Link } from "react-router-dom";
 import { FaSignInAlt, FaLock, FaEnvelope } from "react-icons/fa";
+import { PiEyeBold, PiEyeClosed } from "react-icons/pi";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,6 +23,9 @@ type LoginFormInputs = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Estado para controlar si se muestra la contraseña
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -129,14 +133,28 @@ export default function LoginPage() {
                   <FaLock className="text-gray-400" />
                 </span>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   id="password"
                   {...register("password")}
-                  className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-500 text-base shadow-sm bg-gray-50 transition duration-200
+                  // Agregado padding derecho (pr-10) para que el texto no choque con el ícono
+                  className={`w-full pl-10 pr-10 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-500 text-base shadow-sm bg-gray-50 transition duration-200
                     ${errors.password ? "border-red-500" : "border-gray-300"}`}
                   placeholder="••••••••"
                   disabled={isSubmitting}
                 />
+                {/* Botón para alternar visibilidad */}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-blue-600 cursor-pointer focus:outline-none"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <PiEyeClosed size={22} title="Ocultar contraseña" />
+                  ) : (
+                    <PiEyeBold size={22} title="Mostrar contraseña" />
+                  )}
+                </button>
               </div>
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600 font-medium">

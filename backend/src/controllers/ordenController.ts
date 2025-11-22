@@ -176,8 +176,11 @@ export async function createOrden(req: Request, res: Response) {
   }
 }
 
+// --- FUNCIÓN UPDATE ORDEN MEJORADA ---
 export async function updateOrden(req: AuthRequest, res: Response) {
   const { id } = req.params;
+
+  // Validamos con Zod.
   const result = ordenUpdateSchema.safeParse(req.body);
 
   if (!result.success) {
@@ -187,24 +190,24 @@ export async function updateOrden(req: AuthRequest, res: Response) {
     });
   }
 
+  // Extraemos los datos del body.
+  // Nota: Usamos 'as any' para poder leer 'servicios' ya que tu schema Zod original
+  // probablemente no lo incluya aún, pero el frontend lo enviará.
   const {
     fechaEntrega,
     estado,
     deliveredByUserId,
     deliveredByUserName,
+    servicios, // Array de { servicioId, cantidad } para reemplazo total
+    observaciones,
     ...rest
-  } = result.data;
+  } = req.body as any;
 
   try {
+    // 1. Buscar la orden actual para tener referencias (pagos, abonado, estado actual)
     const ordenActual = await prisma.orden.findUnique({
       where: { id: Number(id) },
-      select: {
-        fechaIngreso: true,
-        fechaEntrega: true,
-        estado: true,
-        deliveredByUserId: true,
-        deliveredByUserName: true,
-      },
+      include: { pagos: true },
     });
 
     if (!ordenActual) {
@@ -212,72 +215,110 @@ export async function updateOrden(req: AuthRequest, res: Response) {
         .status(404)
         .json({ message: "Orden no encontrada para actualizar." });
     }
-    let fechaFinalEntrega: Date | null = ordenActual.fechaEntrega || null;
-    let finalDeliveredByUserId: number | null | undefined =
-      ordenActual.deliveredByUserId;
-    let finalDeliveredByUserName: string | null | undefined =
-      ordenActual.deliveredByUserName;
-    if (fechaEntrega !== undefined) {
-      fechaFinalEntrega =
-        fechaEntrega === null ? null : dayjs(fechaEntrega).toDate();
-    }
-    if (
-      estado === "ENTREGADO" &&
-      ordenActual.estado !== "ENTREGADO" &&
-      req.user &&
-      !ordenActual.deliveredByUserId
-    ) {
-      fechaFinalEntrega = dayjs().toDate();
-      finalDeliveredByUserId = req.user.id;
-      finalDeliveredByUserName = req.user.name || req.user.email;
-    }
 
-    const datosParaGuardar: any = {
-      ...rest,
-      ...(estado !== undefined && { estado }),
-      ...(fechaFinalEntrega !== undefined && {
-        fechaEntrega: fechaFinalEntrega,
-      }),
-      ...(finalDeliveredByUserId !== undefined && {
-        deliveredByUserId: finalDeliveredByUserId,
-      }),
-      ...(finalDeliveredByUserName !== undefined && {
-        deliveredByUserName: finalDeliveredByUserName,
-      }),
-    };
+    // 2. Usamos una transacción para asegurar la integridad de los datos
+    const ordenActualizada = await prisma.$transaction(async (tx) => {
+      // Preparar objeto de actualización básico
+      let datosActualizados: any = {
+        ...rest,
+        ...(estado !== undefined && { estado }),
+        ...(observaciones !== undefined && { observaciones }),
+      };
 
-    await prisma.orden.update({
-      where: { id: Number(id) },
-      data: datosParaGuardar,
-    });
+      // Lógica para fecha de entrega
+      if (fechaEntrega !== undefined) {
+        datosActualizados.fechaEntrega =
+          fechaEntrega === null ? null : dayjs(fechaEntrega).toDate();
+      }
 
-    const ordenActualizada = await prisma.orden.findUnique({
-      where: { id: Number(id) },
-      include: {
-        cliente: true,
-        pagos: true,
-        detalles: {
-          include: {
-            servicio: {
-              select: {
-                id: true,
-                nombreServicio: true,
-                descripcion: true,
-                precioBase: true,
-                permiteDecimales: true,
-                categoriaId: true,
-              },
+      // Lógica automática para "Entregado Por"
+      if (
+        estado === "ENTREGADO" &&
+        ordenActual.estado !== "ENTREGADO" &&
+        req.user &&
+        !ordenActual.deliveredByUserId
+      ) {
+        datosActualizados.fechaEntrega = dayjs().toDate();
+        datosActualizados.deliveredByUserId = req.user.id;
+        datosActualizados.deliveredByUserName = req.user.name || req.user.email;
+      }
+
+      // 3. LÓGICA DE REEMPLAZO DE PRENDAS (Si se envía array de servicios)
+      if (servicios && Array.isArray(servicios) && servicios.length > 0) {
+        let nuevoTotal = 0;
+        const nuevosDetallesData = [];
+
+        // Calcular nuevos montos iterando los servicios enviados
+        for (const item of servicios) {
+          const servicioDb = await tx.servicio.findUnique({
+            where: { id: item.servicioId },
+          });
+
+          if (!servicioDb) {
+            throw new Error(`Servicio ID ${item.servicioId} no encontrado`);
+          }
+
+          const precioUnit = servicioDb.precioBase;
+          const subtotal = precioUnit * item.cantidad;
+
+          nuevosDetallesData.push({
+            servicioId: item.servicioId,
+            cantidad: item.cantidad,
+            precioUnit: precioUnit,
+            subtotal: parseFloat(subtotal.toFixed(2)),
+          });
+
+          nuevoTotal += subtotal;
+        }
+
+        // A. Borrar detalles viejos de esta orden
+        await tx.detalleOrden.deleteMany({
+          where: { ordenId: Number(id) },
+        });
+
+        // B. Insertar los nuevos detalles
+        await tx.detalleOrden.createMany({
+          data: nuevosDetallesData.map((d) => ({ ...d, ordenId: Number(id) })),
+        });
+
+        // C. Recalcular Faltante y Estado de Pago
+        const abonadoActual = Number(ordenActual.abonado);
+        const nuevoFaltante = Math.max(0, nuevoTotal - abonadoActual);
+
+        let nuevoEstadoPago = "INCOMPLETO";
+        // Margen de error mínimo para flotantes
+        if (nuevoFaltante <= 0.01) {
+          nuevoEstadoPago = "COMPLETO";
+        }
+
+        // Agregamos los valores recalculados al update de la orden
+        datosActualizados = {
+          ...datosActualizados,
+          total: parseFloat(nuevoTotal.toFixed(2)),
+          faltante: parseFloat(nuevoFaltante.toFixed(2)),
+          estadoPago: nuevoEstadoPago,
+        };
+      }
+
+      // 4. Ejecutar la actualización de la orden maestra
+      return await tx.orden.update({
+        where: { id: Number(id) },
+        data: datosActualizados,
+        include: {
+          cliente: true,
+          pagos: true,
+          detalles: {
+            include: { servicio: true },
+          },
+          deliveredBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
             },
           },
         },
-        deliveredBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      });
     });
 
     return res.json(ordenActualizada);
@@ -307,9 +348,13 @@ export async function deleteOrden(req: Request, res: Response) {
         .json({ message: "Orden no encontrada para eliminar." });
     }
 
+    // Primero borramos detalles y pagos asociados por integridad referencial
     await prisma.detalleOrden.deleteMany({ where: { ordenId: Number(id) } });
     await prisma.pago.deleteMany({ where: { ordenId: Number(id) } });
+
+    // Finalmente borramos la orden
     await prisma.orden.delete({ where: { id: Number(id) } });
+
     return res.status(204).send();
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError) {

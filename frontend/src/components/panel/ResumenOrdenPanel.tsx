@@ -4,7 +4,7 @@ import type {
   Servicio,
   ServicioSeleccionado,
 } from "@lavanderia/shared/types/types";
-import { FaClipboardList } from "react-icons/fa";
+import { FaClipboardList, FaTshirt, FaTag } from "react-icons/fa";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
 
@@ -27,10 +27,20 @@ export default function ResumenOrdenPanel({
   fechaEntrega,
   monedaPrincipal,
 }: Props) {
+  // Calcular subtotal real (Precio * Cantidad - Descuento)
   const calcularSubtotalServicio = (s: ServicioSeleccionado) => {
     const servicio = serviciosCatalogo.find((x) => x.id === s.servicioId);
-    return servicio ? servicio.precioBase * s.cantidad : 0;
+    if (!servicio) return 0;
+
+    const bruto = servicio.precioBase * s.cantidad;
+    const descuento = s.descuento || 0;
+    return Math.max(0, bruto - descuento);
   };
+
+  const totalPrendas = serviciosSeleccionados.reduce(
+    (sum, item) => sum + item.cantidad,
+    0
+  );
 
   const formatFechaEntrega = (dateString: string) => {
     if (!dateString) return "No definida";
@@ -49,19 +59,23 @@ export default function ResumenOrdenPanel({
           Detalle general antes de confirmar.
         </p>
       </header>
+
       <div className="space-y-5 text-base text-gray-800">
+        {/* SECCIÓN CLIENTE */}
         <div className="bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
           <span className="font-semibold text-gray-700 block mb-1">
             Cliente:
           </span>
           {cliente ? (
-            <span className="text-gray-900">
+            <span className="text-gray-900 font-medium text-lg">
               {cliente.nombre} {cliente.apellido}
             </span>
           ) : (
             <span className="italic text-gray-500">No asignado</span>
           )}
         </div>
+
+        {/* SECCIÓN SERVICIOS */}
         <div>
           <span className="text-gray-700 block mb-3 font-semibold">
             Servicios seleccionados:
@@ -71,55 +85,80 @@ export default function ResumenOrdenPanel({
               Ningún servicio seleccionado
             </p>
           ) : (
-            <ul className="divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
-              {serviciosSeleccionados.map((s) => {
-                const servicio = serviciosCatalogo.find(
-                  (x) => x.id === s.servicioId
-                );
-                return (
-                  <li
-                    key={s.servicioId}
-                    className="p-4 flex justify-between items-center hover:bg-gray-50 transition duration-200 ease-in-out"
-                  >
-                    <span className="font-medium text-gray-900">
-                      {servicio?.nombreServicio ?? "Servicio desconocido"}
-                      {servicio?.categoria?.nombre && (
-                        <span className="text-gray-500 text-sm font-normal">
-                          ({servicio.categoria.nombre})
+            <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+              <ul className="divide-y divide-gray-200">
+                {serviciosSeleccionados.map((s) => {
+                  const servicio = serviciosCatalogo.find(
+                    (x) => x.id === s.servicioId
+                  );
+                  const descuento =
+                    s.descuento || 0;
+                  const tieneDescuento = descuento > 0;
+
+                  return (
+                    <li
+                      key={s.servicioId}
+                      className="p-4 flex justify-between items-center hover:bg-gray-50 transition duration-200 ease-in-out"
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-medium text-gray-900">
+                          {servicio?.nombreServicio ?? "Servicio desconocido"}
+                          <span className="ml-2 font-bold text-gray-800 bg-gray-200 px-2 py-0.5 rounded text-sm">
+                            × {s.cantidad}
+                          </span>
                         </span>
-                      )}
-                      × {s.cantidad}
-                    </span>
-                    <span className="font-bold text-green-700">
-                      {formatearMoneda(
-                        calcularSubtotalServicio(s),
-                        monedaPrincipal
-                      )}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+                        {tieneDescuento && (
+                          <span className="text-xs text-orange-600 flex items-center gap-1 mt-1 font-semibold">
+                            <FaTag size={10} /> Descuento aplicado: -
+                            {formatearMoneda(descuento, monedaPrincipal)}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="text-right">
+                        {/* Si hay descuento, mostramos el precio original tachado opcionalmente, o solo el final */}
+                        <span className="font-bold text-green-700 block">
+                          {formatearMoneda(
+                            calcularSubtotalServicio(s),
+                            monedaPrincipal
+                          )}
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <div className="bg-blue-50 p-4 border-t border-blue-100 flex justify-between items-center">
+                <div className="flex items-center gap-2 text-blue-800 font-bold">
+                  <FaTshirt />
+                  <span>Total de prendas/items:</span>
+                </div>
+                <span className="bg-white text-blue-900 font-extrabold px-4 py-1 rounded-full border border-blue-200 text-lg shadow-sm">
+                  {totalPrendas}
+                </span>
+              </div>
+            </div>
           )}
         </div>
+
+        {/* OBSERVACIONES Y FECHA */}
         {observaciones && (
           <div className="bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
             <span className="font-semibold text-gray-700 block mb-1">
               Observaciones:
             </span>
-            <p className="text-gray-900 break-words whitespace-pre-wrap max-w-full">
-              {observaciones.length > 180
-                ? observaciones.slice(0, 180) + "..."
-                : observaciones}
+            <p className="text-gray-900 break-words whitespace-pre-wrap">
+              {observaciones}
             </p>
           </div>
         )}
         {fechaEntrega && (
           <div className="bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
             <span className="font-semibold text-gray-700 block mb-1">
-              Fecha de entrega:
+              Fecha de entrega estimada:
             </span>
-            <span className="text-gray-900">
+            <span className="text-gray-900 font-medium">
               {formatFechaEntrega(fechaEntrega)}
             </span>
           </div>
