@@ -31,20 +31,23 @@ import type {
 import { normalizarMoneda } from "../utils/monedaHelpers";
 import dayjs from "dayjs";
 
-
 export default function PantallaPrincipal() {
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [mostrarFormularioCliente, setMostrarFormularioCliente] =
     useState(false);
   const [mostrarListaClientes, setMostrarListaClientes] = useState(false);
+
   const [serviciosCatalogo, setServiciosCatalogo] = useState<Servicio[]>([]);
   const [serviciosSeleccionados, setServiciosSeleccionados] = useState<
     ServicioSeleccionado[]
   >([]);
+
   const [observaciones, setObservaciones] = useState("");
   const [fechaEntrega, setFechaEntrega] = useState("");
+
   const [monedaPrincipal, setMonedaPrincipal] = useState<Moneda>("USD");
   const [tasas, setTasas] = useState<TasasConversion>({});
+
   const [loading, setLoading] = useState(true);
   const [isFormValid, setIsFormValid] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -95,12 +98,14 @@ export default function PantallaPrincipal() {
       estado: "PENDIENTE",
       observaciones: observaciones.trim() || null,
       fechaEntrega: fechaEntrega ? dayjs(fechaEntrega).toISOString() : null,
-      servicios: serviciosSeleccionados,
+      servicios: serviciosSeleccionados, // Aquí van incluidos los precios personalizados
     };
 
     try {
       await ordenesService.create(nuevaOrden);
       toast.success("Orden creada exitosamente!");
+
+      // Resetear formulario
       setCliente(null);
       setServiciosSeleccionados([]);
       setObservaciones("");
@@ -122,12 +127,6 @@ export default function PantallaPrincipal() {
     toast.info("Creación de orden cancelada.");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-  const calcularTotal = () =>
-    serviciosSeleccionados.reduce((total, item) => {
-      const servicio = serviciosCatalogo.find((s) => s.id === item.servicioId);
-      return total + (servicio?.precioBase ?? 0) * item.cantidad;
-    }, 0);
 
   if (loading) {
     return (
@@ -174,7 +173,8 @@ export default function PantallaPrincipal() {
       />
 
       <ConfirmarOrdenPanel
-        total={calcularTotal()}
+        serviciosSeleccionados={serviciosSeleccionados}
+        serviciosCatalogo={serviciosCatalogo}
         onRegistrar={crearOrden}
         onCancelar={cancelarOrden}
         tasas={tasas}

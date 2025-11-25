@@ -4,7 +4,7 @@ import type {
   Servicio,
   ServicioSeleccionado,
 } from "@lavanderia/shared/types/types";
-import { FaClipboardList, FaTshirt, FaTag } from "react-icons/fa";
+import { FaClipboardList, FaTshirt, FaTag, FaInfoCircle } from "react-icons/fa";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
 
@@ -27,13 +27,20 @@ export default function ResumenOrdenPanel({
   fechaEntrega,
   monedaPrincipal,
 }: Props) {
-  // Calcular subtotal real (Precio * Cantidad - Descuento)
+  // --- LÓGICA CORREGIDA ---
+  // Calcular subtotal real considerando precio personalizado si existe
   const calcularSubtotalServicio = (s: ServicioSeleccionado) => {
     const servicio = serviciosCatalogo.find((x) => x.id === s.servicioId);
-    if (!servicio) return 0;
 
-    const bruto = servicio.precioBase * s.cantidad;
+    // 1. Busamos el precio: Si 's.precio' existe (editado), úsalo. Si no, usa el del catálogo.
+    const precioUnitario = s.precio ?? servicio?.precioBase ?? 0;
+
+    // 2. Calculamos el bruto
+    const bruto = precioUnitario * s.cantidad;
+
+    // 3. Restamos descuento (si existe)
     const descuento = s.descuento || 0;
+
     return Math.max(0, bruto - descuento);
   };
 
@@ -91,9 +98,13 @@ export default function ResumenOrdenPanel({
                   const servicio = serviciosCatalogo.find(
                     (x) => x.id === s.servicioId
                   );
-                  const descuento =
-                    s.descuento || 0;
+                  const descuento = s.descuento || 0;
                   const tieneDescuento = descuento > 0;
+
+                  // Detectar si es precio editado para mostrar indicador visual (Opcional pero útil)
+                  const precioUsado = s.precio ?? servicio?.precioBase ?? 0;
+                  const esPrecioEditado =
+                    servicio && precioUsado !== servicio.precioBase;
 
                   return (
                     <li
@@ -101,12 +112,23 @@ export default function ResumenOrdenPanel({
                       className="p-4 flex justify-between items-center hover:bg-gray-50 transition duration-200 ease-in-out"
                     >
                       <div className="flex flex-col">
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-gray-900 flex items-center gap-2">
                           {servicio?.nombreServicio ?? "Servicio desconocido"}
-                          <span className="ml-2 font-bold text-gray-800 bg-gray-200 px-2 py-0.5 rounded text-sm">
+
+                          <span className="font-bold text-gray-800 bg-gray-200 px-2 py-0.5 rounded text-sm">
                             × {s.cantidad}
                           </span>
+
+                          {esPrecioEditado && (
+                            <span
+                              className="text-xs text-orange-500 bg-orange-100 px-1.5 py-0.5 rounded border border-orange-200 flex items-center gap-1"
+                              title="Precio modificado manualmente"
+                            >
+                              <FaInfoCircle size={10} /> Editado
+                            </span>
+                          )}
                         </span>
+
                         {tieneDescuento && (
                           <span className="text-xs text-orange-600 flex items-center gap-1 mt-1 font-semibold">
                             <FaTag size={10} /> Descuento aplicado: -
@@ -116,12 +138,15 @@ export default function ResumenOrdenPanel({
                       </div>
 
                       <div className="text-right">
-                        {/* Si hay descuento, mostramos el precio original tachado opcionalmente, o solo el final */}
-                        <span className="font-bold text-green-700 block">
+                        <span className="font-bold text-green-700 block text-lg">
                           {formatearMoneda(
                             calcularSubtotalServicio(s),
                             monedaPrincipal
                           )}
+                        </span>
+                        {/* Mostrar el unitario pequeño debajo para referencia */}
+                        <span className="text-xs text-gray-400 block">
+                          Unit: {formatearMoneda(precioUsado, monedaPrincipal)}
                         </span>
                       </div>
                     </li>

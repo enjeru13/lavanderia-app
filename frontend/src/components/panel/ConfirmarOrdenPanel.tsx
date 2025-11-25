@@ -1,3 +1,8 @@
+import { useMemo } from "react"; // IMPORTANTE: Agregar useMemo
+import type {
+  Servicio,
+  ServicioSeleccionado,
+} from "@lavanderia/shared/types/types";
 import {
   formatearMoneda,
   convertirDesdePrincipal,
@@ -7,17 +12,20 @@ import {
 import { FaDollarSign, FaRegTimesCircle, FaPlusCircle } from "react-icons/fa";
 
 interface Props {
-  total: number;
+  serviciosSeleccionados: ServicioSeleccionado[];
+  serviciosCatalogo: Servicio[];
   onRegistrar: () => void;
   onCancelar: () => void;
   monedaPrincipal: Moneda;
   tasas: TasasConversion;
   isFormValid: boolean;
   isSaving: boolean;
+  // Eliminamos subtotal y descuentoTotal porque se calculan aquí
 }
 
 export default function ConfirmarOrdenPanel({
-  total,
+  serviciosSeleccionados,
+  serviciosCatalogo,
   onRegistrar,
   onCancelar,
   monedaPrincipal,
@@ -25,14 +33,31 @@ export default function ConfirmarOrdenPanel({
   isFormValid,
   isSaving,
 }: Props) {
+  // --- 1. CALCULAMOS EL TOTAL AQUÍ ---
+  const totalCalculado = useMemo(() => {
+    return serviciosSeleccionados.reduce((acc, item) => {
+      const servicio = serviciosCatalogo.find((s) => s.id === item.servicioId);
+
+      // Usamos el precio personalizado (item.precio) o el base (servicio.precioBase)
+      const precioReal = item.precio ?? servicio?.precioBase ?? 0;
+
+      const subtotalItem = precioReal * item.cantidad;
+      const descuento = item.descuento || 0; // Por si implementas descuentos luego
+
+      return acc + Math.max(0, subtotalItem - descuento);
+    }, 0);
+  }, [serviciosSeleccionados, serviciosCatalogo]);
+  // -----------------------------------
+
+  // Usamos 'totalCalculado' en lugar de 'total'
   const totalVES = convertirDesdePrincipal(
-    total,
+    totalCalculado,
     "VES",
     tasas,
     monedaPrincipal
   );
   const totalCOP = convertirDesdePrincipal(
-    total,
+    totalCalculado,
     "COP",
     tasas,
     monedaPrincipal
@@ -49,9 +74,10 @@ export default function ConfirmarOrdenPanel({
           Monto final a cobrar por los servicios.
         </p>
         <p className="text-4xl font-extrabold text-green-700 tracking-tight">
-          {formatearMoneda(total, monedaPrincipal)}
+          {formatearMoneda(totalCalculado, monedaPrincipal)}
         </p>
       </div>
+
       <div className="bg-gray-100 p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 text-left">
         <p className="font-bold text-gray-800 text-lg">
           Total proyectado en otras monedas:

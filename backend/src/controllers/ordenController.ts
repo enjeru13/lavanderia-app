@@ -18,6 +18,7 @@ interface AuthRequest extends Request {
   };
 }
 
+// --- GET ALL ---
 export async function getAllOrdenes(req: Request, res: Response) {
   try {
     const ordenes = await prisma.orden.findMany({
@@ -55,6 +56,7 @@ export async function getAllOrdenes(req: Request, res: Response) {
   }
 }
 
+// --- GET BY ID ---
 export async function getOrdenById(req: Request, res: Response) {
   const { id } = req.params;
   try {
@@ -96,6 +98,7 @@ export async function getOrdenById(req: Request, res: Response) {
   }
 }
 
+// --- CREATE ---
 export async function createOrden(req: Request, res: Response) {
   const result = ordenSchema.safeParse(req.body);
   if (!result.success) {
@@ -127,12 +130,20 @@ export async function createOrden(req: Request, res: Response) {
         });
       }
 
-      const precioUnit = servicio.precioBase;
+      // CAMBIO CLAVE: Priorizamos el precio personalizado enviado desde el frontend (item.precio)
+      // Usamos cast (item as any) por si el schema de Zod aún no incluye 'precio' explícitamente
+      const precioInput = (item as any).precio;
+      const precioUnit =
+        precioInput !== undefined
+          ? Number(precioInput)
+          : Number(servicio.precioBase);
+
       const subtotal = precioUnit * item.cantidad;
+
       detalleData.push({
         servicioId: item.servicioId,
         cantidad: item.cantidad,
-        precioUnit,
+        precioUnit: parseFloat(precioUnit.toFixed(2)),
         subtotal: parseFloat(subtotal.toFixed(2)),
       });
       total += subtotal;
@@ -191,20 +202,18 @@ export async function updateOrden(req: AuthRequest, res: Response) {
   }
 
   // Extraemos los datos del body.
-  // Nota: Usamos 'as any' para poder leer 'servicios' ya que tu schema Zod original
-  // probablemente no lo incluya aún, pero el frontend lo enviará.
   const {
     fechaEntrega,
     estado,
     deliveredByUserId,
     deliveredByUserName,
-    servicios, // Array de { servicioId, cantidad } para reemplazo total
+    servicios, // Array de { servicioId, cantidad, precio? } para reemplazo total
     observaciones,
     ...rest
   } = req.body as any;
 
   try {
-    // 1. Buscar la orden actual para tener referencias (pagos, abonado, estado actual)
+    // 1. Buscar la orden actual para tener referencias
     const ordenActual = await prisma.orden.findUnique({
       where: { id: Number(id) },
       include: { pagos: true },
@@ -258,13 +267,19 @@ export async function updateOrden(req: AuthRequest, res: Response) {
             throw new Error(`Servicio ID ${item.servicioId} no encontrado`);
           }
 
-          const precioUnit = servicioDb.precioBase;
+          // CAMBIO CLAVE: Usar precio personalizado si existe
+          const precioInput = item.precio;
+          const precioUnit =
+            precioInput !== undefined
+              ? Number(precioInput)
+              : Number(servicioDb.precioBase);
+
           const subtotal = precioUnit * item.cantidad;
 
           nuevosDetallesData.push({
             servicioId: item.servicioId,
             cantidad: item.cantidad,
-            precioUnit: precioUnit,
+            precioUnit: parseFloat(precioUnit.toFixed(2)),
             subtotal: parseFloat(subtotal.toFixed(2)),
           });
 

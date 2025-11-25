@@ -81,6 +81,7 @@ export type ServicioSeleccionado = {
   servicioId: number;
   cantidad: number;
   descuento?: number;
+  precio?: number;
 };
 
 export interface DetalleOrden {

@@ -17,6 +17,7 @@ import PantallaConfiguracion from "./pages/PantallaConfiguracion";
 import PantallaLogin from "./pages/PantallaLogin";
 import PantallaRegister from "./pages/PantallaRegister";
 import PantallaEstadoOrdenes from "./pages/PantallaEstadoOrdenes";
+import PantallaEditarOrden from "./pages/PantallaEditarOrden";
 import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 import type { Role } from "@lavanderia/shared/types/types";
@@ -69,6 +70,14 @@ function App() {
             <Route path="servicios" element={<PantallaServicios />} />
             <Route path="ordenes" element={<PantallaOrdenes />} />
             <Route path="pagos" element={<PantallaPagos />} />
+            <Route 
+              path="ordenes/editar/:id" 
+              element={
+                <ProtectedRoute roles={["ADMIN", "EMPLOYEE"]}>
+                  <PantallaEditarOrden />
+                </ProtectedRoute>
+              } 
+            />
             <Route
               path="configuracion"
               element={

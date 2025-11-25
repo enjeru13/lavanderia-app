@@ -32,6 +32,12 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(morgan("dev"));
 app.use(express.json());
+
+// Ruta para la tarea de cron-job
+app.get("/", (req: Request, res: Response) => {
+  res.send("API de Lavandería funcionando correctamente");
+});
+
 app.use("/api/auth", authRoute);
 app.use("/api/categorias", categoriaRouter);
 app.use("/api", protect);
