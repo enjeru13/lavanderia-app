@@ -90,7 +90,8 @@ export default function EditarOrdenPage() {
             (detalle) => ({
               servicioId: detalle.servicio?.id || 0,
               cantidad: detalle.cantidad,
-              // Si tuvieras descuentos guardados en el detalle, irían aquí
+              // IMPORTANTE: Recuperamos el precio guardado
+              precio: detalle.precioUnit,
             })
           );
           setServiciosSeleccionados(serviciosMapeados);
@@ -114,14 +115,6 @@ export default function EditarOrdenPage() {
     setIsFormValid(isValid);
   }, [cliente, serviciosSeleccionados]);
 
-  // Cálculos para el panel de confirmar
-  const calcularTotal = () => {
-    return serviciosSeleccionados.reduce((total, item) => {
-      const servicio = serviciosCatalogo.find((s) => s.id === item.servicioId);
-      return total + (servicio?.precioBase ?? 0) * item.cantidad;
-    }, 0);
-  };
-
   // 3. LOGICA ÚNICA: ACTUALIZAR EN VEZ DE CREAR
   const guardarCambios = async () => {
     if (!cliente || serviciosSeleccionados.length === 0) return;
@@ -131,7 +124,7 @@ export default function EditarOrdenPage() {
     const payload = {
       observaciones: observaciones.trim() || null,
       fechaEntrega: fechaEntrega ? dayjs(fechaEntrega).toISOString() : null,
-      servicios: serviciosSeleccionados, // Enviamos la lista nueva
+      servicios: serviciosSeleccionados, // Enviamos la lista con precios
     };
 
     try {
@@ -168,7 +161,6 @@ export default function EditarOrdenPage() {
         </button>
       </div>
 
-      {/* Reutilizamos tus componentes existentes */}
       <ClientePanel
         cliente={cliente}
         onAbrirFormulario={() => {}}
@@ -203,11 +195,11 @@ export default function EditarOrdenPage() {
         monedaPrincipal={monedaPrincipal}
       />
 
+      {/* AQUÍ ESTÁ LA CORRECCIÓN CLAVE: */}
       <ConfirmarOrdenPanel
-        total={calcularTotal()}
-        subtotal={calcularTotal()}
-        descuentoTotal={0}
-        onRegistrar={guardarCambios} // Llamamos a actualizar
+        serviciosSeleccionados={serviciosSeleccionados}
+        serviciosCatalogo={serviciosCatalogo}
+        onRegistrar={guardarCambios}
         onCancelar={() => navigate("/ordenes")}
         tasas={tasas}
         monedaPrincipal={monedaPrincipal}
