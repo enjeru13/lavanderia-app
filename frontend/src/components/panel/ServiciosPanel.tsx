@@ -118,7 +118,7 @@ export default function ServiciosPanel({
             <input
               type="number"
               min="0"
-              step="0.01"
+              step={servicioActual?.permiteDecimales ? "0.01" : "1"}
               className="w-full border border-gray-300 rounded-lg p-2.5 pl-8 focus:ring-2 focus:ring-blue-500 focus:outline-none text-right font-medium"
               value={precioPersonalizado}
               onChange={(e) => setPrecioPersonalizado(e.target.value)}
@@ -136,7 +136,6 @@ export default function ServiciosPanel({
             type="number"
             min="0.01"
             // SI permite decimales usa step 0.01, si no usa 1
-            step={servicioActual?.permiteDecimales ? "0.01" : "1"}
             className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none text-center font-medium"
             value={cantidad}
             onChange={(e) => {
