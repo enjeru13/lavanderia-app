@@ -81,7 +81,7 @@ export default function ServiciosPanel({
 
   return (
     <section className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-      <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+      <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-3">
         <FaTshirt size={28} className="text-blue-600" /> Selección de Servicios
       </h2>
 
