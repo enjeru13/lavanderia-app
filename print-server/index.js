@@ -81,7 +81,7 @@ const generateReceiptText = (datosRecibo) => {
   // --- Datos del cliente ---
   reciboTexto += `${NEGRITA}Cliente: ${NORMAL}${clienteInfo.nombre} ${clienteInfo.apellido}\n`;
   reciboTexto += `${NEGRITA}CI/RIF: ${NORMAL}${clienteInfo.identificacion}\n`;
-  reciboTexto += `${NEGRITA}TELEFONO: ${NORMAL}${clienteInfo.telefono}\n`;
+  reciboTexto += `${NEGRITA}Teléfono: ${NORMAL}${clienteInfo.telefono}\n`;
   reciboTexto += `${NEGRITA}Fecha de Ingreso:${NORMAL} ${formatDate(
     clienteInfo.fechaIngreso
   )}\n`;
