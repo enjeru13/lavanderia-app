@@ -18,14 +18,14 @@ import { calcularResumenPago } from "@lavanderia/shared/utils/pagoFinance";
 import { badgeEstado, badgePago } from "../utils/badgeHelpers";
 import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
 import ModalPago from "../components/modal/ModalPago";
-import ModalImprimirOrdenes from "../components/modal/ModalImprimirOrdenes"; // <--- IMPORTAR ESTO
+import ModalImprimirOrdenes from "../components/modal/ModalImprimirOrdenes";
 import ControlesPaginacion from "../components/ControlesPaginacion";
 import type {
   Orden,
   SortDirection,
   EstadoOrden,
   EstadoPagoRaw,
-  Configuracion, // <--- IMPORTAR CONFIGURACION
+  Configuracion,
 } from "@lavanderia/shared/types/types";
 import { useAuth } from "../hooks/useAuth";
 
@@ -155,9 +155,8 @@ export default function PantallaEstadoOrdenes() {
       const terminoBusqueda = busqueda.trim().toLowerCase();
       ordenesProcesadas = ordenesProcesadas.filter((o) => {
         const matchId = String(o.id).includes(terminoBusqueda);
-        const nombreCliente = `${o.cliente?.nombre ?? ""} ${
-          o.cliente?.apellido ?? ""
-        }`.toLowerCase();
+        const nombreCliente = `${o.cliente?.nombre ?? ""} ${o.cliente?.apellido ?? ""
+          }`.toLowerCase();
         const matchCliente = nombreCliente.includes(terminoBusqueda);
         return matchId || matchCliente;
       });
@@ -184,12 +183,10 @@ export default function PantallaEstadoOrdenes() {
           valA = a.id;
           valB = b.id;
         } else if (sortColumn === "cliente") {
-          valA = `${a.cliente?.nombre ?? ""} ${
-            a.cliente?.apellido ?? ""
-          }`.toLowerCase();
-          valB = `${b.cliente?.nombre ?? ""} ${
-            b.cliente?.apellido ?? ""
-          }`.toLowerCase();
+          valA = `${a.cliente?.nombre ?? ""} ${a.cliente?.apellido ?? ""
+            }`.toLowerCase();
+          valB = `${b.cliente?.nombre ?? ""} ${b.cliente?.apellido ?? ""
+            }`.toLowerCase();
         } else if (sortColumn === "estado") {
           valA = a.estado;
           valB = b.estado;

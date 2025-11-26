@@ -271,6 +271,8 @@ export interface ReciboClienteInfo {
   identificacion: string;
   fechaIngreso: Date;
   fechaEntrega?: Date | null;
+  telefono: string;
+  telefono_secundario?: string | null;
 }
 
 export interface ReciboLavanderiaInfo {

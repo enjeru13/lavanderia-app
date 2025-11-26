@@ -182,6 +182,8 @@ export default function ModalDetalleOrden({
           orden.fechaEntrega && dayjs(orden.fechaEntrega).isValid()
             ? dayjs(orden.fechaEntrega).toDate()
             : null,
+        telefono: orden.cliente?.telefono ?? "",
+        telefono_secundario: orden.cliente?.telefono_secundario ?? "",
       },
       // CORRECCIÓN AQUÍ: Se cambió precioUnit por precioUnitario para coincidir con la interfaz ReciboItem
       items:
@@ -318,15 +320,15 @@ export default function ModalDetalleOrden({
                     </td>
                   </tr>
                 )) ?? (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="px-4 py-4 text-center text-gray-500 italic"
-                    >
-                      No hay servicios asociados a esta orden.
-                    </td>
-                  </tr>
-                )}
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-4 py-4 text-center text-gray-500 italic"
+                      >
+                        No hay servicios asociados a esta orden.
+                      </td>
+                    </tr>
+                  )}
               </tbody>
             </table>
           </div>
@@ -458,14 +460,13 @@ export default function ModalDetalleOrden({
               disabled={
                 isObservacionesDisabled ||
                 observacionesEditadas.trim() ===
-                  (orden.observaciones ?? "").trim()
+                (orden.observaciones ?? "").trim()
               }
-              className={`px-6 py-3 flex items-center gap-2 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out ${
-                observacionesEditadas.trim() ===
-                  (orden.observaciones ?? "").trim() || isObservacionesDisabled
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700"
-              }`}
+              className={`px-6 py-3 flex items-center gap-2 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out ${observacionesEditadas.trim() ===
+                (orden.observaciones ?? "").trim() || isObservacionesDisabled
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-700"
+                }`}
             >
               {guardandoObservaciones ? "Guardando..." : "Guardar notas"}
             </button>
@@ -478,9 +479,8 @@ export default function ModalDetalleOrden({
           <button
             onClick={() => setVerModalRecibo(true)}
             disabled={cargandoConfiguracion}
-            className={`px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-sm ${
-              cargandoConfiguracion ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-sm ${cargandoConfiguracion ? "opacity-50 cursor-not-allowed" : ""
+              }`}
           >
             Ver recibo
           </button>

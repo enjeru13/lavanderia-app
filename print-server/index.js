@@ -13,7 +13,7 @@ let Iconv;
 try {
   Iconv = require("iconv-lite");
 } catch (e) {
-  process.exit(1);
+  console.error("Error cargando iconv-lite:", e);
 }
 
 const PRINTNODE_API_KEY = process.env.PRINTNODE_API_KEY;
@@ -149,6 +149,11 @@ const generateReceiptText = (datosRecibo) => {
 
   return reciboTexto;
 };
+
+// Ruta para mantener el servidor vivo
+app.get("/", (req, res) => {
+  res.send("Servidor de Impresión VIVO");
+});
 
 // Endpoint para imprimir el recibo
 app.post("/imprimir-recibo", async (req, res) => {

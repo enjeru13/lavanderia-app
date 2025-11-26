@@ -3,6 +3,7 @@ import { formatearMoneda } from "../../../shared/src/utils/monedaHelpers";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
 import type { ReciboData as ReciboProps } from "@lavanderia/shared/types/types";
+
 dayjs.locale("es");
 
 const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
@@ -22,6 +23,7 @@ const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
     ref
   ) => {
     const restante = Math.max(total - abono, 0);
+    console.log(clienteInfo.telefono_secundario, clienteInfo.telefono)
 
     const formatDate = (date: string | Date | undefined | null) => {
       if (!date) return "";
@@ -29,131 +31,182 @@ const ReciboEntrega = forwardRef<HTMLDivElement, ReciboProps>(
       return fecha.isValid() ? fecha.format("DD/MM/YYYY") : "";
     };
 
-    const formatAlignedLine = (labelText: string, value: string | number) => {
-      const valueText = String(value);
-      return (
-        <div className="flex justify-between w-full">
-          <span className="font-bold">{labelText}</span>
-          <span>{valueText}</span>
-        </div>
-      );
-    };
+    // Componente auxiliar para líneas de totales alineadas
+    const LineaTotal = ({ label, valor, bold = false }: { label: string, valor: string | number, bold?: boolean }) => (
+      <div className={`flex justify-between w-full font-mono text-xs ${bold ? 'font-black text-sm' : ''}`}>
+        <span>{label}</span>
+        <span>{valor}</span>
+      </div>
+    );
+
+    // Separador estilo ticket (línea punteada negra)
+    const Separador = () => (
+      <div className="border-t-2 border-dashed border-black my-2 w-full" />
+    );
 
     return (
       <div
-        className="w-full max-w-[80mm] mx-auto p-3 font-mono text-sm text-gray-900 leading-tight"
         ref={ref}
+        className="mx-auto bg-white text-black p-4 shadow-lg"
+        style={{
+          width: "80mm", // Ancho estándar de impresora térmica
+          minHeight: "100mm",
+          fontFamily: "'Courier New', Courier, monospace", // Fuente monoespaciada tipo ticket
+        }}
       >
-        {/* Encabezado */}
-        <div className="text-center mb-3">
-          <h2 className="text-lg font-extrabold mb-1">
+        {/* --- ENCABEZADO --- */}
+        <div className="flex flex-col items-center text-center uppercase">
+          <h1 className="text-xl font-black leading-none mb-2">
             {lavanderiaInfo.nombre}
-          </h2>{" "}
-          {lavanderiaInfo.rif && (
-            <p className="text-xs">{`RIF: ${lavanderiaInfo.rif}`}</p>
-          )}
-          {lavanderiaInfo.direccion && (
-            <p className="text-xs">{lavanderiaInfo.direccion}</p>
-          )}
-          {lavanderiaInfo.telefonoPrincipal && (
-            <p className="text-xs">{`Whatsapp: ${lavanderiaInfo.telefonoPrincipal}`}</p>
-          )}
-          {lavanderiaInfo.telefonoSecundario && (
-            <p className="text-xs">{`CANTV: ${lavanderiaInfo.telefonoSecundario}`}</p>
-          )}
-          {numeroOrden && (
-            <p className="font-bold text-sm mt-2">N° Orden: #{numeroOrden}</p>
-          )}
-        </div>
-        <hr className="border-t border-dashed border-gray-400 my-2" />
+          </h1>
 
-        {/* Datos del cliente */}
-        <div className="text-left mb-2 text-sm">
-          <p className="my-0.5">
-            <span className="font-bold">Cliente:</span> {clienteInfo.nombre}{" "}
-            {clienteInfo.apellido}
-          </p>
-          <p className="my-0.5">
-            <span className="font-bold">CI/RIF:</span>{" "}
-            {clienteInfo.identificacion}
-          </p>
-          <p className="my-0.5">
-            <span className="font-bold">Fecha ingreso:</span>{" "}
-            {formatDate(clienteInfo.fechaIngreso)}
-          </p>
-          {clienteInfo.fechaEntrega && (
-            <p className="my-0.5">
-              <span className="font-bold">Fecha entrega:</span>{" "}
-              {formatDate(clienteInfo.fechaEntrega)}
-            </p>
-          )}
-        </div>
-        <hr className="border-t border-dashed border-gray-400 my-2" />
+          <div className="text-[10px] font-bold leading-tight space-y-0.5">
+            {lavanderiaInfo.rif && <p>RIF: {lavanderiaInfo.rif}</p>}
+            {lavanderiaInfo.direccion && <p>{lavanderiaInfo.direccion}</p>}
 
-        {/* Encabezado de Ítems */}
-        <div className="flex justify-between font-bold text-sm mb-1">
-          <span className="w-1/2">ITEM</span>
-          <span className="w-1/4 text-center">CANT</span>
-          <span className="w-1/4 text-right">TOTAL</span>
-        </div>
-        <hr className="border-t border-dashed border-gray-400 my-2" />
-
-        {/* Lista de Ítems */}
-        <div className="items-list text-sm">
-          {items.map((item, idx) => (
-            <div key={idx} className="flex justify-between my-0.5">
-              <span className="w-1/2 pr-1 truncate">{item.descripcion}</span>
-              <span className="w-1/4 text-center">{item.cantidad}</span>
-              <span className="w-1/4 text-right">
-                {formatearMoneda(
-                  item.cantidad * item.precioUnitario,
-                  monedaPrincipal
-                )}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <hr className="border-t border-dashed border-gray-400 my-2" />
-
-        {/* Totales */}
-        <div className="totales text-sm">
-          {formatAlignedLine("Total Servicios:", totalCantidadPiezas)}
-          {formatAlignedLine("Total:", formatearMoneda(total, monedaPrincipal))}
-          {formatAlignedLine(
-            "Total Abono:",
-            formatearMoneda(abono, monedaPrincipal)
-          )}
-          {formatAlignedLine(
-            "Por pagar:",
-            formatearMoneda(restante, monedaPrincipal)
-          )}
-        </div>
-
-        <hr className="border-t border-dashed border-gray-400 my-2" />
-
-        {/* Observaciones */}
-        {observaciones && (
-          <div className="observaciones text-sm">
-            <p className="font-bold my-0.5">Observaciones:</p>
-            <p className="my-0.5">{observaciones}</p>
-            <hr className="border-t border-dashed border-gray-400 my-2" />
+            {(lavanderiaInfo.telefonoPrincipal || lavanderiaInfo.telefonoSecundario) && (
+              <div className="mt-1">
+                {lavanderiaInfo.telefonoPrincipal && <p>Whatsapp: {lavanderiaInfo.telefonoPrincipal}</p>}
+                {lavanderiaInfo.telefonoSecundario && <p>CANTV: {lavanderiaInfo.telefonoSecundario}</p>}
+              </div>
+            )}
           </div>
+
+          {numeroOrden && (
+            <div className="mt-3 mb-1">
+              <span className="text-sm font-bold">N° ORDEN: </span>
+              <span className="text-xl font-black">#{numeroOrden}</span>
+            </div>
+          )}
+        </div>
+
+        <Separador />
+
+        {/* --- DATOS DEL CLIENTE --- */}
+        <div className="text-xs font-mono uppercase leading-snug space-y-1">
+          <div className="flex">
+            <span className="font-bold w-24 shrink-0">CLIENTE:</span>
+            <span className="truncate">{clienteInfo.nombre} {clienteInfo.apellido}</span>
+          </div>
+          <div className="flex">
+            <span className="font-bold w-24 shrink-0">CI/RIF:</span>
+            <span>{clienteInfo.identificacion}</span>
+          </div>
+
+          {/* TELÉFONO PRINCIPAL */}
+          {clienteInfo.telefono && (
+            <div className="flex">
+              <span className="font-bold w-24 shrink-0">TELÉFONO:</span>
+              <span>{clienteInfo.telefono}</span>
+            </div>
+          )}
+
+          {/* TELÉFONO SECUNDARIO (Usando la propiedad exacta de types.ts) */}
+          {clienteInfo.telefono_secundario && (
+            <div className="flex">
+              <span className="font-bold w-24 shrink-0">OTRO TEL.:</span>
+              <span>{clienteInfo.telefono_secundario}</span>
+            </div>
+          )}
+
+          <div className="flex">
+            <span className="font-bold w-24 shrink-0">FECHA ING.:</span>
+            <span>{formatDate(clienteInfo.fechaIngreso)}</span>
+          </div>
+          {clienteInfo.fechaEntrega && (
+            <div className="flex">
+              <span className="font-bold w-24 shrink-0">FECHA ENT.:</span>
+              <span>{formatDate(clienteInfo.fechaEntrega)}</span>
+            </div>
+          )}
+        </div>
+
+        <Separador />
+
+        {/* --- TABLA DE ITEMS --- */}
+        <div className="text-xs font-mono uppercase">
+          {/* Header Tabla */}
+          <div className="flex font-black border-b border-black border-dashed pb-1 mb-1">
+            <span className="flex-1 text-left">DESCRIPCIÓN</span>
+            <span className="w-10 text-center">CANT</span>
+            <span className="w-20 text-right">TOTAL</span>
+          </div>
+
+          {/* Lista Items */}
+          <div className="space-y-1">
+            {items.map((item, idx) => (
+              <div key={idx} className="flex items-start">
+                <span className="flex-1 text-left pr-1 leading-tight truncate">
+                  {item.descripcion}
+                </span>
+                <span className="w-10 text-center font-bold">
+                  {item.cantidad}
+                </span>
+                <span className="w-20 text-right font-bold">
+                  {formatearMoneda(item.cantidad * item.precioUnitario, monedaPrincipal)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Separador />
+
+        {/* --- TOTALES --- */}
+        <div className="flex flex-col gap-1 uppercase">
+          <LineaTotal
+            label="TOTAL PIEZAS:"
+            valor={totalCantidadPiezas}
+          />
+          <div className="my-1 border-t border-dotted border-gray-400" />
+
+          <LineaTotal
+            label="TOTAL A PAGAR:"
+            valor={formatearMoneda(total, monedaPrincipal)}
+            bold
+          />
+          <LineaTotal
+            label="ABONO:"
+            valor={formatearMoneda(abono, monedaPrincipal)}
+          />
+          <div className="my-1 border-t border-dotted border-gray-400" />
+
+          <div className="flex justify-between w-full font-black text-sm mt-1">
+            <span>RESTA POR PAGAR:</span>
+            <span>{formatearMoneda(restante, monedaPrincipal)}</span>
+          </div>
+        </div>
+
+        <Separador />
+
+        {/* --- OBSERVACIONES --- */}
+        {observaciones && (
+          <>
+            <div className="text-xs font-mono uppercase mb-2">
+              <p className="font-black underline mb-1">OBSERVACIONES:</p>
+              <p className="leading-tight">{observaciones}</p>
+            </div>
+            <Separador />
+          </>
         )}
 
-        {/* Pie */}
-        <div className="footer text-center text-xs mt-4">
-          <p className="my-0.5">¡Gracias por preferirnos!</p>
-          <p className="my-0.5">
-            {mensajePieRecibo ??
-              "* Este comprobante no da derecho a reclamo sin ticket"}
+        {/* --- PIE DE PAGINA --- */}
+        <div className="text-center mt-4 uppercase">
+          <p className="text-xs font-bold mb-1">¡GRACIAS POR SU PREFERENCIA!</p>
+
+          <p className="text-[10px] leading-tight px-2 mb-2">
+            {mensajePieRecibo || "* ESTE COMPROBANTE NO DA DERECHO A RECLAMO SIN TICKET *"}
           </p>
-          <p className="font-bold my-0.5">(NO DA DERECHO A CRÉDITO FISCAL)</p>
+
+          <p className="text-[10px] font-black">
+            (NO DA DERECHO A CRÉDITO FISCAL)
+          </p>
         </div>
-        <div className="h-8"></div>
       </div>
     );
   }
 );
+
+ReciboEntrega.displayName = "ReciboEntrega";
 
 export default ReciboEntrega;
