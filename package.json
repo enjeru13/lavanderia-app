@@ -2,8 +2,8 @@
   "name": "lavanderia-app",
   "private": true,
   "devDependencies": {
-    "rimraf": "^6.0.1",
-    "typescript": "^5.8.3"
+    "rimraf": "^6.1.2",
+    "typescript": "^5.9.3"
   },
   "scripts": {
     "dev": "pnpm --parallel --filter frontend dev",
@@ -19,6 +19,6 @@
     "build:all": "pnpm run build:check"
   },
   "dependencies": {
-    "dayjs": "^1.11.13"
+    "dayjs": "^1.11.19"
   }
 }
