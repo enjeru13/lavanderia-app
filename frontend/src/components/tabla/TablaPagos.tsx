@@ -52,9 +52,9 @@ export default function TablaPagos({
   };
 
   return (
-    <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-200">
-      <table className="min-w-full bg-white text-sm">
-        <thead className="bg-gray-100 text-gray-600 font-semibold border-b border-gray-200">
+    <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 transition-all">
+      <table className="min-w-full bg-white dark:bg-gray-900 text-sm transition-colors">
+        <thead className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 font-semibold border-b border-gray-200 dark:border-gray-700 transition-colors">
           <tr className="text-left">
             <th
               className="px-4 py-2 font-semibold cursor-pointer whitespace-nowrap"
@@ -101,7 +101,7 @@ export default function TablaPagos({
             <tr>
               <td
                 colSpan={8} // Aumentamos el colspan por la nueva columna
-                className="px-6 py-10 text-center text-gray-500 italic bg-white"
+                className="px-6 py-10 text-center text-gray-500 dark:text-gray-400 italic bg-white dark:bg-gray-900 transition-colors"
               >
                 No se encontraron pagos registrados.
               </td>
@@ -117,12 +117,12 @@ export default function TablaPagos({
               return (
                 <tr
                   key={pago.id}
-                  className="border-t border-gray-100 hover:bg-blue-50 transition-colors duration-150 text-gray-700 font-semibold"
+                  className="border-t border-gray-100 dark:border-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-150 text-gray-700 dark:text-gray-300 font-semibold"
                 >
                   <td className="px-4 py-3 whitespace-nowrap">
                     {dayjs(pago.fechaPago).format("DD MMM YYYY")}
                   </td>
-                  <td className="px-4 py-3 font-bold text-blue-700 whitespace-nowrap">
+                  <td className="px-4 py-3 font-bold text-blue-700 dark:text-blue-400 whitespace-nowrap">
                     #{pago.ordenId}
                   </td>
                   <td className="px-4 py-3">
@@ -134,27 +134,27 @@ export default function TablaPagos({
                   </td>
 
                   {/* CELDA DE LA TASA HISTÓRICA */}
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-500 text-xs">
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400 text-xs">
                     {mostrarTasa ? (
-                      <span className="bg-gray-100 px-2 py-1 rounded border border-gray-300">
+                      <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded border border-gray-300 dark:border-gray-700">
                         {Number(pago.tasa).toFixed(2)}
                       </span>
                     ) : (
-                      <span className="text-gray-300">-</span>
+                      <span className="text-gray-300 dark:text-gray-700">-</span>
                     )}
                   </td>
 
                   <td className="px-4 py-3 font-medium whitespace-nowrap">
                     {monedaSegura}
                   </td>
-                  <td className="px-4 py-3 text-green-700 font-semibold whitespace-nowrap">
+                  <td className="px-4 py-3 text-green-700 dark:text-green-500 font-semibold whitespace-nowrap">
                     {formatearMoneda(pago.monto, monedaSegura)}
                   </td>
                   <td className="px-4 py-3 text-center whitespace-nowrap">
                     <button
                       onClick={() => onVerDetallesOrden(pago.ordenId)}
                       title="Ver detalles de la orden"
-                      className="p-2 bg-blue-100 border border-blue-300 text-blue-700 rounded-md hover:bg-blue-200 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm"
+                      className="p-2 bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-800 transition duration-150 ease-in-out transform hover:scale-105 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={cargandoOrdenDetalle}
                     >
                       <FaSearch size={12} />

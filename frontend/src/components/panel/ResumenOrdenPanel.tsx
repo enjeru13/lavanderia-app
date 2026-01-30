@@ -56,44 +56,44 @@ export default function ResumenOrdenPanel({
   };
 
   return (
-    <section className="bg-white p-8 rounded-2xl shadow-xl border border-gray-200 space-y-6">
-      <header className="pb-4 border-b border-gray-200 mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-          <FaClipboardList size={28} className="text-teal-600" /> Resumen de la
+    <section className="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 space-y-6 transition-all duration-300">
+      <header className="pb-4 border-b border-gray-200 dark:border-gray-800 mb-6 transition-colors">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
+          <FaClipboardList size={28} className="text-teal-600 dark:text-teal-400" /> Resumen de la
           orden
         </h2>
-        <p className="text-base text-gray-600 mt-2">
+        <p className="text-base text-gray-600 dark:text-gray-400 mt-2">
           Detalle general antes de confirmar.
         </p>
       </header>
 
-      <div className="space-y-5 text-base text-gray-800">
+      <div className="space-y-5 text-base text-gray-800 dark:text-gray-200">
         {/* SECCIÓN CLIENTE */}
-        <div className="bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
-          <span className="font-semibold text-gray-700 block mb-1">
+        <div className="bg-gray-100 dark:bg-gray-950 p-4 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm transition-colors">
+          <span className="font-semibold text-gray-700 dark:text-gray-300 block mb-1">
             Cliente:
           </span>
           {cliente ? (
-            <span className="text-gray-900 font-medium text-lg">
+            <span className="text-gray-900 dark:text-gray-100 font-medium text-lg">
               {cliente.nombre} {cliente.apellido}
             </span>
           ) : (
-            <span className="italic text-gray-500">No asignado</span>
+            <span className="italic text-gray-500 dark:text-gray-500">No asignado</span>
           )}
         </div>
 
         {/* SECCIÓN SERVICIOS */}
         <div>
-          <span className="text-gray-700 block mb-3 font-semibold">
+          <span className="text-gray-700 dark:text-gray-300 block mb-3 font-semibold">
             Servicios seleccionados:
           </span>
           {serviciosSeleccionados.length === 0 ? (
-            <p className="text-gray-500 italic bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
+            <p className="text-gray-500 dark:text-gray-400 italic bg-gray-100 dark:bg-gray-950 p-4 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm transition-all">
               Ningún servicio seleccionado
             </p>
           ) : (
-            <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
-              <ul className="divide-y divide-gray-200">
+            <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-gray-950 shadow-sm transition-all">
+              <ul className="divide-y divide-gray-200 dark:divide-gray-800">
                 {serviciosSeleccionados.map((s) => {
                   const servicio = serviciosCatalogo.find(
                     (x) => x.id === s.servicioId
@@ -109,19 +109,19 @@ export default function ResumenOrdenPanel({
                   return (
                     <li
                       key={s.servicioId}
-                      className="p-4 flex justify-between items-center hover:bg-gray-50 transition duration-200 ease-in-out"
+                      className="p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-900 transition duration-200 ease-in-out"
                     >
                       <div className="flex flex-col">
-                        <span className="font-medium text-gray-900 flex items-center gap-2">
+                        <span className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
                           {servicio?.nombreServicio ?? "Servicio desconocido"}
 
-                          <span className="font-bold text-gray-800 bg-gray-200 px-2 py-0.5 rounded text-sm">
+                          <span className="font-bold text-gray-800 dark:text-gray-200 bg-gray-200 dark:bg-gray-800 px-2 py-0.5 rounded text-sm transition-colors">
                             × {s.cantidad}
                           </span>
 
                           {esPrecioEditado && (
                             <span
-                              className="text-xs text-orange-500 bg-orange-100 px-1.5 py-0.5 rounded border border-orange-200 flex items-center gap-1"
+                              className="text-xs text-orange-500 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-800/30 flex items-center gap-1 transition-all"
                               title="Precio modificado manualmente"
                             >
                               <FaInfoCircle size={10} /> Editado
@@ -130,7 +130,7 @@ export default function ResumenOrdenPanel({
                         </span>
 
                         {tieneDescuento && (
-                          <span className="text-xs text-orange-600 flex items-center gap-1 mt-1 font-semibold">
+                          <span className="text-xs text-orange-600 dark:text-orange-400 flex items-center gap-1 mt-1 font-semibold transition-colors">
                             <FaTag size={10} /> Descuento aplicado: -
                             {formatearMoneda(descuento, monedaPrincipal)}
                           </span>
@@ -138,14 +138,14 @@ export default function ResumenOrdenPanel({
                       </div>
 
                       <div className="text-right">
-                        <span className="font-bold text-green-700 block text-lg">
+                        <span className="font-bold text-green-700 dark:text-green-500 block text-lg transition-colors">
                           {formatearMoneda(
                             calcularSubtotalServicio(s),
                             monedaPrincipal
                           )}
                         </span>
                         {/* Mostrar el unitario pequeño debajo para referencia */}
-                        <span className="text-xs text-gray-400 block">
+                        <span className="text-xs text-gray-400 dark:text-gray-500 block transition-colors">
                           Unit: {formatearMoneda(precioUsado, monedaPrincipal)}
                         </span>
                       </div>
@@ -154,12 +154,12 @@ export default function ResumenOrdenPanel({
                 })}
               </ul>
 
-              <div className="bg-blue-50 p-4 border-t border-blue-100 flex justify-between items-center">
-                <div className="flex items-center gap-2 text-blue-800 font-bold">
+              <div className="bg-blue-50 dark:bg-blue-900/10 p-4 border-t border-blue-100 dark:border-blue-900/30 flex justify-between items-center transition-all">
+                <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300 font-bold">
                   <FaTshirt />
                   <span>Total de prendas/items:</span>
                 </div>
-                <span className="bg-white text-blue-900 font-extrabold px-4 py-1 rounded-full border border-blue-200 text-lg shadow-sm">
+                <span className="bg-white dark:bg-gray-800 text-blue-900 dark:text-blue-100 font-extrabold px-4 py-1 rounded-full border border-blue-200 dark:border-blue-700 text-lg shadow-sm transition-all">
                   {totalPrendas}
                 </span>
               </div>
@@ -169,21 +169,21 @@ export default function ResumenOrdenPanel({
 
         {/* OBSERVACIONES Y FECHA */}
         {observaciones && (
-          <div className="bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
-            <span className="font-semibold text-gray-700 block mb-1">
+          <div className="bg-gray-100 dark:bg-gray-950 p-4 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm transition-colors">
+            <span className="font-semibold text-gray-700 dark:text-gray-300 block mb-1">
               Observaciones:
             </span>
-            <p className="text-gray-900 break-words whitespace-pre-wrap">
+            <p className="text-gray-900 dark:text-gray-100 wrap-break-word whitespace-pre-wrap">
               {observaciones}
             </p>
           </div>
         )}
         {fechaEntrega && (
-          <div className="bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
-            <span className="font-semibold text-gray-700 block mb-1">
+          <div className="bg-gray-100 dark:bg-gray-950 p-4 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm transition-colors">
+            <span className="font-semibold text-gray-700 dark:text-gray-300 block mb-1">
               Fecha de entrega estimada:
             </span>
-            <span className="text-gray-900 font-medium">
+            <span className="text-gray-900 dark:text-gray-100 font-medium">
               {formatFechaEntrega(fechaEntrega)}
             </span>
           </div>

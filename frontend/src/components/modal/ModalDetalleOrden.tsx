@@ -221,18 +221,18 @@ export default function ModalDetalleOrden({
   const isObservacionesDisabled = !hasRole(["ADMIN"]) || guardandoObservaciones;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6">
-      <div className="relative bg-white max-w-2xl w-full p-6 rounded-2xl shadow-2xl ring-1 ring-gray-200 space-y-6 text-base text-gray-800 overflow-auto max-h-[90vh] transform transition-all duration-300 scale-100 opacity-100">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-100 p-4 sm:p-6 transition-all duration-300">
+      <div className="relative bg-white dark:bg-gray-900 max-w-2xl w-full p-6 rounded-2xl shadow-2xl ring-1 ring-gray-200 dark:ring-gray-800 space-y-6 text-base text-gray-800 dark:text-gray-200 overflow-auto max-h-[90vh] transform transition-all duration-300 scale-100 opacity-100">
         {/* HEADER */}
-        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-          <h2 className="text-2xl font-extrabold text-green-700 flex items-center gap-3">
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-800">
+          <h2 className="text-2xl font-extrabold text-green-700 dark:text-green-500 flex items-center gap-3">
             <BiMessageSquareDetail className="text-3xl" />
             Detalle de la orden
-            <span className="text-gray-500 font-semibold">#{orden.id}</span>
+            <span className="text-gray-500 dark:text-gray-400 font-semibold">#{orden.id}</span>
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-3xl font-bold transition-transform transform hover:rotate-90"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-3xl font-bold transition-transform transform hover:rotate-90 cursor-pointer"
             title="Cerrar"
           >
             <FiX />
@@ -242,32 +242,32 @@ export default function ModalDetalleOrden({
         {/* GRID DE INFO */}
         <div className="grid sm:grid-cols-2 gap-5">
           <div>
-            <p className="text-gray-700 font-semibold text-sm mb-2">Cliente</p>
-            <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 font-medium text-gray-900 shadow-sm">
+            <p className="text-gray-700 dark:text-gray-300 font-semibold text-sm mb-2">Cliente</p>
+            <div className="bg-gray-100 dark:bg-gray-950 p-3 rounded-lg border border-gray-200 dark:border-gray-800 font-medium text-gray-900 dark:text-gray-100 shadow-sm">
               {orden.cliente?.nombre} {orden.cliente?.apellido}
             </div>
           </div>
           <div>
-            <p className="text-gray-700 font-semibold text-sm mb-2">
+            <p className="text-gray-700 dark:text-gray-300 font-semibold text-sm mb-2">
               Estado de la entrega
             </p>
-            <div className="bg-gray-100 px-3 py-2 rounded-lg border border-gray-200 flex items-center gap-2 shadow-sm">
+            <div className="bg-gray-100 dark:bg-gray-950 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 flex items-center gap-2 shadow-sm">
               {badgeEstado(orden.estado)}
             </div>
           </div>
           <div>
-            <p className="text-gray-700 font-semibold text-sm mb-2">
+            <p className="text-gray-700 dark:text-gray-300 font-semibold text-sm mb-2">
               Fecha de ingreso
             </p>
-            <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 font-medium text-gray-900 shadow-sm">
+            <div className="bg-gray-100 dark:bg-gray-950 p-3 rounded-lg border border-gray-200 dark:border-gray-800 font-medium text-gray-900 dark:text-gray-100 shadow-sm">
               {dayjs(orden.fechaIngreso).format("DD/MM/YYYY")}
             </div>
           </div>
           <div>
-            <p className="text-gray-700 font-semibold text-sm mb-2">
+            <p className="text-gray-700 dark:text-gray-300 font-semibold text-sm mb-2">
               Fecha estimada de entrega
             </p>
-            <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 font-medium text-gray-900 shadow-sm">
+            <div className="bg-gray-100 dark:bg-gray-950 p-3 rounded-lg border border-gray-200 dark:border-gray-800 font-medium text-gray-900 dark:text-gray-100 shadow-sm">
               {orden.fechaEntrega
                 ? dayjs(orden.fechaEntrega).format("DD/MM/YYYY")
                 : "No definida"}
@@ -275,10 +275,10 @@ export default function ModalDetalleOrden({
           </div>
           {orden.estado === "ENTREGADO" && orden.deliveredBy && (
             <div>
-              <p className="text-gray-700 font-semibold text-sm mb-2">
+              <p className="text-gray-700 dark:text-gray-300 font-semibold text-sm mb-2">
                 Entregado Por
               </p>
-              <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 font-medium text-gray-900 shadow-sm">
+              <div className="bg-gray-100 dark:bg-gray-950 p-3 rounded-lg border border-gray-200 dark:border-gray-800 font-medium text-gray-900 dark:text-gray-100 shadow-sm">
                 {orden.deliveredBy.name || orden.deliveredBy.email}
               </div>
             </div>
@@ -287,35 +287,35 @@ export default function ModalDetalleOrden({
 
         {/* TABLA SERVICIOS */}
         <div>
-          <h3 className="font-bold text-gray-800 text-lg mb-3">
+          <h3 className="font-bold text-gray-800 dark:text-gray-100 text-lg mb-3">
             Servicios contratados
           </h3>
-          <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
-            <table className="min-w-full bg-white text-sm">
-              <thead className="bg-gray-100 text-gray-600 font-semibold border-b border-gray-200">
+          <div className="overflow-x-auto border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm">
+            <table className="min-w-full bg-white dark:bg-gray-950 text-sm">
+              <thead className="bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 font-semibold border-b border-gray-200 dark:border-gray-800">
                 <tr>
-                  <th className="px-4 py-2 text-left">Servicio</th>
-                  <th className="px-4 py-2 text-center">Cantidad</th>
-                  <th className="px-4 py-2 text-right">Precio Unitario</th>
-                  <th className="px-4 py-2 text-right">Subtotal</th>
+                  <th className="px-4 py-3 text-left">Servicio</th>
+                  <th className="px-4 py-3 text-center">Cantidad</th>
+                  <th className="px-4 py-3 text-right">Precio Unitario</th>
+                  <th className="px-4 py-3 text-right">Subtotal</th>
                 </tr>
               </thead>
               <tbody>
                 {orden.detalles?.map((d) => (
                   <tr
                     key={d.id}
-                    className="border-t border-gray-100 hover:bg-gray-50 transition duration-200 ease-in-out"
+                    className="border-t border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition duration-200 ease-in-out"
                   >
-                    <td className="px-4 py-2 font-medium text-gray-900">
+                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
                       {d.servicio?.nombreServicio ?? "Servicio no disponible"}
                     </td>
-                    <td className="px-4 py-2 text-center text-gray-700">
+                    <td className="px-4 py-3 text-center text-gray-700 dark:text-gray-300">
                       x{d.cantidad}
                     </td>
-                    <td className="px-4 py-2 text-right text-indigo-700 font-bold">
+                    <td className="px-4 py-3 text-right text-indigo-700 dark:text-indigo-400 font-bold">
                       {formatearMoneda(d.precioUnit, principalSeguro)}
                     </td>
-                    <td className="px-4 py-2 text-right text-green-700 font-bold">
+                    <td className="px-4 py-3 text-right text-green-700 dark:text-green-500 font-bold">
                       {formatearMoneda(d.subtotal, principalSeguro)}
                     </td>
                   </tr>
@@ -337,14 +337,14 @@ export default function ModalDetalleOrden({
         {/* PAGOS REALIZADOS */}
         {(orden.pagos?.length ?? 0) > 0 && (
           <div>
-            <h3 className="font-bold text-gray-800 text-lg mb-3">
+            <h3 className="font-bold text-gray-800 dark:text-gray-100 text-lg mb-3">
               Pagos realizados
             </h3>
-            <ul className="space-y-3 text-sm text-gray-700">
+            <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
               {orden.pagos?.map((p) => (
                 <li
                   key={p.id}
-                  className="bg-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm hover:bg-gray-200 transition duration-200 ease-in-out"
+                  className="bg-gray-100 dark:bg-gray-950 p-4 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm hover:bg-gray-200 dark:hover:bg-gray-900 transition duration-200 ease-in-out"
                 >
                   <div className="flex justify-between items-center mb-1">
                     {/* --- SECCIÓN EDITABLE DE FECHA --- */}
@@ -356,7 +356,7 @@ export default function ModalDetalleOrden({
                             value={editDateValue}
                             onChange={(e) => setEditDateValue(e.target.value)}
                             disabled={guardandoFechaPago}
-                            className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            className="text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-gray-800 dark:text-gray-100"
                           />
                           <button
                             onClick={() => handleSaveFechaPago(p.id)}
@@ -377,13 +377,13 @@ export default function ModalDetalleOrden({
                         </div>
                       ) : (
                         <>
-                          <span className="font-semibold text-gray-900">
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">
                             {dayjs(p.fechaPago).format("DD/MM/YYYY")}
                           </span>
                           {hasRole(["ADMIN"]) && (
                             <button
                               onClick={() => handleEditPagoClick(p)}
-                              className="text-gray-400 hover:text-blue-600 ml-1 transition-colors"
+                              className="text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 ml-1 transition-colors cursor-pointer"
                               title="Editar fecha"
                             >
                               <FaEdit size={12} />
@@ -393,14 +393,14 @@ export default function ModalDetalleOrden({
                       )}
                     </div>
 
-                    <span className="font-bold text-indigo-700">
+                    <span className="font-bold text-indigo-700 dark:text-indigo-400">
                       {formatearMoneda(p.monto, p.moneda)}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-600 italic">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 italic">
                     Pago en {p.moneda} vía {p.metodoPago}
                     {p.tasa && p.tasa > 1 && p.moneda !== "USD" && (
-                      <span className="ml-1 text-gray-500 not-italic">
+                      <span className="ml-1 text-gray-500 dark:text-gray-500 not-italic">
                         (Tasa: {Number(p.tasa).toFixed(2)})
                       </span>
                     )}
@@ -412,26 +412,26 @@ export default function ModalDetalleOrden({
         )}
 
         {/* RESUMEN DE PAGOS */}
-        <div className="border-t border-gray-200 pt-6 space-y-3">
-          <h3 className="font-bold text-gray-800 text-lg mb-3">
+        <div className="border-t border-gray-200 dark:border-gray-800 pt-6 space-y-3">
+          <h3 className="font-bold text-gray-800 dark:text-gray-100 text-lg mb-3">
             Resumen de Pagos
           </h3>
           <div className="grid grid-cols-2 gap-4 text-sm font-medium">
-            <div className="p-3 bg-blue-50 rounded-lg shadow-sm flex justify-between items-center">
-              <span className="text-blue-800">Total Orden:</span>
-              <span className="font-bold text-blue-900">
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg shadow-sm flex justify-between items-center border border-blue-100 dark:border-blue-900/30">
+              <span className="text-blue-800 dark:text-blue-300">Total Orden:</span>
+              <span className="font-bold text-blue-900 dark:text-blue-100">
                 {formatearMoneda(orden.total, principalSeguro)}
               </span>
             </div>
-            <div className="p-3 bg-green-50 rounded-lg shadow-sm flex justify-between items-center">
-              <span className="text-green-800">Total Abonado:</span>
-              <span className="font-bold text-green-900">
+            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg shadow-sm flex justify-between items-center border border-green-100 dark:border-green-900/30">
+              <span className="text-green-800 dark:text-green-300">Total Abonado:</span>
+              <span className="font-bold text-green-900 dark:text-green-100">
                 {formatearMoneda(resumen.abonado, principalSeguro)}
               </span>
             </div>
-            <div className="p-3 bg-red-50 rounded-lg shadow-sm flex justify-between items-center">
-              <span className="text-red-800">Saldo Pendiente:</span>
-              <span className="font-bold text-red-900">
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg shadow-sm flex justify-between items-center border border-red-100 dark:border-red-900/30">
+              <span className="text-red-800 dark:text-red-300">Saldo Pendiente:</span>
+              <span className="font-bold text-red-900 dark:text-red-100">
                 {formatearMoneda(resumen.faltante, principalSeguro)}
               </span>
             </div>
@@ -439,8 +439,8 @@ export default function ModalDetalleOrden({
         </div>
 
         {/* NOTAS */}
-        <div className="pt-4 space-y-3 border-t border-gray-200">
-          <h3 className="font-bold text-gray-800 text-lg mb-3">
+        <div className="pt-4 space-y-3 border-t border-gray-200 dark:border-gray-800">
+          <h3 className="font-bold text-gray-800 dark:text-gray-100 text-lg mb-3">
             Notas de la orden
           </h3>
           <textarea
@@ -448,9 +448,9 @@ export default function ModalDetalleOrden({
             onChange={(e) => setObservacionesEditadas(e.target.value)}
             placeholder="Sin notas registradas..."
             disabled={isObservacionesDisabled}
-            className="w-full min-h-[100px] px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y text-sm transition duration-200"
+            className="w-full min-h-[100px] px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-950 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y text-sm transition duration-200 dark:text-gray-200"
           />
-          <p className="text-xs text-gray-600 italic">
+          <p className="text-xs text-gray-600 dark:text-gray-400 italic">
             Puedes agregar comentarios, aclaraciones o notas internas sobre la
             orden. Solo los administradores pueden editar.
           </p>
@@ -462,10 +462,10 @@ export default function ModalDetalleOrden({
                 observacionesEditadas.trim() ===
                 (orden.observaciones ?? "").trim()
               }
-              className={`px-6 py-3 flex items-center gap-2 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out ${observacionesEditadas.trim() ===
+              className={`px-6 py-3 flex items-center gap-2 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out cursor-pointer ${observacionesEditadas.trim() ===
                 (orden.observaciones ?? "").trim() || isObservacionesDisabled
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-indigo-600 hover:bg-indigo-700"
+                ? "bg-gray-400 cursor-not-allowed opacity-50"
+                : "bg-indigo-600 dark:bg-indigo-700 hover:bg-indigo-700 dark:hover:bg-indigo-600"
                 }`}
             >
               {guardandoObservaciones ? "Guardando..." : "Guardar notas"}
@@ -474,12 +474,12 @@ export default function ModalDetalleOrden({
         </div>
 
         {/* FOOTER CON BOTONES DE ACCIÓN */}
-        <div className="flex flex-wrap gap-3 justify-end items-center pt-4 border-t border-gray-200">
+        <div className="flex flex-wrap gap-3 justify-end items-center pt-4 border-t border-gray-200 dark:border-gray-800">
           {/* BOTÓN VER RECIBO */}
           <button
             onClick={() => setVerModalRecibo(true)}
             disabled={cargandoConfiguracion}
-            className={`px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-sm ${cargandoConfiguracion ? "opacity-50 cursor-not-allowed" : ""
+            className={`px-5 py-2.5 bg-blue-600 dark:bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-all shadow-sm cursor-pointer ${cargandoConfiguracion ? "opacity-50 cursor-not-allowed" : ""
               }`}
           >
             Ver recibo
@@ -489,7 +489,7 @@ export default function ModalDetalleOrden({
           {hasRole(["ADMIN", "EMPLOYEE"]) && orden.estado !== "ENTREGADO" && (
             <button
               onClick={handleIrAEditar}
-              className="px-5 py-2.5 bg-yellow-500 text-white rounded-lg font-semibold hover:bg-yellow-600 transition-all shadow-sm flex items-center gap-2"
+              className="px-5 py-2.5 bg-yellow-500 dark:bg-yellow-600 text-white rounded-lg font-semibold hover:bg-yellow-600 dark:hover:bg-yellow-500 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
             >
               <FaPencilAlt /> Editar Orden
             </button>
@@ -499,7 +499,7 @@ export default function ModalDetalleOrden({
           {resumen.faltante > 0 && (
             <button
               onClick={() => onAbrirPagoExtra(orden)}
-              className="px-5 py-2.5 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 flex items-center gap-2 shadow-sm"
+              className="px-5 py-2.5 bg-green-600 dark:bg-green-700 text-white rounded-lg font-semibold hover:bg-green-700 dark:hover:bg-green-600 flex items-center gap-2 shadow-sm cursor-pointer"
             >
               Registrar pago
             </button>

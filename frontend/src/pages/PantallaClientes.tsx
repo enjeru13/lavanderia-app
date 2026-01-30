@@ -13,9 +13,11 @@ import { toast } from "react-toastify";
 import { FaPlus, FaSearch } from "react-icons/fa";
 import { useAuth } from "../hooks/useAuth";
 import ControlesPaginacion from "../components/ControlesPaginacion";
+import { TableSkeleton } from "../components/Skeleton";
 
 export default function PantallaClientes() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [clienteSeleccionado, setClienteSeleccionado] = useState<
@@ -36,11 +38,14 @@ export default function PantallaClientes() {
 
   const cargarClientes = useCallback(async () => {
     try {
+      setLoading(true);
       const res = await clientesService.getAll();
       setClientes(res.data);
     } catch (err) {
       console.error("Error al cargar clientes:", err);
       toast.error("Error al cargar clientes");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -147,13 +152,21 @@ export default function PantallaClientes() {
     }
   }, [clienteAEliminarId, cargarClientes]);
 
+  if (loading) {
+    return (
+      <div className="p-6">
+        <TableSkeleton rows={8} cols={5} />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Clientes</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 italic">Clientes</h1>
         <button
           onClick={abrirNuevoCliente}
-          className="bg-green-600 text-white p-3 font-bold rounded hover:bg-green-700 transition flex items-center gap-2"
+          className="bg-green-600 dark:bg-green-700 text-white p-3 font-bold rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-all shadow-md flex items-center gap-2 hover:scale-105"
         >
           <FaPlus className="w-4 h-4" />
           Nuevo Cliente
@@ -164,31 +177,31 @@ export default function PantallaClientes() {
         <div className="flex flex-col">
           <label
             htmlFor="filtroBusquedaCliente"
-            className="text-xs text-gray-500 mb-1"
+            className="text-xs text-gray-500 dark:text-gray-400 mb-1"
           >
             Buscar por Nombre, Apellido, Cédula o Teléfono
           </label>
           <div className="relative w-72">
-            <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
+            <FaSearch className="absolute top-2.5 left-3 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               id="filtroBusquedaCliente"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               placeholder="Nombre, apellido, cédula o teléfono"
-              className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+              className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 dark:focus:ring-green-900 text-sm dark:text-gray-200"
             />
           </div>
         </div>
       </div>
 
       {clientesFiltradosYPaginados.length === 0 && totalFilteredItems > 0 ? (
-        <p className="text-gray-500">
+        <p className="text-gray-500 dark:text-gray-400">
           No se encontraron clientes en esta página con los filtros aplicados.
         </p>
       ) : clientesFiltradosYPaginados.length === 0 &&
         totalFilteredItems === 0 ? (
-        <p className="text-gray-500">
+        <p className="text-gray-500 dark:text-gray-400">
           No se encontraron clientes con los filtros aplicados.
         </p>
       ) : (

@@ -114,9 +114,9 @@ export default function FormularioServicio({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all duration-300 scale-100 opacity-100">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4 flex justify-between items-center shadow-md">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-100 p-4 sm:p-6 transition-all">
+      <div className="bg-white dark:bg-gray-950 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden transform transition-all duration-300 scale-100 opacity-100 border border-gray-200 dark:border-gray-800">
+        <div className="bg-linear-to-r from-blue-600 to-blue-800 dark:from-blue-800 dark:to-blue-950 text-white px-6 py-4 flex justify-between items-center shadow-md transition-all">
           <h2 className="text-xl font-extrabold flex items-center gap-3">
             <MdOutlineLocalLaundryService className="text-2xl" />
             {servicio ? "Editar Servicio" : "Registrar Servicio"}
@@ -124,40 +124,40 @@ export default function FormularioServicio({
           <button
             onClick={onClose}
             title="Cerrar"
-            className="text-white hover:text-blue-200 text-3xl font-bold transition-transform transform hover:rotate-90"
+            className="text-white hover:text-blue-200 dark:hover:text-blue-400 text-3xl font-bold transition-transform transform hover:rotate-90 cursor-pointer"
           >
             &times;
           </button>
         </div>
 
-        <div className="px-6 py-6 space-y-6 text-base text-gray-800">
+        <div className="px-6 py-6 flex-1 overflow-y-auto space-y-6 text-base text-gray-800 dark:text-gray-200 transition-colors">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Nombre del servicio:
             </label>
             <input
               type="text"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 shadow-sm"
               placeholder="Ej. Lavado y Secado por Kg"
               disabled={cargando}
             />
             {errores.nombre && (
-              <p className="text-red-600 text-xs font-medium mt-1">
+              <p className="text-red-600 dark:text-red-400 text-xs font-medium mt-1">
                 {errores.nombre}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Categoría:
             </label>
             {cargandoCategorias ? (
-              <p className="text-gray-500 italic">Cargando categorías...</p>
+              <p className="text-gray-500 dark:text-gray-400 italic">Cargando categorías...</p>
             ) : categorias.length === 0 ? (
-              <p className="text-red-600 text-sm font-medium">
+              <p className="text-red-600 dark:text-red-400 text-sm font-medium">
                 No hay categorías disponibles. Por favor, crea una en "Gestionar
                 Categorías".
               </p>
@@ -165,7 +165,7 @@ export default function FormularioServicio({
               <select
                 value={categoriaSeleccionadaId}
                 onChange={(e) => setCategoriaSeleccionadaId(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 shadow-sm"
                 disabled={cargando}
               >
                 <option value="">Selecciona una categoría</option>
@@ -177,14 +177,14 @@ export default function FormularioServicio({
               </select>
             )}
             {errores.categoria && (
-              <p className="text-red-600 text-xs font-medium mt-1">
+              <p className="text-red-600 dark:text-red-400 text-xs font-medium mt-1">
                 {errores.categoria}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Precio base:
             </label>
             <input
@@ -195,25 +195,25 @@ export default function FormularioServicio({
                 const parsed = parseFloat(e.target.value);
                 setPrecio(isNaN(parsed) ? null : parsed);
               }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 shadow-sm"
               placeholder="Ej. 12.50"
               disabled={cargando}
             />
             {errores.precio && (
-              <p className="text-red-600 text-xs font-medium mt-1">
+              <p className="text-red-600 dark:text-red-400 text-xs font-medium mt-1">
                 {errores.precio}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Descripción (opcional):
             </label>
             <textarea
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 resize-y min-h-[80px]"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 resize-y min-h-[80px] shadow-sm"
               rows={3}
               placeholder="Ej. Incluye lavado, secado y doblado de ropa."
               disabled={cargando}
@@ -221,12 +221,12 @@ export default function FormularioServicio({
           </div>
 
           <div>
-            <label className="flex items-center space-x-3 text-sm font-semibold text-gray-700">
+            <label className="flex items-center space-x-3 text-sm font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">
               <input
                 type="checkbox"
                 checked={permiteDecimales}
                 onChange={(e) => setPermiteDecimales(e.target.checked)}
-                className="accent-blue-600 w-5 h-5"
+                className="accent-blue-600 dark:accent-blue-500 w-5 h-5 cursor-pointer"
                 disabled={cargando}
               />
               <span>¿Permite cantidades decimales?</span>
@@ -234,22 +234,21 @@ export default function FormularioServicio({
           </div>
         </div>
 
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 text-sm font-medium shadow-inner">
+        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-3 text-sm font-medium shadow-inner transition-all">
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-all duration-200 ease-in-out font-semibold shadow-sm hover:shadow-md"
+            className="px-6 py-2 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-all duration-200 ease-in-out font-semibold shadow-sm hover:shadow-md cursor-pointer"
             disabled={cargando}
           >
             Cancelar
           </button>
           <button
             onClick={guardar}
-            className={`px-6 py-2 rounded-lg text-white font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out ${
-              cargando
-                ? "bg-blue-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
+            className={`px-6 py-2 rounded-lg text-white font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out cursor-pointer active:scale-95 ${cargando
+              ? "bg-blue-400 cursor-not-allowed"
+              : "bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600"
+              }`}
             disabled={cargando}
           >
             {cargando ? "Guardando..." : "Guardar Servicio"}

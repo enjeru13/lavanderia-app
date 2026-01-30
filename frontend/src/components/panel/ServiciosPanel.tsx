@@ -80,20 +80,20 @@ export default function ServiciosPanel({
   };
 
   return (
-    <section className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3">
-        <FaTshirt size={28} className="text-blue-600" /> Selección de Servicios
+    <section className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 transition-all duration-300">
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-3">
+        <FaTshirt size={28} className="text-blue-600 dark:text-blue-400" /> Selección de Servicios
       </h2>
 
       {/* --- FILA DE AGREGAR --- */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6 items-end bg-blue-50 p-4 rounded-xl border border-blue-100">
+      <div className="flex flex-col md:flex-row gap-4 mb-6 items-end bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
         {/* SELECTOR SERVICIO */}
         <div className="flex-1 w-full">
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
             Servicio
           </label>
           <select
-            className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+            className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-gray-800 dark:text-gray-100 transition-colors"
             value={servicioId}
             onChange={(e) => setServicioId(e.target.value)}
           >
@@ -108,18 +108,18 @@ export default function ServiciosPanel({
 
         {/* INPUT PRECIO (EDITABLE) */}
         <div className="w-full md:w-40">
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
             Precio Unit.
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FaDollarSign className="text-gray-400 text-xs" />
+              <FaDollarSign className="text-gray-400 dark:text-gray-500 text-xs" />
             </div>
             <input
               type="number"
               min="0"
               step={servicioActual?.permiteDecimales ? "0.01" : "1"}
-              className="w-full border border-gray-300 rounded-lg p-2.5 pl-8 focus:ring-2 focus:ring-blue-500 focus:outline-none text-right font-medium"
+              className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-2.5 pl-8 focus:ring-2 focus:ring-blue-500 focus:outline-none text-right font-medium bg-white dark:bg-gray-800 dark:text-gray-100 transition-colors"
               value={precioPersonalizado}
               onChange={(e) => setPrecioPersonalizado(e.target.value)}
               disabled={!servicioId}
@@ -129,14 +129,14 @@ export default function ServiciosPanel({
 
         {/* INPUT CANTIDAD (VALIDACIÓN DECIMALES) */}
         <div className="w-full md:w-32">
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
             Cantidad {servicioActual?.permiteDecimales ? "(Dec)" : "(Ent)"}
           </label>
           <input
             type="number"
             min="0.01"
             // SI permite decimales usa step 0.01, si no usa 1
-            className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none text-center font-medium"
+            className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none text-center font-medium bg-white dark:bg-gray-800 dark:text-gray-100 transition-colors"
             value={cantidad}
             onChange={(e) => {
               const val = parseFloat(e.target.value);
@@ -168,11 +168,10 @@ export default function ServiciosPanel({
             type="button"
             onClick={agregarServicio}
             disabled={!servicioId || cantidad <= 0}
-            className={`w-full md:w-auto h-[42px] px-6 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-md
-              ${
-                !servicioId || cantidad <= 0
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg transform hover:-translate-y-0.5"
+            className={`w-full md:w-auto h-[42px] px-6 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer
+              ${!servicioId || cantidad <= 0
+                ? "bg-gray-300 dark:bg-gray-800 text-gray-500 dark:text-gray-600 cursor-not-allowed"
+                : "bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white hover:shadow-lg transform hover:-translate-y-0.5"
               }`}
           >
             <FaPlus /> Agregar
@@ -184,32 +183,32 @@ export default function ServiciosPanel({
       {/* (Mantén el mismo código de tabla que tenías, ya funciona bien leyendo item.precio) */}
       <div className="space-y-3">
         {serviciosSeleccionados.length === 0 ? (
-          <p className="text-center text-gray-500 py-6 italic bg-gray-50 rounded-lg border border-dashed border-gray-300">
+          <p className="text-center text-gray-500 dark:text-gray-400 py-6 italic bg-gray-50 dark:bg-gray-950 rounded-lg border border-dashed border-gray-300 dark:border-gray-800 transition-all">
             No has agregado prendas.
           </p>
         ) : (
-          <div className="overflow-hidden rounded-lg border border-gray-200">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-100">
+          <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm transition-all">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+              <thead className="bg-gray-100 dark:bg-gray-900 transition-colors">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Servicio
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Cant.
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Precio
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Subtotal
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Acción
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-950 divide-y divide-gray-200 dark:divide-gray-800">
                 {serviciosSeleccionados.map((item, index) => {
                   const s = serviciosCatalogo.find(
                     (cat) => cat.id === item.servicioId
@@ -218,23 +217,23 @@ export default function ServiciosPanel({
                   return (
                     <tr
                       key={`${item.servicioId}-${index}`}
-                      className="hover:bg-blue-50"
+                      className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                     >
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
                         {s?.nombreServicio}
                       </td>
-                      <td className="px-4 py-3 text-sm text-center font-bold">
+                      <td className="px-4 py-3 text-sm text-center font-bold text-gray-700 dark:text-gray-300">
                         {item.cantidad}
                       </td>
-                      <td className="px-4 py-3 text-sm font-semibold text-right">
+                      <td className="px-4 py-3 text-sm font-semibold text-right dark:text-gray-200">
                         {s && precio !== s.precioBase && (
-                          <span className="text-xs text-orange-500 mr-1 font-bold">
+                          <span className="text-xs text-orange-500 dark:text-orange-400 mr-1 font-bold">
                             (Editado)
                           </span>
                         )}
                         {formatearMoneda(precio, monedaPrincipal)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-right font-bold text-green-600">
+                      <td className="px-4 py-3 text-sm text-right font-bold text-green-600 dark:text-green-500">
                         {formatearMoneda(
                           precio * item.cantidad,
                           monedaPrincipal
@@ -243,7 +242,7 @@ export default function ServiciosPanel({
                       <td className="px-4 py-3 text-center">
                         <button
                           onClick={() => eliminarServicio(item.servicioId)}
-                          className="text-red-500 hover:bg-red-50 p-2 rounded-full"
+                          className="text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/40 p-2 rounded-full transition-all cursor-pointer"
                         >
                           <FaTrashAlt />
                         </button>

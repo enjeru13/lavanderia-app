@@ -20,6 +20,8 @@ import ModalDetalleOrden from "../components/modal/ModalDetalleOrden";
 import ModalPago from "../components/modal/ModalPago";
 import ModalImprimirOrdenes from "../components/modal/ModalImprimirOrdenes";
 import ControlesPaginacion from "../components/ControlesPaginacion";
+import { TableSkeleton } from "../components/Skeleton";
+import EmptyState from "../components/EmptyState";
 import type {
   Orden,
   SortDirection,
@@ -294,9 +296,17 @@ export default function PantallaEstadoOrdenes() {
     [tasas, monedaPrincipal]
   );
 
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        <TableSkeleton rows={10} cols={5} />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
-      <h1 className="text-3xl font-semibold text-gray-900 mb-6">
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 italic mb-6">
         Estado de las Órdenes
       </h1>
 
@@ -304,19 +314,19 @@ export default function PantallaEstadoOrdenes() {
         <div className="flex flex-col">
           <label
             htmlFor="filtroBusquedaOrdenes"
-            className="text-xs text-gray-500 mb-1"
+            className="text-xs text-gray-500 dark:text-gray-400 mb-1"
           >
             Buscar
           </label>
           <div className="relative w-64">
-            <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
+            <FaSearch className="absolute top-2.5 left-3 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               id="filtroBusquedaOrdenes"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               placeholder="N° Orden o Cliente"
-              className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+              className="pl-9 pr-3 py-2 w-full rounded-md border border-gray-300 dark:border-gray-700 dark:bg-gray-950 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 dark:focus:ring-green-900 text-sm dark:text-gray-200"
             />
           </div>
         </div>
@@ -324,7 +334,7 @@ export default function PantallaEstadoOrdenes() {
         <div className="flex flex-col">
           <label
             htmlFor="filtroEstadoEntrega"
-            className="text-xs text-gray-500 mb-1"
+            className="text-xs text-gray-500 dark:text-gray-400 mb-1"
           >
             Entrega
           </label>
@@ -334,7 +344,7 @@ export default function PantallaEstadoOrdenes() {
             onChange={(e) =>
               setFiltroEstadoEntrega(e.target.value as EstadoOrden | "TODOS")
             }
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm bg-white"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 dark:focus:ring-green-900 text-sm bg-white dark:bg-gray-950 dark:text-gray-200 cursor-pointer"
           >
             <option value="TODOS">Todas</option>
             <option value="PENDIENTE">Pendiente</option>
@@ -345,7 +355,7 @@ export default function PantallaEstadoOrdenes() {
         <div className="flex flex-col">
           <label
             htmlFor="filtroEstadoPago"
-            className="text-xs text-gray-500 mb-1"
+            className="text-xs text-gray-500 dark:text-gray-400 mb-1"
           >
             Pago
           </label>
@@ -355,7 +365,7 @@ export default function PantallaEstadoOrdenes() {
             onChange={(e) =>
               setFiltroEstadoPago(e.target.value as EstadoPagoRaw | "TODOS")
             }
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm bg-white"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 dark:focus:ring-green-900 text-sm bg-white dark:bg-gray-950 dark:text-gray-200 cursor-pointer"
           >
             <option value="TODOS">Todos</option>
             <option value="COMPLETO">Completo</option>
@@ -367,7 +377,7 @@ export default function PantallaEstadoOrdenes() {
         <div className="flex flex-col mt-5">
           <button
             onClick={() => setMostrarModalImprimir(true)}
-            className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-600 transition duration-200 ease-in-out transform hover:scale-105 flex items-center gap-2 font-bold text-sm shadow-md"
+            className="px-4 py-2 bg-gray-500 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-600 dark:hover:bg-gray-600 transition-all transform hover:scale-105 flex items-center gap-2 font-bold text-sm shadow-md"
           >
             <FaPrint size={16} /> Generar Reporte
           </button>
@@ -375,17 +385,18 @@ export default function PantallaEstadoOrdenes() {
       </div>
 
       {loading || cargandoOrdenDetalle ? (
-        <p className="text-gray-500">Cargando órdenes...</p>
-      ) : ordenesFiltradasYSorteadas.length === 0 &&
-        totalFilteredItems === 0 ? (
-        <p className="text-gray-500">
-          No se encontraron órdenes con los filtros aplicados.
-        </p>
+        <p className="text-gray-500 dark:text-gray-400">Cargando órdenes...</p>
+      ) : ordenesFiltradasYSorteadas.length === 0 ? (
+        <EmptyState
+          title="No se encontraron órdenes"
+          description="Ajusta los filtros de búsqueda o registra una nueva orden para comenzar."
+          icon={FaSearch}
+        />
       ) : (
         <>
-          <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-200 mb-4">
-            <table className="min-w-full bg-white text-sm">
-              <thead className="bg-gray-100 text-gray-600 font-semibold border-b border-gray-200">
+          <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 mb-4 bg-white dark:bg-gray-950">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 font-semibold border-b border-gray-200 dark:border-gray-800">
                 <tr className="text-left">
                   <th
                     className="px-4 py-2 font-semibold cursor-pointer whitespace-nowrap"
@@ -431,9 +442,9 @@ export default function PantallaEstadoOrdenes() {
                   ) => (
                     <tr
                       key={o.id}
-                      className="border-t border-gray-100 hover:bg-blue-50 transition-colors duration-150 text-gray-700 font-semibold"
+                      className="border-t border-gray-100 dark:border-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors duration-150 text-gray-700 dark:text-gray-300 font-semibold"
                     >
-                      <td className="px-4 py-3 font-bold text-blue-700 whitespace-nowrap">
+                      <td className="px-4 py-3 font-bold text-blue-700 dark:text-blue-400 whitespace-nowrap">
                         #{o.id}
                       </td>
                       <td className="px-4 py-3">
@@ -469,7 +480,7 @@ export default function PantallaEstadoOrdenes() {
 
       {ordenSeleccionada && (
         <ModalDetalleOrden
-          orden={ordenSeleccionada}
+          orden={ordenSeleccionada!}
           tasas={tasas}
           monedaPrincipal={monedaPrincipal}
           onClose={() => setOrdenSeleccionada(null)}
@@ -480,7 +491,7 @@ export default function PantallaEstadoOrdenes() {
 
       {mostrarModalPago && ordenSeleccionada && (
         <ModalPago
-          orden={ordenSeleccionada}
+          orden={ordenSeleccionada!}
           tasas={tasas}
           monedaPrincipal={monedaPrincipal}
           onClose={() => setMostrarModalPago(false)}
@@ -494,7 +505,7 @@ export default function PantallaEstadoOrdenes() {
         onClose={() => setMostrarModalImprimir(false)}
         ordenes={ordenesFiltradasYSorteadas} // Pasamos TODAS las filtradas, no solo las de la página actual
         monedaPrincipal={monedaPrincipal}
-        configuracion={configNegocio}
+        configuracion={configNegocio!}
         filtros={{
           estado: filtroEstadoEntrega,
           pago: filtroEstadoPago,

@@ -267,33 +267,33 @@ export default function ModalPago({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
-      <div className="bg-white w-full max-w-xl md:max-w-2xl h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col ring-1 ring-gray-200 transform transition-all duration-300 scale-100 opacity-100">
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-green-700 flex items-center gap-3">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 flex items-center justify-center p-4 sm:p-6 transition-all duration-300">
+      <div className="bg-white dark:bg-gray-900 w-full max-w-xl md:max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col ring-1 ring-gray-200 dark:ring-gray-800 transform transition-all duration-300 scale-100 opacity-100">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-green-700 dark:text-green-500 flex items-center gap-3">
             <MdOutlinePayments className="text-2xl sm:text-3xl" />
             Registrar pago
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-3xl font-bold transition-transform transform hover:rotate-90"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-3xl font-bold transition-transform transform hover:rotate-90 cursor-pointer"
             title="Cerrar"
           >
             <FiX />
           </button>
         </div>
 
-        <div className="px-6 py-4 overflow-y-auto flex-1 space-y-6 text-base text-gray-800">
+        <div className="px-6 py-4 overflow-y-auto flex-1 space-y-6 text-base text-gray-800 dark:text-gray-200">
           {pagos.map((p, idx) => (
             <div
               key={idx}
-              className="border border-gray-300 rounded-xl p-5 bg-gray-50 shadow-md relative space-y-4 transition-all duration-200 hover:shadow-lg"
+              className="border border-gray-300 dark:border-gray-700 rounded-xl p-5 bg-gray-50 dark:bg-gray-950 shadow-md relative space-y-4 transition-all duration-200 hover:shadow-lg"
             >
               <div className="grid sm:grid-cols-3 gap-4">
                 <div>
                   <label
                     htmlFor={`monto-${idx}`}
-                    className="block text-sm text-gray-600 font-semibold mb-1"
+                    className="block text-sm text-gray-600 dark:text-gray-400 font-semibold mb-1"
                   >
                     Monto
                   </label>
@@ -305,14 +305,14 @@ export default function ModalPago({
                     onChange={(e) =>
                       actualizarPago(idx, "monto", e.target.value)
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base shadow-sm"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base shadow-sm dark:text-gray-100"
                     placeholder="Ej. 20.50 (USD), 1.458,78 (VES)"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor={`moneda-${idx}`}
-                    className="block text-sm text-gray-600 font-semibold mb-1"
+                    className="block text-sm text-gray-600 dark:text-gray-400 font-semibold mb-1"
                   >
                     Moneda
                   </label>
@@ -322,7 +322,7 @@ export default function ModalPago({
                     onChange={(e) =>
                       actualizarPago(idx, "moneda", e.target.value as Moneda)
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base shadow-sm"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base shadow-sm dark:text-gray-100"
                   >
                     <option value="USD">USD</option>
                     <option value="VES">VES</option>
@@ -332,7 +332,7 @@ export default function ModalPago({
                 <div>
                   <label
                     htmlFor={`metodo-${idx}`}
-                    className="block text-sm text-gray-600 font-semibold mb-1"
+                    className="block text-sm text-gray-600 dark:text-gray-400 font-semibold mb-1"
                   >
                     Método
                   </label>
@@ -346,7 +346,7 @@ export default function ModalPago({
                         e.target.value as PagoInput["metodo"]
                       )
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base shadow-sm"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base shadow-sm dark:text-gray-100"
                   >
                     <option value="Efectivo">Efectivo</option>
                     <option value="Transferencia">Transferencia</option>
@@ -358,7 +358,7 @@ export default function ModalPago({
               {pagos.length > 1 && (
                 <button
                   onClick={() => eliminarPago(idx)}
-                  className="absolute top-3 right-3 text-red-500 hover:text-red-700 text-xl transition-transform transform hover:scale-110"
+                  className="absolute top-3 right-3 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-xl transition-transform transform hover:scale-110 cursor-pointer"
                   title="Eliminar pago"
                 >
                   <FiX />
@@ -370,7 +370,7 @@ export default function ModalPago({
           <div className="flex justify-end pt-2">
             <button
               onClick={agregarPago}
-              className="px-5 py-2 flex items-center gap-2 text-indigo-600 hover:text-indigo-800 text-sm font-semibold rounded-lg border border-indigo-300 bg-indigo-50 hover:bg-indigo-100 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md"
+              className="px-5 py-2 flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm font-semibold rounded-lg border border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md cursor-pointer"
             >
               <FiPlus className="text-base" />
               Agregar otro pago
@@ -412,34 +412,34 @@ export default function ModalPago({
             </div>
           </div>
 
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-inner ring-1 ring-gray-100 space-y-3 mt-6">
-            <p className="font-bold text-gray-800 text-lg">
+          <div className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl p-5 shadow-inner ring-1 ring-gray-100 dark:ring-gray-900/50 space-y-3 mt-6">
+            <p className="font-bold text-gray-800 dark:text-gray-100 text-lg">
               Faltante proyectado en otras monedas:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 shadow-sm">
-                <span className="text-sm text-gray-700">Bolívares (VES):</span>
-                <span className="block text-red-700 font-bold text-lg">
+              <div className="bg-gray-100 dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+                <span className="text-sm text-gray-700 dark:text-gray-400">Bolívares (VES):</span>
+                <span className="block text-red-700 dark:text-red-400 font-bold text-lg">
                   {formatearMoneda(displayedRestanteVES, "VES")}
                 </span>
               </div>
-              <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 shadow-sm">
-                <span className="text-sm text-gray-700">Pesos (COP):</span>
-                <span className="block text-red-700 font-bold text-lg">
+              <div className="bg-gray-100 dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+                <span className="text-sm text-gray-700 dark:text-gray-400">Pesos (COP):</span>
+                <span className="block text-red-700 dark:text-red-400 font-bold text-lg">
                   {formatearMoneda(displayedRestanteCOP, "COP")}
                 </span>
               </div>
             </div>
-            <p className="text-xs text-gray-600 italic">
+            <p className="text-xs text-gray-600 dark:text-gray-500 italic">
               Estos valores se actualizan al agregar/eliminar pagos.
             </p>
           </div>
         </div>
 
-        <div className="px-6 py-4 flex justify-end gap-4 font-medium border-t border-gray-200">
+        <div className="px-6 py-4 flex justify-end gap-4 font-medium border-t border-gray-200 dark:border-gray-800">
           <button
             onClick={onClose}
-            className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            className="px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer"
           >
             Salir
           </button>
@@ -449,12 +449,11 @@ export default function ModalPago({
               totalPagosEnModalPrincipal <= 0 ||
               faltanteProyectado === resumen.faltante
             }
-            className={`px-6 py-3 text-white rounded-lg font-semibold transition-all duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5 ${
-              totalPagosEnModalPrincipal <= 0 ||
+            className={`px-6 py-3 text-white rounded-lg font-semibold transition-all duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer ${totalPagosEnModalPrincipal <= 0 ||
               faltanteProyectado === resumen.faltante
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
-            }`}
+              ? "bg-gray-400 cursor-not-allowed opacity-50"
+              : "bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600"
+              }`}
           >
             Guardar pagos
           </button>

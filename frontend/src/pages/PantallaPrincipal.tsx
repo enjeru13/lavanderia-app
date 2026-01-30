@@ -8,6 +8,7 @@ import ObservacionesPanel from "../components/panel/ObservacionesPanel";
 import FechaEntregaPanel from "../components/panel/FechaEntregaPanel";
 import ResumenOrdenPanel from "../components/panel/ResumenOrdenPanel";
 import ConfirmarOrdenPanel from "../components/panel/ConfirmarOrdenPanel";
+import DashboardStats from "../components/panel/DashboardStats";
 
 // Modales y Formularios
 import FormularioCliente from "../components/formulario/FormularioCliente";
@@ -17,6 +18,7 @@ import ListaClientesModal from "../components/modal/ListaClientesModal";
 import { servicioService } from "../services/serviciosService";
 import { clientesService } from "../services/clientesService";
 import { ordenesService } from "../services/ordenesService";
+import { pagosService } from "../services/pagosService";
 import { configuracionService } from "../services/configuracionService";
 
 import type {
@@ -30,6 +32,7 @@ import type {
 } from "@lavanderia/shared/types/types";
 import { normalizarMoneda } from "../utils/monedaHelpers";
 import dayjs from "dayjs";
+import { FormSkeleton } from "../components/Skeleton";
 
 export default function PantallaPrincipal() {
   const [cliente, setCliente] = useState<Cliente | null>(null);
@@ -52,6 +55,14 @@ export default function PantallaPrincipal() {
   const [isFormValid, setIsFormValid] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  const [stats, setStats] = useState({
+    totalOrdenes: 0,
+    pendientes: 0,
+    entregadas: 0,
+    ventasHoy: "$0.00",
+    cobradoHoy: "$0.00",
+  });
+
   useEffect(() => {
     async function cargarDatosIniciales() {
       try {
@@ -64,6 +75,36 @@ export default function PantallaPrincipal() {
         setTasas({
           VES: config.tasaVES ?? null,
           COP: config.tasaCOP ?? null,
+        });
+
+        // Cargar estadísticas
+        const [resOrdenes, resPagos] = await Promise.all([
+          ordenesService.getAll(),
+          pagosService.getAll(),
+        ]);
+        const ordenes = resOrdenes.data;
+        const pagos = resPagos.data;
+
+        const hoy = dayjs().startOf("day");
+
+        // Ventas: Suma de totales de órdenes creadas hoy
+        const ventasHoy = ordenes.reduce((acc: number, o) => {
+          const creadaHoy = dayjs(o.fechaIngreso).isAfter(hoy);
+          return creadaHoy ? acc + (o.total || 0) : acc;
+        }, 0);
+
+        // Cobrado: Suma de montos de pagos realizados hoy
+        const cobradoHoy = pagos.reduce((acc: number, p) => {
+          const pagadoHoy = dayjs(p.fechaPago).isAfter(hoy);
+          return pagadoHoy ? acc + (p.monto || 0) : acc;
+        }, 0);
+
+        setStats({
+          totalOrdenes: ordenes.length,
+          pendientes: ordenes.filter((o) => o.estado === "PENDIENTE").length,
+          entregadas: ordenes.filter((o) => o.estado === "ENTREGADO").length,
+          ventasHoy: `$${ventasHoy.toFixed(2)}`,
+          cobradoHoy: `$${cobradoHoy.toFixed(2)}`,
         });
       } catch (error) {
         console.error("Error al cargar datos iniciales:", error);
@@ -130,15 +171,20 @@ export default function PantallaPrincipal() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-full text-gray-600">
-        Cargando datos del sistema...
+      <div className="p-6 max-w-5xl mx-auto">
+        <FormSkeleton />
       </div>
     );
   }
 
   return (
     <div className="p-6 space-y-8 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Nueva Orden</h1>
+      <header>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 italic">Nueva Orden</h1>
+        <p className="text-gray-500 dark:text-gray-400">Gestiona los servicios y clientes para tus tickets.</p>
+      </header>
+
+      <DashboardStats stats={stats} />
 
       <ClientePanel
         cliente={cliente}

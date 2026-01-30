@@ -64,62 +64,61 @@ export default function ConfirmarOrdenPanel({
   );
 
   return (
-    <section className="bg-white p-8 rounded-2xl shadow-xl border border-gray-200 space-y-6">
-      <div className="text-center pb-4 border-b border-gray-200">
-        <h2 className="text-xl font-bold text-gray-800 flex items-center justify-center gap-2 mb-2">
-          <FaDollarSign size={32} className="text-green-600" />
+    <section className="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 space-y-6 transition-all duration-300">
+      <div className="text-center pb-4 border-b border-gray-200 dark:border-gray-800 transition-colors">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center justify-center gap-2 mb-2">
+          <FaDollarSign size={32} className="text-green-600 dark:text-green-500" />
           Total de la orden
         </h2>
-        <p className="text-base text-gray-600 mb-2">
+        <p className="text-base text-gray-600 dark:text-gray-400 mb-2">
           Monto final a cobrar por los servicios.
         </p>
-        <p className="text-4xl font-extrabold text-green-700 tracking-tight">
+        <p className="text-4xl font-extrabold text-green-700 dark:text-green-500 tracking-tight">
           {formatearMoneda(totalCalculado, monedaPrincipal)}
         </p>
       </div>
 
-      <div className="bg-gray-100 p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 text-left">
-        <p className="font-bold text-gray-800 text-lg">
+      <div className="bg-gray-100 dark:bg-gray-950 p-5 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-4 text-left transition-colors">
+        <p className="font-bold text-gray-800 dark:text-gray-100 text-lg">
           Total proyectado en otras monedas:
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 shadow-sm">
-            <span className="text-sm text-gray-700 block mb-1">
+          <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border border-gray-100 dark:border-gray-800 shadow-sm transition-colors">
+            <span className="text-sm text-gray-700 dark:text-gray-400 block mb-1">
               Bolívares (VES):
             </span>
-            <span className="block text-green-700 font-bold text-xl">
+            <span className="block text-green-700 dark:text-green-500 font-bold text-xl">
               {formatearMoneda(totalVES, "VES")}
             </span>
           </div>
-          <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 shadow-sm">
-            <span className="text-sm text-gray-700 block mb-1">
+          <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border border-gray-100 dark:border-gray-800 shadow-sm transition-colors">
+            <span className="text-sm text-gray-700 dark:text-gray-400 block mb-1">
               Pesos (COP):
             </span>
-            <span className="block text-green-700 font-bold text-xl">
+            <span className="block text-green-700 dark:text-green-500 font-bold text-xl">
               {formatearMoneda(totalCOP, "COP")}
             </span>
           </div>
         </div>
-        <p className="text-xs text-gray-600 italic mt-2">
+        <p className="text-xs text-gray-600 dark:text-gray-500 italic mt-2">
           Estas proyecciones se basan en las tasas de conversión actuales.
         </p>
       </div>
 
-      <div className="flex justify-end gap-4 pt-6 border-t border-gray-200 mt-6">
+      <div className="flex justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-800 mt-6 transition-colors">
         <button
           onClick={onCancelar}
-          className="px-6 py-3.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-all duration-200 ease-in-out flex items-center gap-2 font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+          className="px-6 py-3.5 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-all duration-200 ease-in-out flex items-center gap-2 font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer active:scale-95"
         >
           <FaRegTimesCircle size={18} /> Cancelar
         </button>
         <button
           onClick={onRegistrar}
           disabled={!isFormValid || isSaving}
-          className={`px-6 py-3.5 text-white rounded-lg font-semibold transition-all duration-200 ease-in-out flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 ${
-            !isFormValid || isSaving
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-indigo-600 hover:bg-indigo-700"
-          }`}
+          className={`px-6 py-3.5 text-white rounded-lg font-semibold transition-all duration-200 ease-in-out flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer active:scale-95 ${!isFormValid || isSaving
+              ? "bg-gray-400 dark:bg-gray-800 cursor-not-allowed opacity-50"
+              : "bg-indigo-600 dark:bg-indigo-700 hover:bg-indigo-700 dark:hover:bg-indigo-600"
+            }`}
         >
           {isSaving ? (
             <>

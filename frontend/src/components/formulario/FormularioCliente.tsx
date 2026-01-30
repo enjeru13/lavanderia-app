@@ -272,16 +272,16 @@ export default function FormularioCliente({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
-      <div className="bg-white w-full max-w-lg h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col transform transition-all duration-300 scale-100 opacity-100">
-        <div className="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white px-6 py-4 flex justify-between items-center shadow-md">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 flex items-center justify-center p-4 sm:p-6 transition-all">
+      <div className="bg-white dark:bg-gray-950 w-full max-w-lg max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-200 dark:border-gray-800 transform transition-all duration-300 scale-100 opacity-100">
+        <div className="bg-linear-to-r from-indigo-600 to-indigo-800 dark:from-indigo-800 dark:to-indigo-950 text-white px-6 py-4 flex justify-between items-center shadow-md transition-all">
           <h2 className="text-xl font-extrabold flex items-center gap-3">
             <FaUserEdit className="text-2xl" />
             {cliente ? "Editar Cliente" : "Registrar Cliente"}
           </h2>
           <button
             onClick={onClose}
-            className="text-white hover:text-indigo-200 text-3xl font-bold transition-transform transform hover:rotate-90"
+            className="text-white hover:text-indigo-200 dark:hover:text-indigo-400 text-3xl font-bold transition-transform transform hover:rotate-90 cursor-pointer"
             title="Cerrar"
           >
             &times;
@@ -291,15 +291,15 @@ export default function FormularioCliente({
         <form
           id="cliente-form"
           onSubmit={handleSubmit}
-          className="px-6 py-6 flex-1 overflow-y-auto space-y-6 text-base text-gray-800"
+          className="px-6 py-6 flex-1 overflow-y-auto space-y-6 text-base text-gray-800 dark:text-gray-200 transition-colors"
         >
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Identificación
             </label>
             <div className="flex gap-3">
               <select
-                className="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-base font-medium text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                 value={form.identificacion.slice(0, 2)}
                 onChange={(e) => {
                   const prefijo = e.target.value as "V-" | "J-" | "E-";
@@ -324,13 +324,13 @@ export default function FormularioCliente({
                     | "E-";
                   handleIdentificacionChange(prefijo, e.target.value);
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                 placeholder="Número sin prefijo (Ej: 12345678-0, 9876543)"
                 required
               />
             </div>
             {errores.identificacion && (
-              <p className="text-red-600 text-xs mt-1 font-medium">
+              <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-medium">
                 {errores.identificacion}
               </p>
             )}
@@ -338,19 +338,19 @@ export default function FormularioCliente({
 
           {form.tipo === "EMPRESA" ? (
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Razón Social
               </label>
               <input
                 name="razon_social"
                 value={form.razon_social || ""}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                 placeholder="Ej. Prado Expres C.A."
                 required
               />
               {errores.razon_social && (
-                <p className="text-red-600 text-xs mt-1 font-medium">
+                <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-medium">
                   {errores.razon_social}
                 </p>
               )}
@@ -358,35 +358,35 @@ export default function FormularioCliente({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Nombre
                 </label>
                 <input
                   name="nombre"
                   value={form.nombre}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                   required
                 />
                 {errores.nombre && (
-                  <p className="text-red-600 text-xs mt-1 font-medium">
+                  <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-medium">
                     {errores.nombre}
                   </p>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Apellido
                 </label>
                 <input
                   name="apellido"
                   value={form.apellido}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                   required
                 />
                 {errores.apellido && (
-                  <p className="text-red-600 text-xs mt-1 font-medium">
+                  <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-medium">
                     {errores.apellido}
                   </p>
                 )}
@@ -396,35 +396,35 @@ export default function FormularioCliente({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Teléfono principal
               </label>
               <input
                 name="telefono"
                 value={form.telefono}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                 required
               />
               {errores.telefono && (
-                <p className="text-red-600 text-xs mt-1 font-medium">
+                <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-medium">
                   {errores.telefono}
                 </p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Teléfono secundario (Opcional)
               </label>
               <input
                 name="telefono_secundario"
                 value={form.telefono_secundario || ""}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                 placeholder="Ej. +58 412 1234567"
               />
               {errores.telefono_secundario && (
-                <p className="text-red-600 text-xs mt-1 font-medium">
+                <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-medium">
                   {errores.telefono_secundario}
                 </p>
               )}
@@ -432,7 +432,7 @@ export default function FormularioCliente({
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Dirección
             </label>
             <textarea
@@ -440,18 +440,18 @@ export default function FormularioCliente({
               value={form.direccion}
               onChange={handleChange}
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 resize-y"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 resize-y"
               required
             ></textarea>
             {errores.direccion && (
-              <p className="text-red-600 text-xs mt-1 font-medium">
+              <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-medium">
                 {errores.direccion}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Correo electrónico (Opcional)
             </label>
             <input
@@ -459,29 +459,29 @@ export default function FormularioCliente({
               type="email"
               value={form.email || ""}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
               placeholder="Ej. cliente@email.com"
             />
             {errores.email && (
-              <p className="text-red-600 text-xs mt-1 font-medium">
+              <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-medium">
                 {errores.email}
               </p>
             )}
           </div>
         </form>
 
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 text-sm font-medium shadow-inner">
+        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-3 text-sm font-medium shadow-inner transition-all">
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-all duration-200 ease-in-out font-semibold shadow-sm hover:shadow-md"
+            className="px-6 py-2 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-all duration-200 ease-in-out font-semibold shadow-sm hover:shadow-md cursor-pointer"
           >
             Cancelar
           </button>
           <button
             type="submit"
             form="cliente-form"
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 ease-in-out font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            className="px-6 py-2 bg-indigo-600 dark:bg-indigo-700 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all duration-200 ease-in-out font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer active:scale-95"
           >
             {cliente ? "Actualizar Cliente" : "Registrar Cliente"}
           </button>
