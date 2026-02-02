@@ -4,6 +4,7 @@ import { FaTags, FaPlus, FaTimes, FaPen, FaTrashAlt } from "react-icons/fa";
 import { categoriasService } from "../../services/categoriasService";
 import { Categoria } from "@lavanderia/shared/types/types";
 import { AxiosError } from "axios";
+import Button from "../ui/Button"; // 1. Importamos el Button
 
 type Props = {
   onClose: () => void;
@@ -143,6 +144,8 @@ export default function CategoriasModal({ onClose }: Props) {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-100 p-4 sm:p-6 transition-all">
       <div className="bg-white dark:bg-gray-950 rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col transform transition-all duration-300 scale-100 opacity-100 border border-gray-200 dark:border-gray-800">
+
+        {/* HEADER */}
         <div className="bg-linear-to-r from-purple-600 to-purple-800 dark:from-purple-800 dark:to-purple-950 text-white px-6 py-4 flex justify-between items-center shadow-md rounded-t-2xl transition-all">
           <h2 className="text-xl font-extrabold flex items-center gap-3">
             <FaTags className="text-2xl" />
@@ -157,7 +160,10 @@ export default function CategoriasModal({ onClose }: Props) {
           </button>
         </div>
 
+        {/* CONTENT */}
         <div className="px-6 py-6 flex-1 flex flex-col space-y-5 text-base text-gray-800 dark:text-gray-200 transition-colors min-h-0">
+
+          {/* FORMULARIO */}
           <form onSubmit={handleSubmit} className="flex gap-3 items-center">
             <input
               type="text"
@@ -172,34 +178,29 @@ export default function CategoriasModal({ onClose }: Props) {
               }
               className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 shadow-sm"
             />
-            <button
+
+            {/* Botón Principal (Guardar/Añadir) */}
+            <Button
               type="submit"
-              className={`px-5 py-2 rounded-lg flex items-center gap-2 font-semibold text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out cursor-pointer active:scale-95 ${modoEdicion
-                ? "bg-orange-500 hover:bg-orange-600"
-                : "bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600"
-                }`}
+              variant="primary"
+              leftIcon={modoEdicion ? <FaPen /> : <FaPlus />}
             >
-              {modoEdicion ? (
-                <>
-                  <FaPen /> Guardar
-                </>
-              ) : (
-                <>
-                  <FaPlus /> Añadir Categoria
-                </>
-              )}
-            </button>
+              {modoEdicion ? "Guardar" : "Añadir"}
+            </Button>
+
+            {/* Botón Cancelar Edición */}
             {modoEdicion && (
-              <button
+              <Button
                 type="button"
                 onClick={cancelarEdicion}
-                className="px-5 py-2 rounded-lg flex items-center gap-2 font-semibold text-gray-800 dark:text-gray-200 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-700 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out cursor-pointer"
+                variant="secondary"
               >
                 Cancelar
-              </button>
+              </Button>
             )}
           </form>
 
+          {/* LISTA DE CATEGORÍAS */}
           {cargando ? (
             <p className="text-center text-purple-600 dark:text-purple-400 font-semibold py-8">
               Cargando categorías...
@@ -244,16 +245,15 @@ export default function CategoriasModal({ onClose }: Props) {
           )}
         </div>
 
+        {/* FOOTER */}
         <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800 flex justify-end shadow-inner rounded-b-2xl transition-all">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-all duration-200 ease-in-out font-semibold shadow-sm hover:shadow-md cursor-pointer"
-          >
+          <Button onClick={onClose} variant="secondary">
             Cerrar
-          </button>
+          </Button>
         </div>
       </div>
 
+      {/* CONFIRMACIÓN ELIMINAR (MODAL INTERNO) */}
       {mostrarConfirmacionEliminar && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all">
           <div className="bg-white dark:bg-gray-950 rounded-xl shadow-2xl p-6 max-w-sm w-full space-y-4 border border-gray-200 dark:border-gray-800">
@@ -266,15 +266,17 @@ export default function CategoriasModal({ onClose }: Props) {
               deshacer.
             </p>
             <div className="flex justify-end gap-3 transition-colors">
-              <button
+              <Button
                 onClick={() => setMostrarConfirmacionEliminar(false)}
-                className="px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition cursor-pointer"
+                variant="secondary"
               >
                 Cancelar
-              </button>
+              </Button>
+
+              {/* Botón Eliminar Destructivo (Mantenemos nativo o usamos variante Danger si existe, aquí nativo por seguridad visual) */}
               <button
                 onClick={ejecutarEliminar}
-                className="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out cursor-pointer active:scale-95"
+                className="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out cursor-pointer active:scale-95 font-bold"
               >
                 Eliminar
               </button>

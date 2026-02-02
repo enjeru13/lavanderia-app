@@ -1,5 +1,6 @@
 import { FaUserCircle, FaSignOutAlt } from "react-icons/fa";
 import { useAuth } from "../hooks/useAuth";
+import Button from "../components/ui/Button";
 
 interface HeaderProps {
   nombreNegocio: string;
@@ -30,15 +31,16 @@ export default function Header({
             </span>
           </div>
 
-          <button
+          <Button
             onClick={logout}
+            variant="danger"
+            leftIcon={<FaSignOutAlt size={16} />}
             title="Cerrar sesión"
-            className="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition duration-200 ease-in-out transform hover:scale-105 flex items-center gap-2 font-bold text-sm shadow-md whitespace-nowrap active:scale-95"
             aria-label="Cerrar sesión"
+            className="whitespace-nowrap"
           >
-            <FaSignOutAlt size={16} />
             <span className="hidden md:inline">Cerrar Sesión</span>
-          </button>
+          </Button>
         </div>
       ) : (
         <span className="text-gray-400 italic text-sm flex-1 text-right">

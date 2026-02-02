@@ -14,6 +14,7 @@ import { FaPlus, FaSearch } from "react-icons/fa";
 import { useAuth } from "../hooks/useAuth";
 import ControlesPaginacion from "../components/ControlesPaginacion";
 import { TableSkeleton } from "../components/Skeleton";
+import Button from "../components/ui/Button";
 
 export default function PantallaClientes() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -164,13 +165,15 @@ export default function PantallaClientes() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 italic">Clientes</h1>
-        <button
+
+        {/* 2. Botón reemplazado usando el componente UI */}
+        <Button
           onClick={abrirNuevoCliente}
-          className="bg-green-600 dark:bg-green-700 text-white p-3 font-bold rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-all shadow-md flex items-center gap-2 hover:scale-105"
+          variant="primary"
+          leftIcon={<FaPlus className="w-4 h-4" />}
         >
-          <FaPlus className="w-4 h-4" />
           Nuevo Cliente
-        </button>
+        </Button>
       </div>
 
       <div className="mb-5 flex items-center gap-3 font-semibold">

@@ -1,6 +1,7 @@
 import { FaUser } from "react-icons/fa";
 import { FiX } from "react-icons/fi";
 import type { Cliente } from "@lavanderia/shared/types/types";
+import Button from "../ui/Button"; // 1. Importamos el Button
 
 type Props = {
   cliente: Cliente;
@@ -11,11 +12,14 @@ export default function ModalInfoCliente({ cliente, onClose }: Props) {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 flex items-center justify-center p-4 sm:p-6 transition-all">
       <div className="bg-white dark:bg-gray-950 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl p-6 sm:p-8 space-y-7 text-base font-medium transform transition-all duration-300 scale-100 opacity-100 border border-gray-200 dark:border-gray-800">
+
+        {/* HEADER */}
         <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-800 transition-colors">
           <h2 className="text-xl sm:text-2xl font-extrabold text-indigo-700 dark:text-indigo-400 flex items-center gap-3">
             <FaUser className="text-2xl sm:text-3xl" />
             Detalles del cliente
           </h2>
+          {/* Botón X se mantiene nativo para estilo de icono limpio */}
           <button
             onClick={onClose}
             title="Cerrar"
@@ -25,6 +29,7 @@ export default function ModalInfoCliente({ cliente, onClose }: Props) {
           </button>
         </div>
 
+        {/* CONTENT */}
         <div className="space-y-5 text-gray-800 dark:text-gray-200 transition-colors">
           <div>
             <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">
@@ -79,13 +84,15 @@ export default function ModalInfoCliente({ cliente, onClose }: Props) {
           </div>
         </div>
 
+        {/* FOOTER */}
         <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-800 transition-colors">
-          <button
+          <Button
             onClick={onClose}
-            className="px-6 py-3 bg-indigo-600 dark:bg-indigo-700 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white rounded-lg text-base font-semibold transition-all duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer active:scale-95"
+            variant="primary"
+          // Puedes agregar size="lg" si quieres el botón más grande
           >
             Cerrar
-          </button>
+          </Button>
         </div>
       </div>
     </div>

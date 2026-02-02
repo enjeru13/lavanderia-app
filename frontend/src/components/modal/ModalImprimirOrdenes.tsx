@@ -3,6 +3,7 @@ import { useReactToPrint } from "react-to-print";
 import { createPortal } from "react-dom";
 import { FaPrint } from "react-icons/fa";
 import { FiX } from "react-icons/fi";
+import Button from "../ui/Button";
 import { OrdenesPrintable } from "../OrdenesPrintable";
 import type {
   Moneda,
@@ -76,18 +77,17 @@ export default function ModalImprimirOrdenes({
 
         {/* Footer */}
         <div className="p-5 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex justify-end gap-3 transition-colors">
-          <button
-            onClick={onClose}
-            className="px-5 py-2.5 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition cursor-pointer"
-          >
+          <Button onClick={onClose} variant="secondary">
             Cancelar
-          </button>
-          <button
+          </Button>
+
+          <Button
             onClick={() => imprimir()}
-            className="px-6 py-2.5 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 font-semibold shadow-md flex items-center gap-2 transition cursor-pointer"
+            variant="primary"
+            leftIcon={<FaPrint />}
           >
-            <FaPrint /> Imprimir
-          </button>
+            Imprimir
+          </Button>
         </div>
       </div>
     </div>,

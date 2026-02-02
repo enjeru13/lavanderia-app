@@ -5,6 +5,7 @@ import type {
   Servicio,
   ServicioSeleccionado,
 } from "@lavanderia/shared/types/types";
+import Button from "../ui/Button"; // 1. Importamos el componente Button
 
 type Props = {
   serviciosCatalogo: Servicio[];
@@ -135,22 +136,17 @@ export default function ServiciosPanel({
           <input
             type="number"
             min="0.01"
-            // SI permite decimales usa step 0.01, si no usa 1
             className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none text-center font-medium bg-white dark:bg-gray-800 dark:text-gray-100 transition-colors"
             value={cantidad}
             onChange={(e) => {
               const val = parseFloat(e.target.value);
-              // Validación estricta para no enteros si no se permite
               if (servicioActual && !servicioActual.permiteDecimales) {
-                // Si escribe un punto, no lo bloqueamos en UI pero validamos al guardar
-                // O forzamos entero:
                 setCantidad(Math.floor(val));
               } else {
                 setCantidad(val);
               }
             }}
             onKeyDown={(e) => {
-              // Evita escribir puntos si no se permiten decimales
               if (
                 servicioActual &&
                 !servicioActual.permiteDecimales &&
@@ -162,25 +158,22 @@ export default function ServiciosPanel({
           />
         </div>
 
-        {/* BOTÓN AGREGAR */}
+        {/* BOTÓN AGREGAR (Reemplazado) */}
         <div className="w-full md:w-auto">
-          <button
-            type="button"
+          <Button
             onClick={agregarServicio}
             disabled={!servicioId || cantidad <= 0}
-            className={`w-full md:w-auto h-[42px] px-6 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer
-              ${!servicioId || cantidad <= 0
-                ? "bg-gray-300 dark:bg-gray-800 text-gray-500 dark:text-gray-600 cursor-not-allowed"
-                : "bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white hover:shadow-lg transform hover:-translate-y-0.5"
-              }`}
+            variant="primary"
+            leftIcon={<FaPlus />}
+            // Forzamos la clase para que se comporte igual en responsive que tu input anterior
+            className="w-full md:w-auto h-[46px]"
           >
-            <FaPlus /> Agregar
-          </button>
+            Agregar
+          </Button>
         </div>
       </div>
 
       {/* --- TABLA --- */}
-      {/* (Mantén el mismo código de tabla que tenías, ya funciona bien leyendo item.precio) */}
       <div className="space-y-3">
         {serviciosSeleccionados.length === 0 ? (
           <p className="text-center text-gray-500 dark:text-gray-400 py-6 italic bg-gray-50 dark:bg-gray-950 rounded-lg border border-dashed border-gray-300 dark:border-gray-800 transition-all">
@@ -243,6 +236,7 @@ export default function ServiciosPanel({
                         <button
                           onClick={() => eliminarServicio(item.servicioId)}
                           className="text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/40 p-2 rounded-full transition-all cursor-pointer"
+                          title="Eliminar servicio"
                         >
                           <FaTrashAlt />
                         </button>

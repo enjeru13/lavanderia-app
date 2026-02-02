@@ -1,6 +1,6 @@
-// src/components/modal/ModalImprimirPagos.tsx
 import { FaPrint } from "react-icons/fa";
 import { FiX } from "react-icons/fi";
+import Button from "../ui/Button";
 import { useRef } from "react";
 import { useReactToPrint } from "react-to-print";
 import { createPortal } from "react-dom";
@@ -10,7 +10,7 @@ import type { Moneda, Pago, Orden, Configuracion } from "@lavanderia/shared/type
 // Actualizamos la interfaz para incluir la tasa
 interface PagoConOrden extends Pago {
   orden?: Orden & { cliente?: { nombre: string; apellido: string } };
-  tasa?: number | null; 
+  tasa?: number | null;
 }
 
 interface Props {
@@ -52,13 +52,13 @@ export default function ModalImprimirPagos({
   if (!visible) return null;
 
   return createPortal(
-    <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-[999] p-4 print:hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-999 p-4 print:hidden">
       <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full flex flex-col h-[90vh] overflow-hidden animate-fade-in-up">
-        
+
         {/* Header del Modal (Solo visible en pantalla) */}
         <div className="flex justify-between items-center p-5 border-b border-gray-200 bg-gray-50">
           <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <FaPrint className="text-blue-600" /> 
+            <FaPrint className="text-blue-600" />
             Vista Previa
           </h2>
           <button
@@ -72,32 +72,31 @@ export default function ModalImprimirPagos({
 
         {/* Área de Contenido (Lo que se ve y se imprime) */}
         <div className="flex-1 overflow-y-auto bg-gray-100 p-6">
-            {/* Contenedor blanco centrado que simula la hoja de papel */}
-            <div className="bg-white shadow-lg mx-auto max-w-[210mm] min-h-[297mm] p-8 print:shadow-none print:m-0 print:p-0 print:max-w-none print:min-h-0">
-                <PagosPrintable
-                    ref={printRef}
-                    pagos={pagos}
-                    monedaPrincipal={monedaPrincipal}
-                    totalIngresos={totalIngresos}
-                    configuracion={configuracion}
-                />
-            </div>
+          {/* Contenedor blanco centrado que simula la hoja de papel */}
+          <div className="bg-white shadow-lg mx-auto max-w-[210mm] min-h-[297mm] p-8 print:shadow-none print:m-0 print:p-0 print:max-w-none print:min-h-0">
+            <PagosPrintable
+              ref={printRef}
+              pagos={pagos}
+              monedaPrincipal={monedaPrincipal}
+              totalIngresos={totalIngresos}
+              configuracion={configuracion}
+            />
+          </div>
         </div>
 
         {/* Footer del Modal (Botones de acción) */}
         <div className="p-5 border-t border-gray-200 bg-white flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition"
-          >
+          <Button onClick={onClose} variant="secondary">
             Cancelar
-          </button>
-          <button
+          </Button>
+
+          <Button
             onClick={() => imprimir()}
-            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold shadow-md flex items-center gap-2 transition"
+            variant="primary"
+            leftIcon={<FaPrint />}
           >
-            <FaPrint /> Imprimir Reporte
-          </button>
+            Imprimir Reporte
+          </Button>
         </div>
       </div>
     </div>,

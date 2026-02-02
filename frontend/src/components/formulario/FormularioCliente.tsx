@@ -8,6 +8,7 @@ import type {
 } from "@lavanderia/shared/types/types";
 import { isAxiosError } from "axios";
 import { toast } from "react-toastify";
+import Button from "../ui/Button";
 
 type ClienteFormState = ClienteCreate & {
   id?: number;
@@ -471,20 +472,20 @@ export default function FormularioCliente({
         </form>
 
         <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-3 text-sm font-medium shadow-inner transition-all">
-          <button
+          <Button
             type="button"
             onClick={onClose}
-            className="px-6 py-2 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-all duration-200 ease-in-out font-semibold shadow-sm hover:shadow-md cursor-pointer"
+            variant="secondary"
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="cliente-form"
-            className="px-6 py-2 bg-indigo-600 dark:bg-indigo-700 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all duration-200 ease-in-out font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer active:scale-95"
+            variant="primary"
           >
             {cliente ? "Actualizar Cliente" : "Registrar Cliente"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

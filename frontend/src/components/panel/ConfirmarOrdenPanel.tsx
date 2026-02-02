@@ -10,6 +10,7 @@ import {
   type TasasConversion,
 } from "../../utils/monedaHelpers";
 import { FaDollarSign, FaRegTimesCircle, FaPlusCircle } from "react-icons/fa";
+import Button from "../ui/Button";
 
 interface Props {
   serviciosSeleccionados: ServicioSeleccionado[];
@@ -106,50 +107,25 @@ export default function ConfirmarOrdenPanel({
       </div>
 
       <div className="flex justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-800 mt-6 transition-colors">
-        <button
+        <Button
           onClick={onCancelar}
-          className="px-6 py-3.5 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-all duration-200 ease-in-out flex items-center gap-2 font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer active:scale-95"
+          variant="secondary"
+          size="lg"
+          leftIcon={<FaRegTimesCircle size={18} />}
         >
-          <FaRegTimesCircle size={18} /> Cancelar
-        </button>
-        <button
+          Cancelar
+        </Button>
+
+        <Button
           onClick={onRegistrar}
           disabled={!isFormValid || isSaving}
-          className={`px-6 py-3.5 text-white rounded-lg font-semibold transition-all duration-200 ease-in-out flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer active:scale-95 ${!isFormValid || isSaving
-              ? "bg-gray-400 dark:bg-gray-800 cursor-not-allowed opacity-50"
-              : "bg-indigo-600 dark:bg-indigo-700 hover:bg-indigo-700 dark:hover:bg-indigo-600"
-            }`}
+          isLoading={isSaving}
+          variant="primary"
+          size="lg"
+          leftIcon={<FaPlusCircle size={18} />}
         >
-          {isSaving ? (
-            <>
-              <svg
-                className="animate-spin h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Creando...
-            </>
-          ) : (
-            <>
-              <FaPlusCircle size={18} /> Crear Orden
-            </>
-          )}
-        </button>
+          Crear Orden
+        </Button>
       </div>
     </section>
   );

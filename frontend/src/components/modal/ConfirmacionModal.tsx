@@ -4,6 +4,7 @@ import {
   FaTimesCircle,
   FaCheckCircle,
 } from "react-icons/fa";
+import Button from "../ui/Button";
 
 interface ConfirmacionModalProps {
   mensaje: string;
@@ -34,18 +35,21 @@ const ConfirmacionModal: React.FC<ConfirmacionModalProps> = ({
           {mensaje}
         </p>
         <div className="flex justify-center gap-4 pt-6 border-t border-gray-200 dark:border-gray-800 mt-6 transition-colors">
-          <button
+          <Button
             onClick={onCancel}
-            className="px-6 py-3.5 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-all duration-200 ease-in-out flex items-center gap-2 font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer active:scale-95"
+            variant="secondary"
+            leftIcon={<FaTimesCircle size={18} />}
           >
-            <FaTimesCircle size={18} /> {textoCancelar}
-          </button>
-          <button
+            {textoCancelar}
+          </Button>
+
+          <Button
             onClick={onConfirm}
-            className="px-6 py-3.5 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-all duration-200 ease-in-out flex items-center gap-2 font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer active:scale-95"
+            variant="danger"
+            leftIcon={<FaCheckCircle size={18} />}
           >
-            <FaCheckCircle size={18} /> {textoConfirmar}
-          </button>
+            {textoConfirmar}
+          </Button>
         </div>
       </div>
     </div>

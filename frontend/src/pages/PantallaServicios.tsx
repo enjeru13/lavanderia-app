@@ -18,6 +18,7 @@ import type {
 import CategoriasModal from "../components/modal/ModalCategorias";
 import ControlesPaginacion from "../components/ControlesPaginacion";
 import { TableSkeleton } from "../components/Skeleton";
+import Button from "../components/ui/Button"; // 1. Importamos el Button
 
 export default function PantallaServicios() {
   const [servicios, setServicios] = useState<Servicio[]>([]);
@@ -211,21 +212,24 @@ export default function PantallaServicios() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-4">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 italic">Servicios</h1>
+
+        {/* 2. Botones actualizados */}
         <div className="flex gap-4 flex-wrap">
-          <button
+          <Button
             onClick={abrirCategoriasModal}
-            className="group bg-purple-600 dark:bg-purple-700 text-white p-3 font-bold rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition-all flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105"
+            variant="secondary"
+            leftIcon={<FaTags className="w-4 h-4" />}
           >
-            <FaTags className="w-4 h-4" />
             Gestionar Categorías
-          </button>
-          <button
+          </Button>
+
+          <Button
             onClick={abrirNuevoServicio}
-            className="group bg-green-600 dark:bg-green-700 text-white p-3 font-bold rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-all flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105"
+            variant="primary"
+            leftIcon={<FaPlus className="w-4 h-4" />}
           >
-            <FaPlus className="w-4 h-4" />
             Nuevo Servicio
-          </button>
+          </Button>
         </div>
       </div>
 

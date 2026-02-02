@@ -2,6 +2,7 @@ import { FiX } from "react-icons/fi";
 import { FaPrint } from "react-icons/fa";
 import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
+import Button from "../ui/Button";
 import ReciboEntrega from "../ReciboEntrega";
 import type { ReciboData } from "@lavanderia/shared/types/types";
 
@@ -48,14 +49,14 @@ export default function ModalReciboEntrega({
 
   return createPortal(
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-[999] p-4 animate-fadeIn"
+      className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-999 p-4 animate-fadeIn"
       onClick={onClose}
     >
       <div
         className="bg-white rounded-3xl shadow-2xl max-w-md w-full relative transform transition-all duration-300 flex flex-col h-[90vh] ring-1 ring-gray-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex-shrink-0 flex justify-between items-center p-6 pb-4 border-b border-gray-200">
+        <div className="shrink-0 flex justify-between items-center p-6 pb-4 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
             <FaPrint size={28} className="text-blue-600" /> Vista previa de
             recibo
@@ -69,7 +70,7 @@ export default function ModalReciboEntrega({
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-grow p-6">
+        <div className="overflow-y-auto grow p-6">
           <ReciboEntrega
             clienteInfo={datosRecibo.clienteInfo}
             items={datosRecibo.items}
@@ -84,13 +85,16 @@ export default function ModalReciboEntrega({
           />
         </div>
 
-        <div className="flex-shrink-0 pt-6 px-6 pb-6 flex justify-end border-t border-gray-200">
-          <button
+        <div className="shrink-0 pt-6 px-6 pb-6 flex justify-end border-t border-gray-200">
+          <Button
             onClick={imprimirConServidor}
-            className="px-8 py-4 bg-green-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ease-in-out flex items-center gap-3 text-lg"
+            variant="whatsapp"
+            size="lg"
+            leftIcon={<FaPrint size={20} />}
+            className="w-full sm:w-auto"
           >
-            <FaPrint size={20} /> Imprimir
-          </button>
+            Imprimir
+          </Button>
         </div>
       </div>
     </div>,

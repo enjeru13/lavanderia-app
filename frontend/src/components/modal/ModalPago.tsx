@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { FiX, FiPlus } from "react-icons/fi";
+import Button from "../ui/Button";
 import { MdOutlinePayments } from "react-icons/md";
 import { toast } from "react-toastify";
 import { pagosService } from "../../services/pagosService";
@@ -368,13 +369,14 @@ export default function ModalPago({
           ))}
 
           <div className="flex justify-end pt-2">
-            <button
+            <Button
               onClick={agregarPago}
-              className="px-5 py-2 flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm font-semibold rounded-lg border border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md cursor-pointer"
+              variant="outline"
+              leftIcon={<FiPlus className="text-base" />}
+              className="border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/40"
             >
-              <FiPlus className="text-base" />
               Agregar otro pago
-            </button>
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
@@ -437,26 +439,20 @@ export default function ModalPago({
         </div>
 
         <div className="px-6 py-4 flex justify-end gap-4 font-medium border-t border-gray-200 dark:border-gray-800">
-          <button
-            onClick={onClose}
-            className="px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer"
-          >
+          <Button onClick={onClose} variant="secondary">
             Salir
-          </button>
-          <button
+          </Button>
+
+          <Button
             onClick={registrarPago}
             disabled={
               totalPagosEnModalPrincipal <= 0 ||
               faltanteProyectado === resumen.faltante
             }
-            className={`px-6 py-3 text-white rounded-lg font-semibold transition-all duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer ${totalPagosEnModalPrincipal <= 0 ||
-              faltanteProyectado === resumen.faltante
-              ? "bg-gray-400 cursor-not-allowed opacity-50"
-              : "bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600"
-              }`}
+            variant="whatsapp"
           >
             Guardar pagos
-          </button>
+          </Button>
         </div>
       </div>
     </div>

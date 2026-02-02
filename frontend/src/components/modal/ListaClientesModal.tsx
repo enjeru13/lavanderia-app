@@ -3,6 +3,7 @@ import { clientesService } from "../../services/clientesService";
 import { FaUser } from "react-icons/fa";
 import type { Cliente } from "@lavanderia/shared/types/types";
 import { toast } from "react-toastify";
+import Button from "../ui/Button";
 
 type Props = {
   onSelect: (cliente: Cliente) => void;
@@ -99,15 +100,16 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
                       <span className="font-medium">Tel:</span> {c.telefono}
                     </p>
                   </div>
-                  <button
+                  <Button
                     onClick={(e) => {
                       e.stopPropagation();
                       onSelect(c);
                     }}
-                    className="px-5 py-2 bg-indigo-600 dark:bg-indigo-700 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out cursor-pointer active:scale-95"
+                    variant="primary"
+                    size="sm"
                   >
                     Seleccionar
-                  </button>
+                  </Button>
                 </div>
               ))
             )}
@@ -116,12 +118,9 @@ export default function ListaClientesModal({ onSelect, onClose }: Props) {
 
         {/* Footer */}
         <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800 flex justify-end shadow-inner rounded-b-2xl transition-all">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-all duration-200 ease-in-out font-semibold shadow-sm hover:shadow-md cursor-pointer"
-          >
+          <Button onClick={onClose} variant="secondary">
             Cerrar
-          </button>
+          </Button>
         </div>
       </div>
     </div>

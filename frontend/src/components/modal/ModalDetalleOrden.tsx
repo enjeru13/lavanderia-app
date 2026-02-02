@@ -24,6 +24,9 @@ import type {
 import { useAuth } from "../../hooks/useAuth";
 import ModalReciboEntrega from "./ModalReciboEntrega";
 import dayjs from "dayjs";
+import { generarEnlaceWhatsApp } from "../../utils/whatsappHelpers";
+import { FaWhatsapp } from "react-icons/fa";
+import Button from "../ui/Button";
 
 interface Props {
   orden: Orden;
@@ -159,6 +162,17 @@ export default function ModalDetalleOrden({
       toast.error("Error al actualizar la fecha.");
     } finally {
       setGuardandoFechaPago(false);
+    }
+  };
+
+  const handleWhatsAppClick = () => {
+    const nombreNegocio = configuracion?.nombreNegocio || "Nuestra Lavandería";
+    const link = generarEnlaceWhatsApp(orden, nombreNegocio, tasas);
+
+    if (link) {
+      window.open(link, "_blank");
+    } else {
+      toast.warning("El cliente no tiene un teléfono válido registrado.");
     }
   };
 
@@ -455,54 +469,62 @@ export default function ModalDetalleOrden({
             orden. Solo los administradores pueden editar.
           </p>
           <div className="flex justify-end pt-2">
-            <button
+            <Button
               onClick={guardarObservaciones}
               disabled={
                 isObservacionesDisabled ||
                 observacionesEditadas.trim() ===
                 (orden.observaciones ?? "").trim()
               }
-              className={`px-6 py-3 flex items-center gap-2 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out cursor-pointer ${observacionesEditadas.trim() ===
-                (orden.observaciones ?? "").trim() || isObservacionesDisabled
-                ? "bg-gray-400 cursor-not-allowed opacity-50"
-                : "bg-indigo-600 dark:bg-indigo-700 hover:bg-indigo-700 dark:hover:bg-indigo-600"
-                }`}
+              isLoading={guardandoObservaciones}
+              variant="primary"
             >
-              {guardandoObservaciones ? "Guardando..." : "Guardar notas"}
-            </button>
+              Guardar notas
+            </Button>
           </div>
         </div>
 
         {/* FOOTER CON BOTONES DE ACCIÓN */}
         <div className="flex flex-wrap gap-3 justify-end items-center pt-4 border-t border-gray-200 dark:border-gray-800">
           {/* BOTÓN VER RECIBO */}
-          <button
+          <Button
             onClick={() => setVerModalRecibo(true)}
             disabled={cargandoConfiguracion}
-            className={`px-5 py-2.5 bg-blue-600 dark:bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-all shadow-sm cursor-pointer ${cargandoConfiguracion ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+            variant="secondary"
           >
             Ver recibo
-          </button>
+          </Button>
+
+          {/* BOTÓN WHATSAPP (Solo si no está entregada) */}
+          {orden.cliente?.telefono && orden.estado !== "ENTREGADO" && (
+            <Button
+              onClick={handleWhatsAppClick}
+              variant="whatsapp"
+              leftIcon={<FaWhatsapp size={20} />}
+            >
+              WhatsApp
+            </Button>
+          )}
 
           {/* --- BOTÓN: EDITAR ORDEN --- */}
           {hasRole(["ADMIN", "EMPLOYEE"]) && orden.estado !== "ENTREGADO" && (
-            <button
+            <Button
               onClick={handleIrAEditar}
-              className="px-5 py-2.5 bg-yellow-500 dark:bg-yellow-600 text-white rounded-lg font-semibold hover:bg-yellow-600 dark:hover:bg-yellow-500 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+              variant="secondary"
+              leftIcon={<FaPencilAlt />}
             >
-              <FaPencilAlt /> Editar Orden
-            </button>
+              Editar Orden
+            </Button>
           )}
 
           {/* BOTÓN REGISTRAR PAGO */}
           {resumen.faltante > 0 && (
-            <button
+            <Button
               onClick={() => onAbrirPagoExtra(orden)}
-              className="px-5 py-2.5 bg-green-600 dark:bg-green-700 text-white rounded-lg font-semibold hover:bg-green-700 dark:hover:bg-green-600 flex items-center gap-2 shadow-sm cursor-pointer"
+              variant="edit"
             >
               Registrar pago
-            </button>
+            </Button>
           )}
         </div>
 
