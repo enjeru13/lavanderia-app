@@ -41,6 +41,7 @@ export default function FormularioCliente({
   });
 
   const [errores, setErrores] = useState<Record<string, string>>({});
+  const [estaGuardando, setEstaGuardando] = useState(false);
 
   useEffect(() => {
     if (cliente) {
@@ -235,6 +236,7 @@ export default function FormularioCliente({
       };
     }
 
+    setEstaGuardando(true);
     try {
       if (cliente && cliente.id) {
         const updateData: ClienteUpdatePayload & { id: number } = {
@@ -269,6 +271,8 @@ export default function FormularioCliente({
       } else {
         toast.error("Error inesperado al guardar el cliente.");
       }
+    } finally {
+      setEstaGuardando(false);
     }
   };
 
@@ -476,6 +480,7 @@ export default function FormularioCliente({
             type="button"
             onClick={onClose}
             variant="secondary"
+            disabled={estaGuardando}
           >
             Cancelar
           </Button>
@@ -483,6 +488,7 @@ export default function FormularioCliente({
             type="submit"
             form="cliente-form"
             variant="primary"
+            isLoading={estaGuardando}
           >
             {cliente ? "Actualizar Cliente" : "Registrar Cliente"}
           </Button>

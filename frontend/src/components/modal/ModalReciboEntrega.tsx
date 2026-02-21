@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { FiX } from "react-icons/fi";
 import { FaPrint } from "react-icons/fa";
 import { createPortal } from "react-dom";
@@ -19,7 +20,9 @@ export default function ModalReciboEntrega({
   onClose,
   datosRecibo,
 }: ModalReciboEntregaProps) {
+  const [imprimiendo, setImprimiendo] = useState(false);
   const imprimirConServidor = async () => {
+    setImprimiendo(true);
     try {
       const response = await fetch(`${API_URL}/imprimir-recibo`, {
         method: "POST",
@@ -42,6 +45,8 @@ export default function ModalReciboEntrega({
       toast.error(
         "No se pudo conectar con la impresora. ¿Está el servidor activo?"
       );
+    } finally {
+      setImprimiendo(false);
     }
   };
 
@@ -92,6 +97,8 @@ export default function ModalReciboEntrega({
             size="lg"
             leftIcon={<FaPrint size={20} />}
             className="w-full sm:w-auto"
+            isLoading={imprimiendo}
+            disabled={imprimiendo}
           >
             Imprimir
           </Button>

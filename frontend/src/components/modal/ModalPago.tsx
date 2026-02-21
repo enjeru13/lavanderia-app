@@ -60,6 +60,7 @@ export default function ModalPago({
       metodo: "Efectivo" as PagoInput["metodo"],
     },
   ]);
+  const [estaRegistrando, setEstaRegistrando] = useState(false);
 
   const totalPagosEnModalPrincipal = useMemo(() => {
     return pagos.reduce(
@@ -142,6 +143,7 @@ export default function ModalPago({
       toast.warn("El monto total de los pagos excede el faltante de la orden.");
     }
 
+    setEstaRegistrando(true);
     try {
       for (const p of pagosValidos) {
         await pagosService.create({
@@ -165,6 +167,8 @@ export default function ModalPago({
     } catch (err) {
       toast.error("Error al registrar el pago.");
       console.error("Error pago:", err);
+    } finally {
+      setEstaRegistrando(false);
     }
   };
 
@@ -447,8 +451,10 @@ export default function ModalPago({
             onClick={registrarPago}
             disabled={
               totalPagosEnModalPrincipal <= 0 ||
-              faltanteProyectado === resumen.faltante
+              faltanteProyectado === resumen.faltante ||
+              estaRegistrando
             }
+            isLoading={estaRegistrando}
             variant="whatsapp"
           >
             Guardar pagos

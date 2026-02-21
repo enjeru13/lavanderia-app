@@ -28,6 +28,7 @@ export default function CategoriasModal({ onClose }: Props) {
   const [categoriaAEliminarId, setCategoriaAEliminarId] = useState<
     string | undefined
   >();
+  const [estaGuardando, setEstaGuardando] = useState(false);
 
   const cargarCategorias = async () => {
     setCargando(true);
@@ -63,6 +64,7 @@ export default function CategoriasModal({ onClose }: Props) {
       return;
     }
 
+    setEstaGuardando(true);
     try {
       if (modoEdicion && formState.id) {
         await categoriasService.update(formState.id, {
@@ -91,6 +93,8 @@ export default function CategoriasModal({ onClose }: Props) {
         errorMessage = error.message;
       }
       toast.error(errorMessage);
+    } finally {
+      setEstaGuardando(false);
     }
   };
 
@@ -184,6 +188,8 @@ export default function CategoriasModal({ onClose }: Props) {
               type="submit"
               variant="primary"
               leftIcon={modoEdicion ? <FaPen /> : <FaPlus />}
+              isLoading={estaGuardando}
+              disabled={estaGuardando}
             >
               {modoEdicion ? "Guardar" : "Añadir"}
             </Button>
