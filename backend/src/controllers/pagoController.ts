@@ -11,7 +11,7 @@ import type {
 async function recalcularEstadoOrden(ordenId: number) {
   const orden = await prisma.orden.findUnique({
     where: { id: ordenId },
-    include: { pagos: true },
+    include: { pagos: { include: { vueltos: true } } },
   });
 
   if (!orden) {
@@ -148,7 +148,7 @@ export async function createPago(req: Request, res: Response) {
     }
 
     const config = await prisma.configuracion.findFirst();
-    let tasaSnapshot = 1;
+    let tasaSnapshot = 0; // Default to 0 to avoid 1:1 bug
     if (config) {
       switch (moneda) {
         case "VES":

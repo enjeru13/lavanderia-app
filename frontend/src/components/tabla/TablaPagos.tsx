@@ -26,6 +26,8 @@ interface Props {
   sortColumn: SortKeys | null;
   sortDirection: SortDirection;
   cargandoOrdenDetalle: boolean;
+  monedaFiltro: Moneda | "TODAS";
+  setMonedaFiltro: (moneda: Moneda | "TODAS") => void;
   onSort: (column: SortKeys) => void;
   onVerDetallesOrden: (ordenId: number) => void;
 }
@@ -40,6 +42,8 @@ export default function TablaPagos({
   pagos,
   sortColumn,
   sortDirection,
+  monedaFiltro,
+  setMonedaFiltro,
   cargandoOrdenDetalle,
   onSort,
   onVerDetallesOrden,
@@ -81,7 +85,20 @@ export default function TablaPagos({
               Tasa (Hist.)
             </th>
             <th className="px-4 py-2 font-semibold whitespace-nowrap">
-              Moneda
+              <div className="flex flex-col gap-1 items-start">
+                <span>Moneda</span>
+                <select
+                  value={monedaFiltro}
+                  onChange={(e) => setMonedaFiltro(e.target.value as Moneda | "TODAS")}
+                  className="p-1 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <option value="TODAS">Todas</option>
+                  <option value="USD">USD</option>
+                  <option value="VES">VES</option>
+                  <option value="COP">COP</option>
+                </select>
+              </div>
             </th>
             <th
               className="px-4 py-2 font-semibold cursor-pointer whitespace-nowrap"

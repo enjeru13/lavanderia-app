@@ -8,6 +8,7 @@ export interface Pago {
   monto: number;
   moneda: Moneda;
   tasa?: number | null;
+  vueltos?: { monto: number; moneda: string }[];
 }
 
 export interface OrdenPago {
@@ -34,17 +35,27 @@ export function calcularTotalAbonado(
         ? tasasActuales.COP
         : undefined;
 
-    const tasaEfectiva = p.tasa && p.tasa > 0 ? p.tasa : tasaGlobal;
+    // Safeguard: If tasa is 1 and currency is not USD, it's a 1:1 bug.
+    // We treat it as undefined so it falls back to the global rate.
+    const tasaEfectiva = (p.tasa && p.tasa > 1) || (p.tasa === 1 && p.moneda === "USD")
+      ? p.tasa
+      : tasaGlobal;
 
     const tasasSnapshot: TasasConversion = {
       ...tasasActuales,
       [p.moneda]: tasaEfectiva,
     };
 
-    return (
-      sum +
-      convertirAmonedaPrincipal(p.monto, p.moneda, tasasSnapshot, principal)
-    );
+    const montoAbonado = convertirAmonedaPrincipal(p.monto, p.moneda, tasasSnapshot, principal);
+
+    // Subtract vueltos if they exist
+    const totalVueltos = (p.vueltos ?? []).reduce((vSum, v) => {
+      const vMoneda = v.moneda as Moneda; // Cast to Moneda for helper
+      // Use the same rate logic for vueltos
+      return vSum + convertirAmonedaPrincipal(v.monto, vMoneda, tasasSnapshot, principal);
+    }, 0);
+
+    return sum + (montoAbonado - totalVueltos);
   }, 0);
 }
 

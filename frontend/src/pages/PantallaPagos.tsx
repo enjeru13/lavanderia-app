@@ -38,6 +38,7 @@ export default function PantallaPagos() {
 
   const [mesSeleccionado, setMesSeleccionado] = useState(dayjs().month());
   const [anioSeleccionado, setAnioSeleccionado] = useState(dayjs().year());
+  const [monedaFiltro, setMonedaFiltro] = useState<Moneda | "TODAS">("TODAS");
 
   const [sortColumn, setSortColumn] = useState<SortKeys | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -84,7 +85,7 @@ export default function PantallaPagos() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filtroBusqueda, mesSeleccionado, anioSeleccionado]);
+  }, [filtroBusqueda, mesSeleccionado, anioSeleccionado, monedaFiltro]);
 
   const handleSort = (column: SortKeys) => {
     if (sortColumn === column) {
@@ -106,8 +107,9 @@ export default function PantallaPagos() {
       const fechaPago = dayjs(pago.fechaPago);
       const coincideMes = fechaPago.month() === mesSeleccionado;
       const coincideAnio = fechaPago.year() === anioSeleccionado;
+      const coincideMoneda = monedaFiltro === "TODAS" || pago.moneda === monedaFiltro;
 
-      return (matchOrdenId || matchCliente) && coincideMes && coincideAnio;
+      return (matchOrdenId || matchCliente) && coincideMes && coincideAnio && coincideMoneda;
     });
 
     const pagosProcesados = [...pagosFiltrados];
@@ -124,6 +126,7 @@ export default function PantallaPagos() {
           valA = a.ordenId;
           valB = b.ordenId;
         } else {
+          // Default: monto
           const tasaEfectivaA = a.tasa && a.tasa > 0 ? a.tasa : tasas[a.moneda as keyof TasasConversion];
           const tasasSnapshotA = { ...tasas, [a.moneda]: tasaEfectivaA };
           const tasaEfectivaB = b.tasa && b.tasa > 0 ? b.tasa : tasas[b.moneda as keyof TasasConversion];
@@ -138,9 +141,21 @@ export default function PantallaPagos() {
     }
 
     const totalIngresos = pagosFiltrados.reduce((sum, pago) => {
-      const tasaHistorica = pago.tasa && pago.tasa > 0 ? pago.tasa : tasas[pago.moneda as keyof TasasConversion];
+      // Safeguard: If tasa is 1 and currency is not USD, it's a 1:1 bug.
+      const tasaHistorica = (pago.tasa && pago.tasa > 1) || (pago.tasa === 1 && pago.moneda === "USD")
+        ? pago.tasa
+        : tasas[pago.moneda as keyof TasasConversion];
+
       const tasasSnapshot = { ...tasas, [pago.moneda]: tasaHistorica };
-      return sum + convertirAmonedaPrincipal(pago.monto, pago.moneda, tasasSnapshot, monedaPrincipal);
+      const montoAbonado = convertirAmonedaPrincipal(pago.monto, pago.moneda, tasasSnapshot, monedaPrincipal);
+
+      // Subtract vueltos if they exist
+      const totalVueltos = (pago.vueltos ?? []).reduce((vSum, v) => {
+        const vMoneda = v.moneda as Moneda;
+        return vSum + convertirAmonedaPrincipal(v.monto, vMoneda, tasasSnapshot, monedaPrincipal);
+      }, 0);
+
+      return sum + (montoAbonado - totalVueltos);
     }, 0);
 
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -152,7 +167,7 @@ export default function PantallaPagos() {
       totalIngresos,
       totalFilteredItems: pagosProcesados.length,
     };
-  }, [pagos, sortColumn, currentPage, itemsPerPage, filtroBusqueda, mesSeleccionado, anioSeleccionado, sortDirection, tasas, monedaPrincipal]);
+  }, [pagos, sortColumn, currentPage, itemsPerPage, filtroBusqueda, mesSeleccionado, anioSeleccionado, monedaFiltro, sortDirection, tasas, monedaPrincipal]);
 
   const {
     pagos: pagosParaMostrar,
@@ -249,12 +264,14 @@ export default function PantallaPagos() {
       </div>
 
       <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl shadow-sm border border-blue-200 dark:border-blue-800/50 mb-6 flex justify-between items-center">
-        <span className="text-blue-800 dark:text-blue-300 font-semibold text-lg">
-          Total Ingresos ({dayjs().month(mesSeleccionado).format("MMMM")}):
-        </span>
-        <span className="text-blue-900 dark:text-blue-100 font-bold text-2xl">
-          {formatearMoneda(totalIngresos, monedaPrincipal)}
-        </span>
+        <div className="flex items-center gap-4">
+          <span className="text-blue-800 dark:text-blue-300 font-semibold text-lg">
+            Total Ingresos ({dayjs().month(mesSeleccionado).format("MMMM")}):
+          </span>
+          <span className="text-blue-900 dark:text-blue-100 font-bold text-2xl">
+            {formatearMoneda(totalIngresos, monedaPrincipal)}
+          </span>
+        </div>
       </div>
 
       {/* TABLA */}
@@ -273,6 +290,8 @@ export default function PantallaPagos() {
             monedaPrincipal={monedaPrincipal}
             sortColumn={sortColumn}
             sortDirection={sortDirection}
+            monedaFiltro={monedaFiltro}
+            setMonedaFiltro={setMonedaFiltro}
             cargandoOrdenDetalle={cargandoOrdenDetalle}
             onSort={handleSort}
             onVerDetallesOrden={handleVerDetallesOrden}
